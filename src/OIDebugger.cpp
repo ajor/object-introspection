@@ -51,6 +51,13 @@ extern "C" {
 #include "PaddingHunter.h"
 #include "Syscall.h"
 
+#include "dwarf_parser.h"
+#include "type_flattener.h"
+#include "required_type_collector.h"
+#include "topo_sorter.h"
+#include "type_graph.h"
+#include "OICodeGen2.h"
+
 #ifndef OSS_ENABLE
 #include "cea/object-introspection/internal/GobsService.h"
 #endif
@@ -2910,6 +2917,27 @@ std::optional<std::string> OIDebugger::generateCode(const irequest& req) {
   if (!codegen) {
     return nullopt;
   }
+
+  TypeGraph type_graph;
+  DwarfParser p(type_graph);
+  Type *root_type = p.parse(root->type.type);
+
+  // TODO free resources from visitor classes after running each one
+  RequiredTypeCollector req_types;
+  auto required_types = req_types.collect({root_type});
+  // TODO try TypeFlattener.flatten()
+  TypeFlattener flattener;
+  flattener.flatten(req_types.classes());
+  TopoSorter topo_sort;
+  auto sorted_types = topo_sort.sort(required_types);
+
+  for (auto &t : sorted_types) {
+    std::cout << t->name() << std::endl;
+  };
+
+  OICodeGen2 codegen2(type_graph);
+  std::cout << codegen2.ClassDecls() << std::endl;
+  std::cout << codegen2.ClassDefs() << std::endl;
 
   RootInfo rootInfo = *root;
   codegen->setRootType(rootInfo.type);

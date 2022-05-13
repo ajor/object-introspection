@@ -250,6 +250,13 @@ add_library(oicore
   src/OIUtils.cpp
   src/PaddingHunter.cpp
   src/Serialize.cpp
+
+  src/OICodeGen2.cpp
+  src/dwarf_parser.cpp
+  src/type_flattener.cpp
+  src/required_type_collector.cpp
+  src/topo_sorter.cpp
+  src/types.cpp
 )
 add_dependencies(oicore libdrgn)
 set_project_warnings(oicore)
