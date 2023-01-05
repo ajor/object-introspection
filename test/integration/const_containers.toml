@@ -1,0 +1,63 @@
+includes = ["vector"]
+definitions = '''
+  template <typename T>
+  class Bar {
+  public:
+    T mem;
+  };
+  
+  class Foo {
+    public:
+  int ref;
+  std::vector<int *> v1;
+  std::vector<const int *> v2;
+  std::vector<const int *>* v3;
+  std::vector<const int *>** v4;
+  
+  // This does not work. If you comment out v5 things work.
+  std::vector<const std::vector<int> *> v5;
+  
+  //std::vector<const std::vector<int> *>* v6;
+  //std::vector<const std::vector<int> *>** v7;
+  //
+  //std::map<int, std::vector<int>> m1;
+  
+  Bar<int> b;
+  };
+'''
+
+[cases]
+  [cases.a]
+    param_types = ["const Foo&"]
+    setup = '''
+      Foo foo;
+      return foo;'''
+    expect_json = '{"staticSize":10, "dynamicSize":0}'
+  [cases.b]
+    param_types = ["const Foo&"]
+    setup = '''
+      Foo foo;
+      foo.v1.push_back(new int);
+      return foo;
+      '''
+    expect_json = '{"staticSize":123, "dynamicSize":0}'
+  [cases.foo_bar]
+    param_types = ["const Foo&", "const Bar<float>&"]
+    setup = '''
+      Foo foo;
+      foo.v1.push_back(new int);
+      Bar<float> bar;
+      bar.mem = 3.14159;
+      return {foo, bar};
+      '''
+    expect_json = '{"staticSize":1337, "dynamicSize":0}'
+  [cases.foo_bar_foo]
+    param_types = ["const Foo&", "const Bar<float>&", "const Foo&"]
+    setup = '''
+      Foo foo;
+      foo.v1.push_back(new int);
+      Bar<float> bar;
+      bar.mem = 3.14159;
+      return {foo, bar, foo};
+      '''
+    expect_json = '{"staticSize":1337, "dynamicSize":0}'
