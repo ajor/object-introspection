@@ -162,15 +162,6 @@ definitions = '''
     '''
     ```
 
-  - `type`
-
-    OI probe type. Defaults to `entry`.
-
-    Example:
-    ```
-    type = "return"
-    ```
-
   - `args`
 
     Comma separated list of arguments to introspect. Defaults to `arg0`.
@@ -178,6 +169,30 @@ definitions = '''
     Example:
     ```
     args = "arg0,arg1"
+    ```
+
+  - `script`
+
+    Full script to pass to oid. Can not be used with `args`. Implies `oil_disable`.
+
+    Example:
+    ```
+    script = "return:myFunc:arg0"
+    ```
+
+  - `target_function`
+
+    Override the test framework's generated target function with your own. To be used with `script` and `raw_definitions`.
+
+    Example:
+    ```
+    raw_definitions = '''
+      extern "C" {
+        void myFunc(int n) {}
+      }
+    '''
+    script = "entry:myFunc:arg0"
+    target_function = "myFunc"
     ```
 
   - `cli_options`
@@ -191,12 +206,22 @@ definitions = '''
 
   - `oid_skip`, `oil_skip`
 
-    Skip running this test. Defaults to false.
+    Skip running this test for oid/oil. Defaults to false.
 
     Example:
     ```
-    oid_skip = true
+    oid_skip = "reason for skipping test goes here"
     ```
+
+  - `oil_disable`
+
+    Mark test as not applicable to OIL. Defaults to false.
+
+    Example:
+    ```
+    oil_disable = "reason for disabling test goes here"
+    ```
+
 
   - `expect_oid_exit_code`, `expect_oil_exit_code`
 

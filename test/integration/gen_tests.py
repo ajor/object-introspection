@@ -164,18 +164,20 @@ int main(int argc, char *argv[]) {
 
 def add_dispatch_code(f, config):
     ns = get_namespace(config["suite"])
-    for case_name in config["cases"]:
+    for case_name, case in config["cases"].items():
         case_str = get_case_name(config["suite"], case_name)
-        oil_func_name = get_target_oil_func_name(config["suite"], case_name)
-        oid_func_name = get_target_oid_func_name(config["suite"], case_name)
+        oil_func_name = f"{ns}::{get_target_oil_func_name(config['suite'], case_name)}"
+        oid_func_name = f"{ns}::{get_target_oid_func_name(config['suite'], case_name)}"
+        if "target_function" in case:
+            oid_func_name = case["target_function"]
         f.write(
             f'  if (test_case == "{case_str}") {{\n'
             f"    auto val = {ns}::get_{case_name}();\n"
             f"    for (int i=0; i<iterations; i++) {{\n"
             f'      if (mode == "oil") {{\n'
-            f"        std::apply({ns}::{oil_func_name}, val);\n"
+            f"        std::apply({oil_func_name}, val);\n"
             f"      }} else {{\n"
-            f"        std::apply({ns}::{oid_func_name}, val);\n"
+            f"        std::apply({oid_func_name}, val);\n"
             f"      }}\n"
             f"      std::this_thread::sleep_for(std::chrono::milliseconds(100));\n"
             f"    }}\n"
@@ -214,9 +216,9 @@ def gen_target(output_target_name, test_configs):
         add_footer(f)
 
 
-def get_probe_name(probe_type, test_suite, test_case, args):
+def get_probe_name(test_suite, test_case, args):
     func_name = get_target_oid_func_name(test_suite, test_case)
-    return probe_type + ":" + func_name + ":" + args
+    return "entry:" + func_name + ":" + args
 
 
 def add_tests(f, config):
@@ -226,9 +228,13 @@ def add_tests(f, config):
 
 
 def add_oid_integration_test(f, config, case_name, case):
-    probe_type = case.get("type", "entry")
-    args = case.get("args", "arg0")
-    probe_str = get_probe_name(probe_type, config["suite"], case_name, args)
+    if "script" in case:
+        if "args" in case:
+            raise Exception(f"{config['suite']}.{case_name}: Can not use 'script' with 'args'.")
+        probe_str = case["script"]
+    else:
+        args = case.get("args", "arg0")
+        probe_str = get_probe_name(config["suite"], case_name, args)
     case_str = get_case_name(config["suite"], case_name)
     exit_code = case.get("expect_oid_exit_code", 0)
     cli_options = (
@@ -304,7 +310,7 @@ def add_oil_integration_test(f, config, case_name, case):
     case_str = get_case_name(config["suite"], case_name)
     exit_code = case.get("expect_oil_exit_code", 0)
 
-    if case.get("oil_disable", False):
+    if "oil_disable" in case or "script" in case:
         return
 
     f.write(

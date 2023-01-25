@@ -1,0 +1,34 @@
+includes = ["vector"]
+raw_definitions = '''
+extern "C" {
+  // "extern inline" means the compiler will never generate a non-inlined
+  // version of this function, when in GNU89 mode.
+  __attribute__((always_inline)) __attribute__((gnu_inline)) extern inline
+  void probe_inlined_target_function1(const std::vector<int> &vec) {
+    std::cout << &vec << std::endl;
+  }
+
+  __attribute__((always_inline))
+  void inlined_probe_target_function(const std::vector<int> &vec) {
+    std::cout << &vec << std::endl;
+  }
+
+//  [[gnu::always_inline]] [[gnu::gnu_inline]] extern inline
+//  void probe_inlined_target_function2(const std::vector<int> &vec) {
+//    std::cout << &vec << &probe_inlined_target_function2 << std::endl;
+//  }
+}
+'''
+[cases]
+  [cases.solely_inlined]
+    script = "entry:probe_inlined_target_function1:arg0"
+    target_function = "probe_inlined_target_function1"
+    param_types = ["const std::vector<int>&"]
+    setup = "return {{1,2,3}};"
+    expect_json = '[{"staticSize":24, "dynamicSize":12, "length":3, "capacity":3, "elementStaticSize":4}]'
+#  [cases.inlined_and_outlined]
+#    script = "entry:probe_inlined_target_function2:arg0"
+#    target_function = "probe_inlined_target_function2"
+#    param_types = ["const std::vector<int>&"]
+#    setup = "return {{1,2,3}};"
+#    expect_json = '[{"staticSize":24, "dynamicSize":12, "length":3, "capacity":3, "elementStaticSize":4}]'

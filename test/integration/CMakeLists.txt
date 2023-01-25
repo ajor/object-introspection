@@ -3,6 +3,7 @@ set(INTEGRATION_TEST_CONFIGS
   anonymous.toml
   container_enums.toml
   cycles.toml
+  inlined_probe.toml
   multi_arg.toml
   namespaces.toml
   packed.toml
