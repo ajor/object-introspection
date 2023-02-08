@@ -32,4 +32,7 @@ private:
   std::vector<Class*> required_classes_;
 
   void collect_type(Type *type);
+
+  bool isTopLevel() const;
+  int depth;
 };

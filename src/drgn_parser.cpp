@@ -1,4 +1,4 @@
-#include "dwarf_parser.h"
+#include "drgn_parser.h"
 
 extern "C" {
 #include <drgn.h>
@@ -52,11 +52,11 @@ Primitive::Kind primitiveFloatKind(struct drgn_type *type) {
 // TODO pass over graph to deduplicate names?
 // TODO type stubs
 
-Type *DwarfParser::parse(struct drgn_type *root) {
+Type *DrgnParser::parse(struct drgn_type *root) {
   return enumerateType(root);
 }
 
-Type *DwarfParser::enumerateType(struct drgn_type *type) {
+Type *DrgnParser::enumerateType(struct drgn_type *type) {
   // Avoid re-enumerating an already-processsed type
   if (auto it = drgn_types_.find(type); it != drgn_types_.end())
     return it->second;
@@ -99,7 +99,7 @@ Type *DwarfParser::enumerateType(struct drgn_type *type) {
   return t;
 }
 
-Class *DwarfParser::enumerateClass(struct drgn_type *type) {
+Class *DrgnParser::enumerateClass(struct drgn_type *type) {
   std::string type_name;
   const char *type_tag = drgn_type_tag(type);
   if (type_tag)
@@ -145,7 +145,7 @@ Class *DwarfParser::enumerateClass(struct drgn_type *type) {
   return c;
 }
 
-void DwarfParser::enumerateClassParents(struct drgn_type *type, Class *c) {
+void DrgnParser::enumerateClassParents(struct drgn_type *type, Class *c) {
   // TODO check if has parents?
   struct drgn_type_template_parameter *parents = drgn_type_parents(type);
 
@@ -168,7 +168,7 @@ void DwarfParser::enumerateClassParents(struct drgn_type *type, Class *c) {
             });
 }
 
-void DwarfParser::enumerateClassMembers(struct drgn_type *type, Class *c) {
+void DrgnParser::enumerateClassMembers(struct drgn_type *type, Class *c) {
   // TODO check has members?
   struct drgn_type_member *members = drgn_type_members(type);
   for (size_t i = 0; i < drgn_type_num_members(type); i++) {
@@ -211,7 +211,7 @@ void DwarfParser::enumerateClassMembers(struct drgn_type *type, Class *c) {
             });
 }
 
-void DwarfParser::enumerateClassTemplateParams(struct drgn_type *type, Class *c) {
+void DrgnParser::enumerateClassTemplateParams(struct drgn_type *type, Class *c) {
   // TODO check has template params?
   struct drgn_type_template_parameter *tparams = drgn_type_template_parameters(type);
   for (size_t i = 0; i < drgn_type_num_template_parameters(type); i++) {
@@ -230,7 +230,7 @@ void DwarfParser::enumerateClassTemplateParams(struct drgn_type *type, Class *c)
   // TODO sort?
 }
 
-Enum *DwarfParser::enumerateEnum(struct drgn_type *type) {
+Enum *DrgnParser::enumerateEnum(struct drgn_type *type) {
   // TODO get name
 
   uint64_t size;
@@ -241,12 +241,12 @@ Enum *DwarfParser::enumerateEnum(struct drgn_type *type) {
   return make_type<Enum>(type, "ENUM_POO", size);
 }
 
-TypeDef *DwarfParser::enumerateTypeDef(struct drgn_type *type) {
+TypeDef *DrgnParser::enumerateTypeDef(struct drgn_type *type) {
   std::string type_name = drgn_type_name(type);
   // TODO anonymous typedefs?
 
   struct drgn_type *underlying_type = drgn_type_type(type).type;
-  auto t = enumerateType(underlying_type);
+  auto t = enumerateType(underlying_type); // TODO won't this cause cycles?
   return make_type<TypeDef>(type, type_name, t);
 }
 
@@ -262,7 +262,7 @@ bool is_drgn_size_complete(struct drgn_type *type) {
 // TODO will have to do something about pointers in the visitor classes
 // - sometimes they must be followed, sometimes not?
 
-Pointer *DwarfParser::enumeratePointer(struct drgn_type *type) {
+Pointer *DrgnParser::enumeratePointer(struct drgn_type *type) {
   struct drgn_type *pointee_type = drgn_type_type(type).type;
 
   // Not handling pointers right now. Pointer members in classes are going to be
@@ -277,20 +277,20 @@ Pointer *DwarfParser::enumeratePointer(struct drgn_type *type) {
   Type *t = nullptr;
   if (drgn_type_kind(pointee_type) == DRGN_TYPE_FUNCTION ||
       is_drgn_size_complete(pointee_type))
-    t = enumerateType(pointee_type);
+    t = enumerateType(pointee_type); // TODO won't this cause cycles?
 
   return make_type<Pointer>(type, t);
 }
 
-Array *DwarfParser::enumerateArray(struct drgn_type *type) {
+Array *DrgnParser::enumerateArray(struct drgn_type *type) {
   struct drgn_type *element_type = drgn_type_type(type).type;
   uint64_t len = drgn_type_length(type);
-  auto t = enumerateType(element_type);
+  auto t = enumerateType(element_type); // TODO won't this cause cycles?
   return make_type<Array>(type, "ARRAY_SMELLS", len, t);
 }
 
 // TODO deduplication of primitive types
-Primitive *DwarfParser::enumeratePrimitive(struct drgn_type *type) {
+Primitive *DrgnParser::enumeratePrimitive(struct drgn_type *type) {
   Primitive::Kind kind;
   switch (drgn_type_kind(type)) {
     case DRGN_TYPE_INT:

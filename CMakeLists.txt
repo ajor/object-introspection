@@ -252,7 +252,7 @@ add_library(oicore
   src/Serialize.cpp
 
   src/OICodeGen2.cpp
-  src/dwarf_parser.cpp
+  src/drgn_parser.cpp
   src/type_flattener.cpp
   src/required_type_collector.cpp
   src/topo_sorter.cpp

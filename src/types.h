@@ -219,6 +219,10 @@ public:
     return sizeof(uintptr_t);
   }
 
+  Type *pointee_type() const {
+    return pointee_type_;
+  }
+
 private:
   Type *pointee_type_;
 };

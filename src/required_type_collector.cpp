@@ -2,6 +2,7 @@
 
 std::vector<Type*> RequiredTypeCollector::collect(const std::vector<Type*> &types) {
   for (auto type : types) {
+    depth = 0;
     collect_type(type);
   }
   return required_types_;
@@ -12,7 +13,9 @@ void RequiredTypeCollector::collect_type(Type *type) {
     return;
 
   visited_.insert(type);
+  depth++;
   type->accept(*this);
+  depth--;
 }
 
 void RequiredTypeCollector::visit(Class &c) {
@@ -45,8 +48,15 @@ void RequiredTypeCollector::visit(TypeDef &td) {
 }
 
 void RequiredTypeCollector::visit(Pointer &p) {
+  if (isTopLevel()) {
+    collect_type(p.pointee_type());
+  }
 }
 
 void RequiredTypeCollector::visit(Array &a) {
   collect_type(a.element_type());
+}
+
+bool RequiredTypeCollector::isTopLevel() const {
+  return depth == 1;
 }

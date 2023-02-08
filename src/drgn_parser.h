@@ -11,9 +11,9 @@ struct drgn_type;
 //namespace dwarf {
 
 // TODO rename DrgnParser
-class DwarfParser {
+class DrgnParser {
 public:
-  DwarfParser(TypeGraph &type_graph)
+  DrgnParser(TypeGraph &type_graph)
     : type_graph_(type_graph) { }
   Type *parse(struct drgn_type *root);
 
@@ -35,6 +35,7 @@ private:
   // parsing. This stops us getting caught in cycles.
   std::unordered_map<struct drgn_type*, Type*> drgn_types_;
 
+  // TODO define in .cpp
   template <typename T, typename ...Args>
   T *make_type(struct drgn_type *type, Args &&...args) {
     auto type_unique_ptr = std::make_unique<T>(std::forward<Args>(args)...);

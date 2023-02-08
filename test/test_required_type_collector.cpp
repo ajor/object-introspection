@@ -169,6 +169,21 @@ TEST(RequiredTypeCollectorTest, PointerCycle) {
   }
 }
 
+TEST(RequiredTypeCollectorTest, TopLevelPointer) {
+  auto classA = std::make_unique<Class>(Class::Kind::Class, "ClassA", 69);
+
+  // Top-level pointer should be followed
+  auto ptrA = std::make_unique<Pointer>(classA.get());
+
+  // Non-top-level pointer should not be followed
+  auto classB = std::make_unique<Class>(Class::Kind::Class, "ClassB", 69);
+  auto ptrB = std::make_unique<Pointer>(classB.get());
+  classA->members.push_back(Member(ptrB.get(), "b", 0));
+
+  RequiredTypeCollector req_types;
+  EXPECT_EQ_TYPES(req_types.collect({ptrA.get()}), {classA.get()});
+}
+
 // TODO:
 // References
 // Typedefs

@@ -51,7 +51,7 @@ extern "C" {
 #include "PaddingHunter.h"
 #include "Syscall.h"
 
-#include "dwarf_parser.h"
+#include "drgn_parser.h"
 #include "type_flattener.h"
 #include "required_type_collector.h"
 #include "topo_sorter.h"
@@ -2919,7 +2919,7 @@ std::optional<std::string> OIDebugger::generateCode(const irequest& req) {
   }
 
   TypeGraph type_graph;
-  DwarfParser p(type_graph);
+  DrgnParser p(type_graph);
   Type *root_type = p.parse(root->type.type);
 
   // TODO free resources from visitor classes after running each one
