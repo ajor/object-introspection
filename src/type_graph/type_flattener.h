@@ -6,12 +6,15 @@
 #include "types.h"
 #include "visitor.h"
 
+namespace type_graph {
+
 /*
  * TypeFlattener
  *
  * Flattens classes by removing parents and adding their members directly into
  * derived classes.
  */
+// TODO rename to "Flattener"
 class TypeFlattener : public Visitor {
 public:
   void flatten(const std::vector<Class*> &classes);
@@ -31,3 +34,5 @@ private:
 
   std::vector<uint64_t> offset_stack_;
 };
+
+} // namespace type_graph

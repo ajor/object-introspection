@@ -1,5 +1,7 @@
 #include "type_flattener.h"
 
+namespace type_graph {
+
 void TypeFlattener::flatten(const std::vector<Class*> &classes) {
   for (auto c : classes) {
     flatten_class(*c);
@@ -100,3 +102,5 @@ void TypeFlattener::visit(Pointer &p) {
 
 void TypeFlattener::visit(Array &a) {
 }
+
+} // namespace type_graph

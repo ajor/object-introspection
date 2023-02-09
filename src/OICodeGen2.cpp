@@ -1,5 +1,7 @@
 #include "OICodeGen2.h"
 
+using namespace type_graph;
+
 // TODO use C++20 std::format?
 std::string decl(const Class &c) {
   return "struct " + c.name() + ";\n";

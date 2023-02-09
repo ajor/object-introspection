@@ -6,6 +6,8 @@
 #include "types.h"
 #include "visitor.h"
 
+namespace type_graph {
+
 /*
  * RequiredTypeCollector
  *
@@ -36,3 +38,5 @@ private:
   bool chasePointer() const;
   int depth;
 };
+
+} // namespace type_graph

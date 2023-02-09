@@ -2,6 +2,8 @@
 
 #include "types.h"
 
+namespace type_graph {
+
 class Visitor {
 public:
   virtual ~Visitor() = default;
@@ -10,3 +12,5 @@ public:
 OI_TYPE_LIST
 #undef X
 };
+
+} // namespace type_graph

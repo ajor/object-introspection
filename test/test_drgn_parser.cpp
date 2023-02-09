@@ -1,26 +1,35 @@
 #include <gtest/gtest.h>
 
-#include "drgn_parser.h"
-#include "type_graph.h"
-#include "types.h"
+#include "type_graph/drgn_parser.h"
+#include "type_graph/type_graph.h"
+#include "type_graph/types.h"
 
 // TODO these shouldn't be needed for testing this unit
 #include "SymbolService.h"
 #include "OICodeGen.h"
+#include "OIParser.h"
 
-void EXPECT_EQ_TYPES(const std::vector<Type*> actual, const std::vector<Type*> expected) {
-  EXPECT_EQ(actual.size(), expected.size());
-  for (std::size_t i=0; i<std::min(actual.size(), expected.size()); i++) {
-    EXPECT_EQ(actual[i]->name(), expected[i]->name());
-  }
-}
+using namespace type_graph;
 
-TEST(DrgnParserTest, SingleType) {
-  SymbolService symbols{"./a.out"};
-  irequest req{"entry", "TestSimpleStruct", "arg0"};
+// TODO put these in a header file
+void EXPECT_EQ_TYPE(const Type *actual, const Type *expected);
+void EXPECT_EQ_TYPES(const std::vector<Type*> actual, const std::vector<Type*> expected);
+
+Type *setupTest(TypeGraph &typeGraph, std::string_view function) {
+  SymbolService symbols{"./target_prog"};
+  irequest req{"entry", std::string{function}, "arg0"};
   auto drgnRoot = OICodeGen::getRootType(symbols, req);
 
-  TypeGraph type_graph;
-  DrgnParser drgnParser(type_graph);
-  Type *rootType = drgnParser.parse(drgnRoot->type.type);
+  DrgnParser drgnParser(typeGraph);
+  Type *asdf = drgnParser.parse(drgnRoot->type.type);
+  return asdf;
+}
+
+TEST(DrgnParserTest, SimpleStruct) {
+  TypeGraph typeGraph;
+  auto *actual = setupTest(typeGraph, "TestSimpleStruct");
+  auto simpleStruct = std::make_unique<Class>(Class::Kind::Class, "SimpleStruct", 13);
+  auto simpleStructPtr = std::make_unique<Pointer>(simpleStruct.get());
+
+  EXPECT_EQ_TYPE(actual, simpleStructPtr.get());
 }

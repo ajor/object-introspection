@@ -2,17 +2,16 @@
 
 #include <string>
 
-#include "type_graph.h"
-//#include "struct_definitions.h"
+#include "type_graph/type_graph.h"
 
 class OICodeGen2 {
 public:
-  OICodeGen2(const TypeGraph &type_graph) : type_graph_(type_graph) { }
-  std::string ClassDecls(const std::vector<Type*>& types);
-  std::string ClassDefs(const std::vector<Type*>& types);
-  std::string GetSizeFuncs(const std::vector<Type*>& types);
+  OICodeGen2(const type_graph::TypeGraph &type_graph) : type_graph_(type_graph) { }
+  std::string ClassDecls(const std::vector<type_graph::Type*>& types);
+  std::string ClassDefs(const std::vector<type_graph::Type*>& types);
+  std::string GetSizeFuncs(const std::vector<type_graph::Type*>& types);
 
 private:
-  const TypeGraph &type_graph_;
+  const type_graph::TypeGraph &type_graph_;
 //  StructDefinitions defs_;
 };

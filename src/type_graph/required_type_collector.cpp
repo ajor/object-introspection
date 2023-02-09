@@ -1,5 +1,7 @@
 #include "required_type_collector.h"
 
+namespace type_graph {
+
 std::vector<Type*> RequiredTypeCollector::collect(const std::vector<Type*> &types) {
   for (auto type : types) {
     depth = 0;
@@ -62,3 +64,5 @@ bool RequiredTypeCollector::chasePointer() const {
   // Chase top-level pointers
   return depth == 1;
 }
+
+} // namespace type_graph

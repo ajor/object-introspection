@@ -1,5 +1,7 @@
 #include "topo_sorter.h"
 
+namespace type_graph {
+
 std::vector<Type*> TopoSorter::sort(const std::vector<Type*> &types) {
   for (auto type : types) {
     sort_type(type);
@@ -51,3 +53,5 @@ void TopoSorter::visit(Pointer &p) {
 void TopoSorter::visit(Array &a) {
   sort_type(a.element_type());
 }
+
+} // namespace type_graph

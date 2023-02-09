@@ -5,6 +5,8 @@
 
 #include "types.h"
 
+namespace type_graph {
+
 class TypeGraph {
 public:
   void add(std::unique_ptr<Type> type) {
@@ -38,3 +40,5 @@ private:
   std::vector<Class*> classes_;
   std::vector<TypeDef*> typedefs_;
 };
+
+} // namespace type_graph

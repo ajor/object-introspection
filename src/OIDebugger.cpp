@@ -51,11 +51,11 @@ extern "C" {
 #include "PaddingHunter.h"
 #include "Syscall.h"
 
-#include "drgn_parser.h"
-#include "type_flattener.h"
-#include "required_type_collector.h"
-#include "topo_sorter.h"
-#include "type_graph.h"
+#include "type_graph/drgn_parser.h"
+#include "type_graph/type_flattener.h"
+#include "type_graph/required_type_collector.h"
+#include "type_graph/topo_sorter.h"
+#include "type_graph/type_graph.h"
 #include "OICodeGen2.h"
 
 #ifndef OSS_ENABLE
@@ -2918,17 +2918,17 @@ std::optional<std::string> OIDebugger::generateCode(const irequest& req) {
     return nullopt;
   }
 
-  TypeGraph type_graph;
-  DrgnParser p(type_graph);
-  Type *root_type = p.parse(root->type.type);
+  type_graph::TypeGraph type_graph;
+  type_graph::DrgnParser p(type_graph);
+  type_graph::Type *root_type = p.parse(root->type.type);
 
   // TODO free resources from visitor classes after running each one
-  RequiredTypeCollector req_types;
+  type_graph::RequiredTypeCollector req_types;
   auto required_types = req_types.collect({root_type});
   // TODO try TypeFlattener.flatten()
-  TypeFlattener flattener;
+  type_graph::TypeFlattener flattener;
   flattener.flatten(req_types.classes());
-  TopoSorter topo_sort;
+  type_graph::TopoSorter topo_sort;
   auto sorted_types = topo_sort.sort(required_types);
 
   std::cout << "sorted types:\n";

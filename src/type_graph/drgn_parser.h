@@ -7,8 +7,7 @@
 
 struct drgn_type;
 
-// TODO
-//namespace dwarf {
+namespace type_graph {
 
 // TODO rename DrgnParser
 class DrgnParser {
@@ -52,3 +51,5 @@ private:
 
   TypeGraph &type_graph_;
 };
+
+} // namespace type_graph

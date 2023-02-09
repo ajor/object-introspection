@@ -6,6 +6,8 @@
 #include "types.h"
 #include "visitor.h"
 
+namespace type_graph {
+
 /*
  * TopoSorter
  *
@@ -30,3 +32,5 @@ private:
 
   void sort_type(Type *type);
 };
+
+} // namespace type_graph

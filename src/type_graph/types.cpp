@@ -2,6 +2,8 @@
 
 #include "visitor.h"
 
+namespace type_graph {
+
 #define X(OI_TYPE_NAME) void OI_TYPE_NAME::accept(Visitor &v) { v.visit(*this); }
 OI_TYPE_LIST
 #undef X
@@ -67,3 +69,5 @@ std::size_t Primitive::size() const {
       return 1;
   }
 }
+
+} // namespace type_graph

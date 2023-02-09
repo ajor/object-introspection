@@ -3,6 +3,7 @@
 #include <cstddef>
 #include <optional>
 #include <string>
+#include <vector>
 
 #define OI_TYPE_LIST \
   X(Class) \
@@ -12,6 +13,8 @@
   X(TypeDef) \
   X(Pointer) \
   X(Array)
+
+namespace type_graph {
 
 class Visitor;
 #define DECLARE_ACCEPT void accept(Visitor &v) override;
@@ -247,5 +250,7 @@ public:
 private:
   Type *pointee_type_;
 };
+
+} // namespace type_graph
 
 #undef DECLARE_ACCEPT

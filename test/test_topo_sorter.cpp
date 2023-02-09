@@ -1,12 +1,19 @@
 #include <gtest/gtest.h>
 
-#include "topo_sorter.h"
-#include "types.h"
+#include "type_graph/topo_sorter.h"
+#include "type_graph/types.h"
+
+using namespace type_graph;
+
+void EXPECT_EQ_TYPE(const Type *actual, const Type *expected) {
+  EXPECT_EQ(actual->name(), expected->name());
+  EXPECT_EQ(actual->size(), expected->size());
+}
 
 void EXPECT_EQ_TYPES(const std::vector<Type*> actual, const std::vector<Type*> expected) {
   EXPECT_EQ(actual.size(), expected.size());
   for (std::size_t i=0; i<std::min(actual.size(), expected.size()); i++) {
-    EXPECT_EQ(actual[i]->name(), expected[i]->name());
+    EXPECT_EQ_TYPE(actual[i], expected[i]);
   }
 }
 

@@ -1,7 +1,9 @@
 #include <gtest/gtest.h>
 
-#include "required_type_collector.h"
-#include "types.h"
+#include "type_graph/required_type_collector.h"
+#include "type_graph/types.h"
+
+using namespace type_graph;
 
 void EXPECT_EQ_TYPES(const std::vector<Type*> actual, const std::vector<Type*> expected);
 

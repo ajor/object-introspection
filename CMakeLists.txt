@@ -252,11 +252,6 @@ add_library(oicore
   src/Serialize.cpp
 
   src/OICodeGen2.cpp
-  src/drgn_parser.cpp
-  src/type_flattener.cpp
-  src/required_type_collector.cpp
-  src/topo_sorter.cpp
-  src/types.cpp
 )
 add_dependencies(oicore libdrgn)
 set_project_warnings(oicore)
@@ -266,6 +261,7 @@ target_compile_definitions(oicore PRIVATE ${LLVM_DEFINITIONS})
 llvm_map_components_to_libnames(llvm_libs core native mcjit x86disassembler)
 target_link_libraries(oicore
   codegen
+  type_graph
 
   ${Boost_LIBRARIES}
   Boost::headers
@@ -379,6 +375,8 @@ target_precompile_headers(oicore
 foreach(TARGET oil oip oid oitb)
   target_precompile_headers(${TARGET} REUSE_FROM oicore)
 endforeach()
+
+add_subdirectory("src/type_graph")
 
 # Add a hook for custom CMake rules
 if (DEFINED ENV{CMAKE_HOOK})

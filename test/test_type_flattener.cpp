@@ -3,8 +3,10 @@
 
 #include <gtest/gtest.h>
 
-#include "type_flattener.h"
-#include "types.h"
+#include "type_graph/type_flattener.h"
+#include "type_graph/types.h"
+
+using namespace type_graph;
 
 void EXPECT_EQ_CLASS(const Class &actual, const Class &expected) {
 //  EXPECT_EQ(actual.kind_, expected.kind_); TODO

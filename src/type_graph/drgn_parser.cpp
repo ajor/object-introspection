@@ -4,6 +4,7 @@ extern "C" {
 #include <drgn.h>
 }
 
+namespace type_graph {
 namespace {
 
 uint64_t get_drgn_type_size(struct drgn_type *type) {
@@ -236,8 +237,8 @@ void DrgnParser::enumerateClassMemberFunctions(struct drgn_type *type, Class *c)
   for (size_t i = 0; i < drgn_type_num_functions(type); i++) {
     drgn_qualified_type t{};
     if (auto *err = drgn_member_function_type(&functions[i], &t)) {
-      LOG(ERROR) << "Error when looking up member function for type " << type
-                 << " err " << err->code << " " << err->message;
+//      LOG(ERROR) << "Error when looking up member function for type " << type
+//                 << " err " << err->code << " " << err->message;
       drgn_error_destroy(err);
       continue;
     }
@@ -326,3 +327,5 @@ Primitive *DrgnParser::enumeratePrimitive(struct drgn_type *type) {
   }
   return make_type<Primitive>(type, kind);
 }
+
+} // namespace type_graph
