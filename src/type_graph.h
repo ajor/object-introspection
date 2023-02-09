@@ -9,6 +9,7 @@ class TypeGraph {
 public:
   void add(std::unique_ptr<Type> type) {
     types_.push_back(std::move(type));
+    // TODO this could put types into the appropriate vectors if needed
   }
 
   // TODO

@@ -8,8 +8,9 @@
 class OICodeGen2 {
 public:
   OICodeGen2(const TypeGraph &type_graph) : type_graph_(type_graph) { }
-  std::string ClassDecls();
-  std::string ClassDefs();
+  std::string ClassDecls(const std::vector<Type*>& types);
+  std::string ClassDefs(const std::vector<Type*>& types);
+  std::string GetSizeFuncs(const std::vector<Type*>& types);
 
 private:
   const TypeGraph &type_graph_;

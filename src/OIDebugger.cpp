@@ -2938,9 +2938,11 @@ std::optional<std::string> OIDebugger::generateCode(const irequest& req) {
 
   OICodeGen2 codegen2(type_graph);
   std::cout << "class decls\n";
-  std::cout << codegen2.ClassDecls() << std::endl;
+  std::cout << codegen2.ClassDecls(sorted_types) << std::endl;
   std::cout << "class defs\n";
-  std::cout << codegen2.ClassDefs() << std::endl;
+  std::cout << codegen2.ClassDefs(sorted_types) << std::endl;
+  std::cout << "get size funcs:\n";
+  std::cout << codegen2.GetSizeFuncs(sorted_types) << std::endl;
 
   RootInfo rootInfo = *root;
   codegen->setRootType(rootInfo.type);
