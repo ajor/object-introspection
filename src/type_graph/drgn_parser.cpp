@@ -244,7 +244,7 @@ void DrgnParser::enumerateClassMemberFunctions(struct drgn_type *type, Class *c)
     }
 
     auto virtuality = drgn_type_virtuality(t.type);
-    std::string name = drgn_type_name(type); // TODO might need drgn changes to assertions
+    std::string name = drgn_type_name(t.type);
     Function f(name, virtuality);
     c->functions.push_back(f);
   }

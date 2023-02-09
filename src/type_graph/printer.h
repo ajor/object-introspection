@@ -24,7 +24,12 @@ public:
   void visit(Array &a) override;
 
 private:
+  std::string indent() const;
+  void print_parent(const Parent &parent);
+  void print_member(const Member &member);
+  void print_param(const TemplateParam &param);
   std::ostream &out_;
+  int depth_ = -1;
 };
 
 } // namespace type_graph

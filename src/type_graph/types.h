@@ -100,9 +100,9 @@ public:
     return size_;
   }
 
-  std::vector<Member> members; // Sorted by offset
-  std::vector<Parent> parents; // Sorted by offset
   std::vector<TemplateParam> template_params;
+  std::vector<Parent> parents; // Sorted by offset
+  std::vector<Member> members; // Sorted by offset
   std::vector<Function> functions;
 
 private:

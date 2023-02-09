@@ -5,10 +5,6 @@ struct SimpleStruct {
   int b;
   int c;
 };
-extern "C" {
-void TestSimpleStruct(const SimpleStruct &x) {
-}
-}
 
 struct InheritanceBase {
   int a;
@@ -19,12 +15,25 @@ struct InheritanceMiddle : InheritanceBase {
 struct InheritanceChild : InheritanceMiddle {
   int c;
 };
+
+extern "C" {
+void TestSimpleStruct(const SimpleStruct &x) {
+}
 void TestInheritance(const InheritanceChild &x) {
 };
-
 void TestContainer(const std::vector<SimpleStruct> &x) {
+}
 }
 
 int main() {
+  SimpleStruct ss;
+  TestSimpleStruct(ss);
+
+  InheritanceChild ic;
+  TestInheritance(ic);
+
+  std::vector<SimpleStruct> vss;
+  TestContainer(vss);
+
   return 0;
 }
