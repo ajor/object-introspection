@@ -38,6 +38,14 @@ struct Member {
   uint64_t offset;
 };
 
+struct Function {
+  Function(const std::string &name, int virtuality=0)
+    : name(name), virtuality(virtuality) { }
+
+  std::string name;
+  int virtuality;
+};
+
 class Class;
 struct Parent {
   Parent(Type *type, uint64_t offset)
@@ -92,6 +100,7 @@ public:
   std::vector<Member> members; // Sorted by offset
   std::vector<Parent> parents; // Sorted by offset
   std::vector<TemplateParam> template_params;
+  std::vector<Function> functions;
 
 private:
   Kind kind_;
@@ -100,15 +109,27 @@ private:
   // TODO namespace
 };
 
-class Container : public Class {
+class Container : public Type {
 public:
-  Container(const std::string &name) : Class(Kind::Class, name, 0) { }
+  enum class Kind {
+    StdVector,
+    StdMap,
+  };
+
+  Container(Kind kind) : kind_(kind) { }
 
   DECLARE_ACCEPT
+
+  virtual std::string name() const override {
+    return "std::vector"; // TODO
+  }
 
   virtual std::size_t size() const override {
     return 0; // TODO
   }
+
+  std::vector<TemplateParam> template_params;
+  Kind kind_;
 };
 
 class Enum : public Type {

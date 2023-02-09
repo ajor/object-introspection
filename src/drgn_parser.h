@@ -24,6 +24,7 @@ private:
   void   enumerateClassParents(struct drgn_type *type, Class *c);
   void   enumerateClassMembers(struct drgn_type *type, Class *c);
   void   enumerateClassTemplateParams(struct drgn_type *type, Class *c);
+  void   enumerateClassMemberFunctions(struct drgn_type *type, Class *c);
 
   Enum      *enumerateEnum(struct drgn_type *type);
   TypeDef   *enumerateTypeDef(struct drgn_type *type);

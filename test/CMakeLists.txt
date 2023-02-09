@@ -51,10 +51,13 @@ target_link_libraries(integration_sleepy folly_headers)
 
 add_executable(
   test_codegen
+  test_drgn_parser.cpp
   test_type_flattener.cpp
   test_required_type_collector.cpp
   test_topo_sorter.cpp
 )
+add_dependencies(test_codegen libdrgn)
+
 target_link_libraries(
   test_codegen
   ${GMOCK_MAIN_LIBS}

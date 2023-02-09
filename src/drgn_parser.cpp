@@ -112,9 +112,9 @@ Class *DrgnParser::enumerateClass(struct drgn_type *type) {
     type_name.erase(template_start_pos);
 
   // TODO detect containers properly
-  if (type_name == "vector") {
-    return make_type<Container>(type, type_name);
-  }
+//  if (type_name == "vector") {
+//    return make_type<Container>(type, Container::Kind::StdVector);
+//  }
 
   auto size = get_drgn_type_size(type);
 
@@ -140,6 +140,7 @@ Class *DrgnParser::enumerateClass(struct drgn_type *type) {
   enumerateClassParents(type, c);
   enumerateClassMembers(type, c);
   enumerateClassTemplateParams(type, c);
+  enumerateClassMemberFunctions(type, c);
 
   // TODO if container? maybe not...
   return c;
@@ -228,6 +229,24 @@ void DrgnParser::enumerateClassTemplateParams(struct drgn_type *type, Class *c) 
   }
 
   // TODO sort?
+}
+
+void DrgnParser::enumerateClassMemberFunctions(struct drgn_type *type, Class *c) {
+  drgn_type_member_function *functions = drgn_type_functions(type);
+  for (size_t i = 0; i < drgn_type_num_functions(type); i++) {
+    drgn_qualified_type t{};
+    if (auto *err = drgn_member_function_type(&functions[i], &t)) {
+      LOG(ERROR) << "Error when looking up member function for type " << type
+                 << " err " << err->code << " " << err->message;
+      drgn_error_destroy(err);
+      continue;
+    }
+
+    auto virtuality = drgn_type_virtuality(t.type);
+    std::string name = drgn_type_name(type); // TODO might need drgn changes to assertions
+    Function f(name, virtuality);
+    c->functions.push_back(f);
+  }
 }
 
 Enum *DrgnParser::enumerateEnum(struct drgn_type *type) {
