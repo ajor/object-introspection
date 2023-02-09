@@ -4,8 +4,8 @@
 #include "types.h"
 
 void EXPECT_EQ_TYPES(const std::vector<Type*> actual, const std::vector<Type*> expected) {
-  ASSERT_EQ(actual.size(), expected.size());
-  for (std::size_t i=0; i<actual.size(); i++) {
+  EXPECT_EQ(actual.size(), expected.size());
+  for (std::size_t i=0; i<std::min(actual.size(), expected.size()); i++) {
     EXPECT_EQ(actual[i]->name(), expected[i]->name());
   }
 }

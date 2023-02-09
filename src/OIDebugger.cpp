@@ -2931,12 +2931,15 @@ std::optional<std::string> OIDebugger::generateCode(const irequest& req) {
   TopoSorter topo_sort;
   auto sorted_types = topo_sort.sort(required_types);
 
+  std::cout << "sorted types:\n";
   for (auto &t : sorted_types) {
     std::cout << t->name() << std::endl;
   };
 
   OICodeGen2 codegen2(type_graph);
+  std::cout << "class decls\n";
   std::cout << codegen2.ClassDecls() << std::endl;
+  std::cout << "class defs\n";
   std::cout << codegen2.ClassDefs() << std::endl;
 
   RootInfo rootInfo = *root;

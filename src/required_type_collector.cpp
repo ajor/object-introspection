@@ -47,8 +47,9 @@ void RequiredTypeCollector::visit(TypeDef &td) {
   required_types_.push_back(&td);
 }
 
+// TODO chase raw pointers flag
 void RequiredTypeCollector::visit(Pointer &p) {
-  if (isTopLevel()) {
+  if (chasePointer()) {
     collect_type(p.pointee_type());
   }
 }
@@ -57,6 +58,7 @@ void RequiredTypeCollector::visit(Array &a) {
   collect_type(a.element_type());
 }
 
-bool RequiredTypeCollector::isTopLevel() const {
+bool RequiredTypeCollector::chasePointer() const {
+  // Chase top-level pointers
   return depth == 1;
 }

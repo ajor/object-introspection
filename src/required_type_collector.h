@@ -33,6 +33,6 @@ private:
 
   void collect_type(Type *type);
 
-  bool isTopLevel() const;
+  bool chasePointer() const;
   int depth;
 };

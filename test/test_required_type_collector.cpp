@@ -170,9 +170,8 @@ TEST(RequiredTypeCollectorTest, PointerCycle) {
 }
 
 TEST(RequiredTypeCollectorTest, TopLevelPointer) {
-  auto classA = std::make_unique<Class>(Class::Kind::Class, "ClassA", 69);
-
   // Top-level pointer should be followed
+  auto classA = std::make_unique<Class>(Class::Kind::Class, "ClassA", 69);
   auto ptrA = std::make_unique<Pointer>(classA.get());
 
   // Non-top-level pointer should not be followed
