@@ -70,12 +70,17 @@ TEST(DrgnParserTest, Container) {
   test("TestContainer",
        R"(Pointer
   Container: std::vector
-    Class: SimpleStruct (12)
-      Member: a (0)
-        Primitive: int32_t
-      Member: b (4)
-        Primitive: int32_t
-      Member: c (8)
-        Primitive: int32_t
+    Param
+      Class: SimpleStruct (12)
+        Member: a (0)
+          Primitive: int32_t
+        Member: b (4)
+          Primitive: int32_t
+        Member: c (8)
+          Primitive: int32_t
+    Param
+      Class: allocator_SimpleStruct_ (1)
+        Parent (0)
+          TypeDef: __allocator_base<SimpleStruct>
 )");
 }

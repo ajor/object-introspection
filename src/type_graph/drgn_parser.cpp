@@ -100,7 +100,13 @@ Type *DrgnParser::enumerateType(struct drgn_type *type) {
   return t;
 }
 
-Class *DrgnParser::enumerateClass(struct drgn_type *type) {
+Container *DrgnParser::enumerateContainer(struct drgn_type *type) {
+  auto c = make_type<Container>(type, Container::Kind::StdVector);
+  enumerateClassTemplateParams(type, c->template_params);
+  return c;
+}
+
+Type *DrgnParser::enumerateClass(struct drgn_type *type) {
   std::string type_name;
   const char *type_tag = drgn_type_tag(type);
   if (type_tag)
@@ -113,9 +119,9 @@ Class *DrgnParser::enumerateClass(struct drgn_type *type) {
     type_name.erase(template_start_pos);
 
   // TODO detect containers properly
-//  if (type_name == "vector") {
-//    return make_type<Container>(type, Container::Kind::StdVector);
-//  }
+  if (type_name == "vector") {
+    return enumerateContainer(type);
+  }
 
   auto size = get_drgn_type_size(type);
 
@@ -138,22 +144,24 @@ Class *DrgnParser::enumerateClass(struct drgn_type *type) {
 
   //classes_.push_back(c);
 
-  enumerateClassParents(type, c);
-  enumerateClassMembers(type, c);
-  enumerateClassTemplateParams(type, c);
-  enumerateClassMemberFunctions(type, c);
+  enumerateClassParents(type, c->parents);
+  enumerateClassMembers(type, c->members);
+  enumerateClassTemplateParams(type, c->template_params);
+  enumerateClassFunctions(type, c->functions);
 
-  // TODO if container? maybe not...
   return c;
 }
 
-void DrgnParser::enumerateClassParents(struct drgn_type *type, Class *c) {
-  // TODO check if has parents?
-  struct drgn_type_template_parameter *parents = drgn_type_parents(type);
+void DrgnParser::enumerateClassParents(struct drgn_type *type, std::vector<Parent> &parents) {
+  assert(parents.empty());
+  size_t num_parents = drgn_type_num_parents(type);
+  parents.reserve(num_parents);
 
-  for (size_t i = 0; i < drgn_type_num_parents(type); i++) {
+  struct drgn_type_template_parameter *drgn_parents = drgn_type_parents(type);
+
+  for (size_t i = 0; i < num_parents; i++) {
     struct drgn_qualified_type parent_qual_type;
-    struct drgn_error *err = drgn_template_parameter_type(&parents[i], &parent_qual_type);
+    struct drgn_error *err = drgn_template_parameter_type(&drgn_parents[i], &parent_qual_type);
     if (err) {
       abort(); // TODO throw an exception instead
     }
@@ -161,23 +169,26 @@ void DrgnParser::enumerateClassParents(struct drgn_type *type, Class *c) {
     auto ptype = enumerateType(parent_qual_type.type);
     uint64_t poffset = 0; // TODO
     Parent p(ptype, poffset);
-    c->parents.push_back(p); // TODO emplace_back?
+    parents.push_back(p);
   }
 
-  std::sort(c->parents.begin(), c->parents.end(),
+  std::sort(parents.begin(), parents.end(),
             [](const auto &a, const auto &b) {
               return a.offset < b.offset;
             });
 }
 
-void DrgnParser::enumerateClassMembers(struct drgn_type *type, Class *c) {
-  // TODO check has members?
-  struct drgn_type_member *members = drgn_type_members(type);
-  for (size_t i = 0; i < drgn_type_num_members(type); i++) {
+void DrgnParser::enumerateClassMembers(struct drgn_type *type, std::vector<Member> &members) {
+  assert(members.empty());
+  size_t num_members = drgn_type_num_members(type);
+  members.reserve(num_members);
+
+  struct drgn_type_member *drgn_members = drgn_type_members(type);
+  for (size_t i = 0; i < num_members; i++) {
     struct drgn_qualified_type member_qual_type;
     uint64_t bit_field_size;
     struct drgn_error *err =
-        drgn_member_type(&members[i], &member_qual_type, &bit_field_size);
+        drgn_member_type(&drgn_members[i], &member_qual_type, &bit_field_size);
     if (err)
       abort(); // TODO
 
@@ -186,7 +197,7 @@ void DrgnParser::enumerateClassMembers(struct drgn_type *type, Class *c) {
 //    if (err || !isDrgnSizeComplete(member_qual_type.type)) {
 //      if (err) {
 //        LOG(ERROR) << "Error when looking up member type " << err->code << " "
-//                   << err->message << " " << typeName << " " << members[i].name;
+//                   << err->message << " " << typeName << " " << drgn_members[i].name;
 //      }
 //      VLOG(1) << "Type " << typeName
 //              << " has an incomplete member; stubbing...";
@@ -195,28 +206,32 @@ void DrgnParser::enumerateClassMembers(struct drgn_type *type, Class *c) {
 //      return;
 //    }
     std::string member_name = "";
-    if (members[i].name)
-      member_name = members[i].name;
+    if (drgn_members[i].name)
+      member_name = drgn_members[i].name;
 
     // TODO bitfields
 
     auto mtype = enumerateType(member_type);
-    uint64_t moffset = members[i].bit_offset / 8;
+    uint64_t moffset = drgn_members[i].bit_offset / 8;
 
     Member m(mtype, member_name, moffset); // TODO
-    c->members.push_back(m);
+    members.push_back(m);
   }
 
-  std::sort(c->members.begin(), c->members.end(),
+  std::sort(members.begin(), members.end(),
             [](const auto &a, const auto &b) {
               return a.offset < b.offset;
             });
 }
 
-void DrgnParser::enumerateClassTemplateParams(struct drgn_type *type, Class *c) {
-  // TODO check has template params?
+void DrgnParser::enumerateClassTemplateParams(struct drgn_type *type,
+    std::vector<TemplateParam> &params) {
+  assert(params.empty());
+  size_t num_params = drgn_type_num_template_parameters(type);
+  params.reserve(num_params);
+
   struct drgn_type_template_parameter *tparams = drgn_type_template_parameters(type);
-  for (size_t i = 0; i < drgn_type_num_template_parameters(type); i++) {
+  for (size_t i = 0; i < num_params; i++) {
     struct drgn_qualified_type tparam_qual_type;
     struct drgn_error *err = drgn_template_parameter_type(&tparams[i], &tparam_qual_type);
     if (err)
@@ -226,17 +241,21 @@ void DrgnParser::enumerateClassTemplateParams(struct drgn_type *type, Class *c) 
 
     auto ttype = enumerateType(tparam_type);
     TemplateParam tp(ttype); // TODO tparam values
-    c->template_params.push_back(tp);
+    params.push_back(tp);
   }
 
   // TODO sort?
 }
 
-void DrgnParser::enumerateClassMemberFunctions(struct drgn_type *type, Class *c) {
-  drgn_type_member_function *functions = drgn_type_functions(type);
-  for (size_t i = 0; i < drgn_type_num_functions(type); i++) {
+void DrgnParser::enumerateClassFunctions(struct drgn_type *type, std::vector<Function> &functions) {
+  assert(functions.empty());
+  size_t num_functions = drgn_type_num_functions(type);
+  functions.reserve(num_functions);
+
+  drgn_type_member_function *drgn_functions = drgn_type_functions(type);
+  for (size_t i = 0; i < num_functions; i++) {
     drgn_qualified_type t{};
-    if (auto *err = drgn_member_function_type(&functions[i], &t)) {
+    if (auto *err = drgn_member_function_type(&drgn_functions[i], &t)) {
 //      LOG(ERROR) << "Error when looking up member function for type " << type
 //                 << " err " << err->code << " " << err->message;
       drgn_error_destroy(err);
@@ -246,7 +265,7 @@ void DrgnParser::enumerateClassMemberFunctions(struct drgn_type *type, Class *c)
     auto virtuality = drgn_type_virtuality(t.type);
     std::string name = drgn_type_name(t.type);
     Function f(name, virtuality);
-    c->functions.push_back(f);
+    functions.push_back(f);
   }
 }
 

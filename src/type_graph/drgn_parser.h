@@ -18,12 +18,14 @@ public:
 
 private:
   Type *enumerateType(struct drgn_type *type);
+  Container *enumerateContainer(struct drgn_type *type);
 
-  Class *enumerateClass(struct drgn_type *type);
-  void   enumerateClassParents(struct drgn_type *type, Class *c);
-  void   enumerateClassMembers(struct drgn_type *type, Class *c);
-  void   enumerateClassTemplateParams(struct drgn_type *type, Class *c);
-  void   enumerateClassMemberFunctions(struct drgn_type *type, Class *c);
+  Type  *enumerateClass(struct drgn_type *type);
+  void   enumerateClassParents(struct drgn_type *type, std::vector<Parent> &parents);
+  void   enumerateClassMembers(struct drgn_type *type, std::vector<Member> &members);
+  void   enumerateClassTemplateParams(struct drgn_type *type,
+                                      std::vector<TemplateParam> &params);
+  void   enumerateClassFunctions(struct drgn_type *type, std::vector<Function> &functions);
 
   Enum      *enumerateEnum(struct drgn_type *type);
   TypeDef   *enumerateTypeDef(struct drgn_type *type);
