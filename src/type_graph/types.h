@@ -173,6 +173,11 @@ public:
     return element_type_;
   }
 
+  // TODO remove std:: prefix from size_t
+  std::size_t len() const {
+    return len_;
+  }
+
 private:
   std::string name_;
   std::size_t len_;

@@ -56,6 +56,11 @@ struct CyclicalNode {
   int val;
 };
 
+struct ArrayStruct {
+  int int_array[5];
+  SimpleStruct struct_array[3];
+};
+
 extern "C" {
 void TestSimpleClass(const SimpleClass &x) {
 }
@@ -78,6 +83,8 @@ void TestTypedef(UInt64 x) {
 void TestUsing(const IntVector &x) {
 }
 void TestCycle(const CyclicalNode &x) {
+}
+void TestArray(const ArrayStruct &x) {
 }
 }
 
@@ -102,6 +109,9 @@ int main() {
 
   CyclicalNode cn;
   TestCycle(cn);
+
+  ArrayStruct as;
+  TestArray(as);
 
   return 0;
 }

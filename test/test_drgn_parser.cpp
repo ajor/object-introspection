@@ -166,3 +166,22 @@ TEST(DrgnParserTest, Cycle) {
           Primitive: int32_t
 )");
 }
+
+TEST(DrgnParserTest, Array) {
+  test("TestArray", R"(
+[0] Pointer
+[1]   Struct: ArrayStruct (72)
+        Member: int_array (0)
+[2]       Array: (5)
+            Primitive: int32_t
+        Member: struct_array (24)
+[3]       Array: (3)
+[4]         Struct: SimpleStruct (16)
+              Member: a (0)
+                Primitive: int32_t
+              Member: b (4)
+                Primitive: int8_t
+              Member: c (8)
+                Primitive: int64_t
+)");
+}

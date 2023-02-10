@@ -80,7 +80,7 @@ Type *DrgnParser::enumerateType(struct drgn_type *type) {
       t = enumeratePointer(type);
       break;
     case DRGN_TYPE_ARRAY:
-      enumerateArray(type);
+      t = enumerateArray(type);
       break;
     case DRGN_TYPE_INT:
     case DRGN_TYPE_BOOL:
@@ -92,9 +92,6 @@ Type *DrgnParser::enumerateType(struct drgn_type *type) {
       // Do nothing
       break;
       // TODO ensure that missing cases are a compile error
-//    default:
-//      LOG(ERROR) << "Unknown drgn type " << type;
-//      abort(); // TODO throw exception instead
   }
 
   return t;

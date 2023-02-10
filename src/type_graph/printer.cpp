@@ -75,8 +75,8 @@ void Printer::visit(Pointer &p) {
 
 void Printer::visit(Array &a) {
   prefix(&a);
-  out_ << "Array: " << a.name() << std::endl;
-  // TODO underlying type
+  out_ << "Array: (" << a.len() << ")" << std::endl;
+  print(*a.element_type());
 }
 
 void Printer::prefix(Type *type) {
