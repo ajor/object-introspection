@@ -10,7 +10,19 @@ void Printer::print(Type &type) {
 }
 
 void Printer::visit(Class &c) {
-  out_ << indent() << "Class: " << c.name() << " (" << c.size() << ")" << std::endl;
+  std::string kind;
+  switch (c.kind_) {
+    case Class::Kind::Class:
+      kind = "Class";
+      break;
+    case Class::Kind::Struct:
+      kind = "Struct";
+      break;
+    case Class::Kind::Union:
+      kind = "Union";
+      break;
+  }
+  out_ << indent() << kind << ": " << c.name() << " (" << c.size() << ")" << std::endl;
   // TODO template parameters
   for (const auto &parent : c.parents) {
     print_parent(parent);

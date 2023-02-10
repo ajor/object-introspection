@@ -1,19 +1,31 @@
 #include <cstdint>
 #include <vector>
 
-struct SimpleStruct {
+class SimpleClass {
   int a;
-  int b;
-  int c;
+  char b;
+  long long c;
 };
 
-struct InheritanceBase {
+struct SimpleStruct {
+  int a;
+  char b;
+  long long c;
+};
+
+union SimpleUnion {
+  int a;
+  char b;
+  long long c;
+};
+
+class InheritanceBase {
   int a;
 };
-struct InheritanceMiddle : InheritanceBase {
+class InheritanceMiddle : InheritanceBase {
   int b;
 };
-struct InheritanceChild : InheritanceMiddle {
+class InheritanceChild : InheritanceMiddle {
   int c;
 };
 
@@ -40,7 +52,11 @@ typedef uint64_t UInt64;
 using IntVector = std::vector<int>;
 
 extern "C" {
+void TestSimpleClass(const SimpleClass &x) {
+}
 void TestSimpleStruct(const SimpleStruct &x) {
+}
+void TestSimpleUnion(const SimpleUnion &x) {
 }
 void TestInheritance(const InheritanceChild &x) {
 };
@@ -59,8 +75,14 @@ void TestUsing(IntVector &x) {
 }
 
 int main() {
+  SimpleClass sc;
+  TestSimpleClass(sc);
+
   SimpleStruct ss;
   TestSimpleStruct(ss);
+
+  SimpleUnion su;
+  TestSimpleUnion(su);
 
   InheritanceChild ic;
   TestInheritance(ic);

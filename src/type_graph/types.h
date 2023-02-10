@@ -105,7 +105,7 @@ public:
   std::vector<Member> members; // Sorted by offset
   std::vector<Function> functions;
 
-private:
+//private:
   Kind kind_;
   std::string name_;
   std::size_t size_;

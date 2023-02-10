@@ -36,16 +36,42 @@ void test(std::string_view function, std::string_view expected) {
   EXPECT_EQ(expected, out.str());
 }
 
-TEST(DrgnParserTest, SimpleStruct) {
-  test("TestSimpleStruct",
+TEST(DrgnParserTest, SimpleClass) {
+  test("TestSimpleClass",
        R"(Pointer
-  Class: SimpleStruct (12)
+  Class: SimpleClass (16)
     Member: a (0)
       Primitive: int32_t
     Member: b (4)
-      Primitive: int32_t
+      Primitive: int8_t
     Member: c (8)
+      Primitive: int64_t
+)");
+}
+
+TEST(DrgnParserTest, SimpleStruct) {
+  test("TestSimpleStruct",
+       R"(Pointer
+  Struct: SimpleStruct (16)
+    Member: a (0)
       Primitive: int32_t
+    Member: b (4)
+      Primitive: int8_t
+    Member: c (8)
+      Primitive: int64_t
+)");
+}
+
+TEST(DrgnParserTest, SimpleUnion) {
+  test("TestSimpleUnion",
+       R"(Pointer
+  Union: SimpleUnion (8)
+    Member: a (0)
+      Primitive: int32_t
+    Member: b (0)
+      Primitive: int8_t
+    Member: c (0)
+      Primitive: int64_t
 )");
 }
 
@@ -71,13 +97,13 @@ TEST(DrgnParserTest, Container) { // TODO strip template parameters from contain
        R"(Pointer
   Container: std::vector
     Param
-      Class: SimpleStruct (12)
+      Struct: SimpleStruct (16)
         Member: a (0)
           Primitive: int32_t
         Member: b (4)
-          Primitive: int32_t
+          Primitive: int8_t
         Member: c (8)
-          Primitive: int32_t
+          Primitive: int64_t
     Param
       Class: allocator_SimpleStruct_ (1)
         Parent (0)
