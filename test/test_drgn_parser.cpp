@@ -93,7 +93,7 @@ TEST(DrgnParserTest, Inheritance) {
 )");
 }
 
-TEST(DrgnParserTest, Container) { // TODO strip template parameters from containers
+TEST(DrgnParserTest, Container) {
   test("TestContainer", R"(
 [0] Pointer
 [1]   Container: std::vector
@@ -105,15 +105,6 @@ TEST(DrgnParserTest, Container) { // TODO strip template parameters from contain
               Primitive: int8_t
             Member: c (8)
               Primitive: int64_t
-        Param
-[3]       Class: allocator_SimpleStruct_ (1)
-            Param
-              [2]
-            Parent (0)
-[4]           Typedef: __allocator_base<SimpleStruct>
-[5]             Class: new_allocator_SimpleStruct_ (1)
-                  Param
-                    [2]
 )");
 }
 
@@ -144,22 +135,13 @@ TEST(DrgnParserTest, Typedef) {
 )");
 }
 
-TEST(DrgnParserTest, Using) { // TODO allocator param should not be here
+TEST(DrgnParserTest, Using) {
   test("TestUsing", R"(
 [0] Pointer
 [1]   Typedef: IntVector
 [2]     Container: std::vector
           Param
             Primitive: int32_t
-          Param
-[3]         Class: allocator_int32_t_ (1)
-              Param
-                Primitive: int32_t
-              Parent (0)
-[4]             Typedef: __allocator_base<int>
-[5]               Class: new_allocator_int32_t_ (1)
-                    Param
-                      Primitive: int32_t
 )");
 }
 
@@ -216,17 +198,10 @@ TEST(DrgnParserTest, ClassTemplateVector) {
 [2]       Container: std::vector
             Param
               Primitive: int32_t
-            Param
-[3]           Class: allocator_int32_t_ (1)
-                Param
-                  Primitive: int32_t
-                Parent (0)
-[4]               Typedef: __allocator_base<int>
-[5]                 Class: new_allocator_int32_t_ (1)
-                      Param
-                        Primitive: int32_t
         Member: templatedValue (0)
           [2]
+        Function: TemplatedClass1 (virtuality: 0)
+        Function: ~TemplatedClass1 (virtuality: 0)
 )");
 }
 
@@ -253,5 +228,16 @@ TEST(DrgnParserTest, ClassTemplateSimpleStructInt) {
         Member: arr (16)
 [4]       Array: (2)
             Primitive: int32_t
+)");
+}
+
+TEST(DrgnParserTest, ClassFunctions) {
+  test("TestClassFunctions", R"(
+[0] Pointer
+[1]   Class: ClassFunctions (4)
+        Member: memberA (0)
+          Primitive: int32_t
+        Function: foo (virtuality: 0)
+        Function: bar (virtuality: 0)
 )");
 }

@@ -73,6 +73,12 @@ class TemplatedClass2 {
   S arr[2];
 };
 
+class ClassFunctions {
+  int memberA;
+  void foo();
+  int bar(char *s);
+};
+
 extern "C" {
 void TestSimpleClass(const SimpleClass &x) {
 }
@@ -103,6 +109,8 @@ void TestClassTemplateInt(const TemplatedClass1<int> &x) {
 void TestClassTemplateVector(const TemplatedClass1<std::vector<int>> &x) {
 }
 void TestClassTemplateSimpleStructInt(const TemplatedClass2<SimpleStruct, int> &x) {
+}
+void TestClassFunctions(const ClassFunctions &x) {
 }
 }
 
@@ -139,6 +147,9 @@ int main() {
 
   TemplatedClass2<SimpleStruct, int> tc2ssint;
   TestClassTemplateSimpleStructInt(tc2ssint);
+
+  ClassFunctions cf;
+  TestClassFunctions(cf);
 
   return 0;
 }

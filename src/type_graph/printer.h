@@ -29,6 +29,7 @@ private:
   void print_param(const TemplateParam &param);
   void print_parent(const Parent &parent);
   void print_member(const Member &member);
+  void print_function(const Function &function);
 
   std::ostream &out_;
   int depth_ = -1;

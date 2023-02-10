@@ -34,7 +34,9 @@ void Printer::visit(Class &c) {
   for (const auto &member : c.members) {
     print_member(member);
   }
-  // TODO functions
+  for (const auto &function : c.functions) {
+    print_function(function);
+  }
 }
 
 void Printer::visit(Container &c) {
@@ -124,6 +126,13 @@ void Printer::print_member(const Member &member) {
   prefix();
   out_ << "Member: " << member.name << " (" << member.offset << ")" << std::endl;
   print(*member.type);
+  depth_--;
+}
+
+void Printer::print_function(const Function &function) {
+  depth_++;
+  prefix();
+  out_ << "Function: " << function.name << " (virtuality: " << function.virtuality << ")" << std::endl;
   depth_--;
 }
 

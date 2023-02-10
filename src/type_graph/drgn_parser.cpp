@@ -100,6 +100,7 @@ Type *DrgnParser::enumerateType(struct drgn_type *type) {
 Container *DrgnParser::enumerateContainer(struct drgn_type *type) {
   auto c = make_type<Container>(type, Container::Kind::StdVector);
   enumerateClassTemplateParams(type, c->template_params);
+  c->template_params.erase(++c->template_params.begin()); // TODO hack to remove unimportant template parameters
   return c;
 }
 
