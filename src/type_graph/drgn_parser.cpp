@@ -270,23 +270,24 @@ void DrgnParser::enumerateClassFunctions(struct drgn_type *type, std::vector<Fun
 }
 
 Enum *DrgnParser::enumerateEnum(struct drgn_type *type) {
-  // TODO get name
+  // TODO anonymous enums
+  std::string name = drgn_type_tag(type);
 
   uint64_t size;
   struct drgn_error *err = drgn_type_sizeof(type, &size);
   if (err)
     abort(); // TODO
 
-  return make_type<Enum>(type, "ENUM_POO", size);
+  return make_type<Enum>(type, name, size);
 }
 
 TypeDef *DrgnParser::enumerateTypeDef(struct drgn_type *type) {
-  std::string type_name = drgn_type_name(type);
+  std::string name = drgn_type_name(type);
   // TODO anonymous typedefs?
 
   struct drgn_type *underlying_type = drgn_type_type(type).type;
   auto t = enumerateType(underlying_type); // TODO won't this cause cycles?
-  return make_type<TypeDef>(type, type_name, t);
+  return make_type<TypeDef>(type, name, t);
 }
 
 // TODO what is an incomplete type?

@@ -29,7 +29,7 @@ void Printer::visit(Container &c) {
 }
 
 void Printer::visit(Enum &e) {
-  out_ << indent() << "Enum: " << e.name() << std::endl;
+  out_ << indent() << "Enum: " << e.name() << " (" << e.size() << ")" << std::endl;
 }
 
 void Printer::visit(Primitive &p) {

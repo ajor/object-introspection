@@ -84,3 +84,21 @@ TEST(DrgnParserTest, Container) {
           TypeDef: __allocator_base<SimpleStruct>
 )");
 }
+
+TEST(DrgnParserTest, Enum) {
+  test("TestEnum",
+       R"(Enum: MyEnum (4)
+)");
+}
+
+TEST(DrgnParserTest, EnumInt8) {
+  test("TestEnumInt8",
+       R"(Enum: MyEnumInt8 (1)
+)");
+}
+
+TEST(DrgnParserTest, UnscopedEnum) {
+  test("TestUnscopedEnum",
+       R"(Enum: MyUnscopedEnum (4)
+)");
+}
