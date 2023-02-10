@@ -52,7 +52,7 @@ extern "C" {
 #include "Syscall.h"
 
 #include "type_graph/drgn_parser.h"
-#include "type_graph/type_flattener.h"
+#include "type_graph/flattener.h"
 #include "type_graph/required_type_collector.h"
 #include "type_graph/topo_sorter.h"
 #include "type_graph/type_graph.h"
@@ -2925,8 +2925,8 @@ std::optional<std::string> OIDebugger::generateCode(const irequest& req) {
   // TODO free resources from visitor classes after running each one
   type_graph::RequiredTypeCollector req_types;
   auto required_types = req_types.collect({root_type});
-  // TODO try TypeFlattener.flatten()
-  type_graph::TypeFlattener flattener;
+  // TODO try Flattener.flatten()
+  type_graph::Flattener flattener;
   flattener.flatten(req_types.classes());
   type_graph::TopoSorter topo_sort;
   auto sorted_types = topo_sort.sort(required_types);

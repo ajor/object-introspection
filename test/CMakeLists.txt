@@ -57,7 +57,7 @@ add_executable(
 add_executable(
   test_type_graph
   test_drgn_parser.cpp
-  test_type_flattener.cpp
+  test_flattener.cpp
   test_required_type_collector.cpp
   test_topo_sorter.cpp
 )

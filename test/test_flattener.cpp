@@ -3,7 +3,7 @@
 
 #include <gtest/gtest.h>
 
-#include "type_graph/type_flattener.h"
+#include "type_graph/flattener.h"
 #include "type_graph/types.h"
 
 using namespace type_graph;
@@ -30,7 +30,7 @@ void EXPECT_EQ_CLASS(const Class &actual, const Class &expected) {
   }
 }
 
-TEST(TypeFlattenerTest, NoParents) {
+TEST(FlattenerTest, NoParents) {
   // Original and flattened:
   //   struct MyStruct { int n0; };
   //   class MyClass {
@@ -52,7 +52,7 @@ TEST(TypeFlattenerTest, NoParents) {
 
   auto expected = *myclass;
 
-  TypeFlattener flattener;
+  Flattener flattener;
   flattener.flatten({myclass.get()});
 
   EXPECT_EQ_CLASS(*myclass, expected);
@@ -80,7 +80,7 @@ TEST(TypeFlattenerTest, OnlyParents) {
   classA->parents.push_back(Parent(classB.get(), 0));
   classA->parents.push_back(Parent(classC.get(), 4));
 
-  TypeFlattener flattener;
+  Flattener flattener;
   flattener.flatten({classA.get()});
 
   auto expected = std::make_unique<Class>(Class::Kind::Class, "ClassA", 8);
@@ -114,7 +114,7 @@ TEST(TypeFlattenerTest, ParentsFirst) {
   classA->parents.push_back(Parent(classC.get(), 4));
   classA->members.push_back(Member(myint.get(), "a", 8));
 
-  TypeFlattener flattener;
+  Flattener flattener;
   flattener.flatten({classA.get()});
 
   auto expected = std::make_unique<Class>(Class::Kind::Class, "ClassA", 12);
@@ -150,7 +150,7 @@ TEST(TypeFlattenerTest, MembersFirst) {
   classA->parents.push_back(Parent(classB.get(), 4));
   classA->parents.push_back(Parent(classC.get(), 8));
 
-  TypeFlattener flattener;
+  Flattener flattener;
   flattener.flatten({classA.get()});
 
   auto expected = std::make_unique<Class>(Class::Kind::Class, "ClassA", 12);
@@ -190,7 +190,7 @@ TEST(TypeFlattenerTest, MixedMembersAndParents) {
   classA->parents.push_back(Parent(classC.get(), 12));
   classA->members.push_back(Member(myint.get(), "a3", 16));
 
-  TypeFlattener flattener;
+  Flattener flattener;
   flattener.flatten({classA.get()});
 
   auto expected = std::make_unique<Class>(Class::Kind::Class, "ClassA", 20);
@@ -227,7 +227,7 @@ TEST(TypeFlattenerTest, EmptyParent) {
   classA->parents.push_back(Parent(classB.get(), 4));
   classA->parents.push_back(Parent(classC.get(), 8));
 
-  TypeFlattener flattener;
+  Flattener flattener;
   flattener.flatten({classA.get()});
 
   auto expected = std::make_unique<Class>(Class::Kind::Class, "ClassA", 12);
@@ -269,7 +269,7 @@ TEST(TypeFlattenerTest, TwoDeep) {
   classA->parents.push_back(Parent(classC.get(), 8));
   classA->members.push_back(Member(myint.get(), "a", 12));
 
-  TypeFlattener flattener;
+  Flattener flattener;
   flattener.flatten({classA.get()});
 
   auto expected = std::make_unique<Class>(Class::Kind::Class, "ClassA", 16);
@@ -309,7 +309,7 @@ TEST(TypeFlattenerTest, DiamondInheritance) {
   classA->parents.push_back(Parent(classC.get(), 8));
   classA->members.push_back(Member(myint.get(), "a", 12));
 
-  TypeFlattener flattener;
+  Flattener flattener;
   flattener.flatten({classA.get()});
 
   auto expected = std::make_unique<Class>(Class::Kind::Class, "ClassA", 16);
@@ -348,7 +348,7 @@ TEST(TypeFlattenerTest, DuplicateMemberNames) {
   classA->parents.push_back(Parent(classC.get(), 4));
   classA->members.push_back(Member(myint.get(), "n", 8));
 
-  TypeFlattener flattener;
+  Flattener flattener;
   flattener.flatten({classA.get()});
 
   auto expected = std::make_unique<Class>(Class::Kind::Class, "ClassA", 12); // TODO check size is tested
@@ -385,7 +385,7 @@ TEST(TypeFlattenerTest, ParentsNotFlattened) {
   // flattened
   auto expected = *classB;
 
-  TypeFlattener flattener;
+  Flattener flattener;
   flattener.flatten({classA.get()});
 
   EXPECT_EQ_CLASS(*classB, expected);
@@ -417,7 +417,7 @@ TEST(TypeFlattenerTest, MembersNotFlattened) {
   // variables are not flattened
   auto expected = *classB;
 
-  TypeFlattener flattener;
+  Flattener flattener;
   flattener.flatten({classA.get()});
 
   EXPECT_EQ_CLASS(*classB, expected);

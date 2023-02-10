@@ -9,13 +9,12 @@
 namespace type_graph {
 
 /*
- * TypeFlattener
+ * Flattener
  *
  * Flattens classes by removing parents and adding their members directly into
  * derived classes.
  */
-// TODO rename to "Flattener"
-class TypeFlattener : public Visitor {
+class Flattener : public Visitor {
 public:
   void flatten(const std::vector<Class*> &classes);
 

@@ -1,14 +1,14 @@
-#include "type_flattener.h"
+#include "flattener.h"
 
 namespace type_graph {
 
-void TypeFlattener::flatten(const std::vector<Class*> &classes) {
+void Flattener::flatten(const std::vector<Class*> &classes) {
   for (auto c : classes) {
     flatten_class(*c);
   }
 }
 
-void TypeFlattener::flatten_class(Class &c) {
+void Flattener::flatten_class(Class &c) {
   flattened_members_ = {};
   offset_stack_ = {0};
   c.accept(*this);
@@ -16,7 +16,7 @@ void TypeFlattener::flatten_class(Class &c) {
   c.parents.clear();
 }
 
-void TypeFlattener::visit(Class &c) {
+void Flattener::visit(Class &c) {
   // Members of a base class will be contiguous, but it's possible for derived
   // class members to be intersperced between embedded parent classes.
   //
@@ -85,22 +85,22 @@ void TypeFlattener::visit(Class &c) {
 //  }
 }
 
-void TypeFlattener::visit(Container &c) {
+void Flattener::visit(Container &c) {
 }
 
-void TypeFlattener::visit(Enum &e) {
+void Flattener::visit(Enum &e) {
 }
 
-void TypeFlattener::visit(Primitive &p) {
+void Flattener::visit(Primitive &p) {
 }
 
-void TypeFlattener::visit(Typedef &td) {
+void Flattener::visit(Typedef &td) {
 }
 
-void TypeFlattener::visit(Pointer &p) {
+void Flattener::visit(Pointer &p) {
 }
 
-void TypeFlattener::visit(Array &a) {
+void Flattener::visit(Array &a) {
 }
 
 } // namespace type_graph

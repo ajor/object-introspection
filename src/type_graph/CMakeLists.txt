@@ -3,6 +3,6 @@ add_library(type_graph
   printer.cpp
   required_type_collector.cpp
   topo_sorter.cpp
-  type_flattener.cpp
+  flattener.cpp
   types.cpp
 )
