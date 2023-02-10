@@ -74,7 +74,7 @@ Type *DrgnParser::enumerateType(struct drgn_type *type) {
       t = enumerateEnum(type);
       break;
     case DRGN_TYPE_TYPEDEF:
-      t = enumerateTypeDef(type);
+      t = enumerateTypedef(type);
       break;
     case DRGN_TYPE_POINTER:
       t = enumeratePointer(type);
@@ -281,13 +281,13 @@ Enum *DrgnParser::enumerateEnum(struct drgn_type *type) {
   return make_type<Enum>(type, name, size);
 }
 
-TypeDef *DrgnParser::enumerateTypeDef(struct drgn_type *type) {
+Typedef *DrgnParser::enumerateTypedef(struct drgn_type *type) {
   std::string name = drgn_type_name(type);
   // TODO anonymous typedefs?
 
   struct drgn_type *underlying_type = drgn_type_type(type).type;
   auto t = enumerateType(underlying_type); // TODO won't this cause cycles?
-  return make_type<TypeDef>(type, name, t);
+  return make_type<Typedef>(type, name, t);
 }
 
 // TODO what is an incomplete type?

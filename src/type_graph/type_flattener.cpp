@@ -94,7 +94,7 @@ void TypeFlattener::visit(Enum &e) {
 void TypeFlattener::visit(Primitive &p) {
 }
 
-void TypeFlattener::visit(TypeDef &td) {
+void TypeFlattener::visit(Typedef &td) {
 }
 
 void TypeFlattener::visit(Pointer &p) {

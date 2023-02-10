@@ -36,8 +36,9 @@ void Printer::visit(Primitive &p) {
   out_ << indent() << "Primitive: " << p.name() << std::endl;
 }
 
-void Printer::visit(TypeDef &td) {
-  out_ << indent() << "TypeDef: " << td.name() << std::endl;
+void Printer::visit(Typedef &td) {
+  out_ << indent() << "Typedef: " << td.name() << std::endl;
+  print(*td.underlying_type());
 }
 
 void Printer::visit(Pointer &p) {

@@ -10,7 +10,7 @@
   X(Container) \
   X(Enum) \
   X(Primitive) \
-  X(TypeDef) \
+  X(Typedef) \
   X(Pointer) \
   X(Array)
 
@@ -208,9 +208,9 @@ private:
   Kind kind_;
 };
 
-class TypeDef : public Type {
+class Typedef : public Type {
 public:
-  explicit TypeDef(const std::string &name, Type *underlying_type)
+  explicit Typedef(const std::string &name, Type *underlying_type)
     : name_(name), underlying_type_(underlying_type) { }
 
   DECLARE_ACCEPT
@@ -221,6 +221,10 @@ public:
 
   virtual std::size_t size() const override {
     return 0; // TODO
+  }
+
+  Type *underlying_type() const {
+    return underlying_type_;
   }
 
 private:

@@ -42,7 +42,7 @@ void TopoSorter::visit(Enum &e) {
 void TopoSorter::visit(Primitive &p) {
 }
 
-void TopoSorter::visit(TypeDef &td) {
+void TopoSorter::visit(Typedef &td) {
   // TODO
 }
 

@@ -45,7 +45,7 @@ void RequiredTypeCollector::visit(Enum &e) {
 void RequiredTypeCollector::visit(Primitive &p) {
 }
 
-void RequiredTypeCollector::visit(TypeDef &td) {
+void RequiredTypeCollector::visit(Typedef &td) {
   required_types_.push_back(&td);
 }
 

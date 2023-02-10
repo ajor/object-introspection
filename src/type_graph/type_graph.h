@@ -38,7 +38,7 @@ private:
   // we don't have to expose the owning unique_ptrs to whoever wants to iterate
   // over our types.
   std::vector<Class*> classes_;
-  std::vector<TypeDef*> typedefs_;
+  std::vector<Typedef*> typedefs_;
 };
 
 } // namespace type_graph

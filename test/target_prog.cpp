@@ -1,3 +1,4 @@
+#include <cstdint>
 #include <vector>
 
 struct SimpleStruct {
@@ -35,6 +36,9 @@ enum MyUnscopedEnum {
   CASE_C,
 };
 
+typedef uint64_t UInt64;
+using IntVector = std::vector<int>;
+
 extern "C" {
 void TestSimpleStruct(const SimpleStruct &x) {
 }
@@ -48,6 +52,10 @@ void TestEnumInt8(MyEnumInt8 e) {
 }
 void TestUnscopedEnum(MyUnscopedEnum e) {
 }
+void TestTypedef(UInt64 x) {
+}
+void TestUsing(IntVector &x) {
+}
 }
 
 int main() {
@@ -59,6 +67,9 @@ int main() {
 
   std::vector<SimpleStruct> vss;
   TestContainer(vss);
+
+  std::vector<int> vi;
+  TestUsing(vi);
 
   return 0;
 }

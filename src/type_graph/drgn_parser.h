@@ -28,7 +28,7 @@ private:
   void   enumerateClassFunctions(struct drgn_type *type, std::vector<Function> &functions);
 
   Enum      *enumerateEnum(struct drgn_type *type);
-  TypeDef   *enumerateTypeDef(struct drgn_type *type);
+  Typedef   *enumerateTypedef(struct drgn_type *type);
   Pointer   *enumeratePointer(struct drgn_type *type);
   Array     *enumerateArray(struct drgn_type *type);
   Primitive *enumeratePrimitive(struct drgn_type *type);

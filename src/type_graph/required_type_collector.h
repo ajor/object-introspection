@@ -24,7 +24,7 @@ public:
   void visit(Container &c) override;
   void visit(Enum &e) override;
   void visit(Primitive &p) override;
-  void visit(TypeDef &td) override;
+  void visit(Typedef &td) override;
   void visit(Pointer &p) override;
   void visit(Array &a) override;
 

@@ -66,7 +66,7 @@ TEST(DrgnParserTest, Inheritance) {
 )");
 }
 
-TEST(DrgnParserTest, Container) {
+TEST(DrgnParserTest, Container) { // TODO strip template parameters from containers
   test("TestContainer",
        R"(Pointer
   Container: std::vector
@@ -81,7 +81,8 @@ TEST(DrgnParserTest, Container) {
     Param
       Class: allocator_SimpleStruct_ (1)
         Parent (0)
-          TypeDef: __allocator_base<SimpleStruct>
+          Typedef: __allocator_base<SimpleStruct>
+            Class: new_allocator_SimpleStruct_ (1)
 )");
 }
 
@@ -100,5 +101,29 @@ TEST(DrgnParserTest, EnumInt8) {
 TEST(DrgnParserTest, UnscopedEnum) {
   test("TestUnscopedEnum",
        R"(Enum: MyUnscopedEnum (4)
+)");
+}
+
+TEST(DrgnParserTest, Typedef) {
+  test("TestTypedef",
+       R"(Typedef: UInt64
+  Typedef: uint64_t
+    Typedef: __uint64_t
+      Primitive: uint64_t
+)");
+}
+
+TEST(DrgnParserTest, Using) { // TODO allocator param should not be here
+  test("TestUsing",
+       R"(Pointer
+  Typedef: IntVector
+    Container: std::vector
+      Param
+        Primitive: int32_t
+      Param
+        Class: allocator_int32_t_ (1)
+          Parent (0)
+            Typedef: __allocator_base<int>
+              Class: new_allocator_int32_t_ (1)
 )");
 }
