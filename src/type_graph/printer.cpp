@@ -3,13 +3,13 @@
 namespace type_graph {
 
 void Printer::print(Type &type) {
-  // TODO first indent should be 0
   depth_++;
   type.accept(*this);
   depth_--;
 }
 
 void Printer::visit(Class &c) {
+  prefix(&c);
   std::string kind;
   switch (c.kind_) {
     case Class::Kind::Class:
@@ -22,7 +22,7 @@ void Printer::visit(Class &c) {
       kind = "Union";
       break;
   }
-  out_ << indent() << kind << ": " << c.name() << " (" << c.size() << ")" << std::endl;
+  out_ << kind << ": " << c.name() << " (" << c.size() << ")" << std::endl;
   // TODO template parameters
   for (const auto &parent : c.parents) {
     print_parent(parent);
@@ -34,56 +34,84 @@ void Printer::visit(Class &c) {
 }
 
 void Printer::visit(Container &c) {
-  out_ << indent() << "Container: " << c.name() << std::endl;
+  prefix(&c);
+  out_ << "Container: " << c.name() << std::endl;
   for (const auto &param : c.template_params) {
     print_param(param);
   }
 }
 
 void Printer::visit(Enum &e) {
-  out_ << indent() << "Enum: " << e.name() << " (" << e.size() << ")" << std::endl;
+  prefix();
+  out_ << "Enum: " << e.name() << " (" << e.size() << ")" << std::endl;
 }
 
 void Printer::visit(Primitive &p) {
-  out_ << indent() << "Primitive: " << p.name() << std::endl;
+  prefix();
+  out_ << "Primitive: " << p.name() << std::endl;
 }
 
 void Printer::visit(Typedef &td) {
-  out_ << indent() << "Typedef: " << td.name() << std::endl;
+  prefix(&td);
+  out_ << "Typedef: " << td.name() << std::endl;
   print(*td.underlying_type());
 }
 
 void Printer::visit(Pointer &p) {
-  out_ << indent() << "Pointer" << std::endl;
+  prefix(&p);
+  out_ << "Pointer" << std::endl;
 
+  if (auto it=node_nums.find(p.pointee_type()); it!=node_nums.end()) {
+    // Cycle
+    depth_++;
+    prefix();
+    int node_num = it->second;
+    out_ << "[" << node_num << "]" << std::endl;
+    depth_--;
+    return;
+  }
   print(*p.pointee_type());
 }
 
 void Printer::visit(Array &a) {
-  out_ << indent() << "Array: " << a.name() << std::endl;
+  prefix(&a);
+  out_ << "Array: " << a.name() << std::endl;
+  // TODO underlying type
 }
 
-std::string Printer::indent() const {
-  return std::string(depth_*2, ' ');
+void Printer::prefix(Type *type) {
+  if (type) {
+    int node_num = next_node_num++;
+    out_ << "[" << node_num << "] "; // TODO pad numbers
+    node_nums.insert({type, node_num});
+  }
+  else {
+    // Extra padding
+    out_ << "    "; // TODO make variable size
+  }
+  out_ << std::string(depth_*2, ' ');
 }
 
 void Printer::print_parent(const Parent &parent) {
   depth_++;
-  out_ << indent() << "Parent (" << parent.offset << ")" << std::endl;
+  prefix();
+  out_ << "Parent (" << parent.offset << ")" << std::endl;
   print(*parent.type);
   depth_--;
 }
 
 void Printer::print_member(const Member &member) {
   depth_++;
-  out_ << indent() << "Member: " << member.name << " (" << member.offset << ")" << std::endl;
+  prefix();
+  out_ << "Member: " << member.name << " (" << member.offset << ")" << std::endl;
   print(*member.type);
   depth_--;
 }
 
 void Printer::print_param(const TemplateParam &param) {
   depth_++;
-  out_ << indent() << "Param" << std::endl;
+  prefix();
+  out_ << "Param" << std::endl;
   print(*param.type);
   depth_--;
 }

@@ -51,6 +51,11 @@ enum MyUnscopedEnum {
 typedef uint64_t UInt64;
 using IntVector = std::vector<int>;
 
+struct CyclicalNode {
+  struct CyclicalNode *next;
+  int val;
+};
+
 extern "C" {
 void TestSimpleClass(const SimpleClass &x) {
 }
@@ -62,15 +67,17 @@ void TestInheritance(const InheritanceChild &x) {
 };
 void TestContainer(const std::vector<SimpleStruct> &x) {
 }
-void TestEnum(MyEnum e) {
+void TestEnum(MyEnum x) {
 }
-void TestEnumInt8(MyEnumInt8 e) {
+void TestEnumInt8(MyEnumInt8 x) {
 }
-void TestUnscopedEnum(MyUnscopedEnum e) {
+void TestUnscopedEnum(MyUnscopedEnum x) {
 }
 void TestTypedef(UInt64 x) {
 }
-void TestUsing(IntVector &x) {
+void TestUsing(const IntVector &x) {
+}
+void TestCycle(const CyclicalNode &x) {
 }
 }
 
@@ -92,6 +99,9 @@ int main() {
 
   std::vector<int> vi;
   TestUsing(vi);
+
+  CyclicalNode cn;
+  TestCycle(cn);
 
   return 0;
 }

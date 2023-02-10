@@ -1,6 +1,7 @@
 #pragma once
 
 #include <ostream>
+#include <unordered_map>
 
 #include "types.h"
 #include "visitor.h"
@@ -24,12 +25,15 @@ public:
   void visit(Array &a) override;
 
 private:
-  std::string indent() const;
+  void prefix(Type *type=nullptr);
   void print_parent(const Parent &parent);
   void print_member(const Member &member);
   void print_param(const TemplateParam &param);
+
   std::ostream &out_;
   int depth_ = -1;
+  int next_node_num = 0;
+  std::unordered_map<Type*, int> node_nums;
 };
 
 } // namespace type_graph

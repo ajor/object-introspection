@@ -33,123 +33,136 @@ void test(std::string_view function, std::string_view expected) {
   printer.print(*type);
 
   // TODO standardise expected-actual order
+  expected.remove_prefix(1); // Remove initial '\n'
   EXPECT_EQ(expected, out.str());
 }
 
 TEST(DrgnParserTest, SimpleClass) {
-  test("TestSimpleClass",
-       R"(Pointer
-  Class: SimpleClass (16)
-    Member: a (0)
-      Primitive: int32_t
-    Member: b (4)
-      Primitive: int8_t
-    Member: c (8)
-      Primitive: int64_t
-)");
-}
-
-TEST(DrgnParserTest, SimpleStruct) {
-  test("TestSimpleStruct",
-       R"(Pointer
-  Struct: SimpleStruct (16)
-    Member: a (0)
-      Primitive: int32_t
-    Member: b (4)
-      Primitive: int8_t
-    Member: c (8)
-      Primitive: int64_t
-)");
-}
-
-TEST(DrgnParserTest, SimpleUnion) {
-  test("TestSimpleUnion",
-       R"(Pointer
-  Union: SimpleUnion (8)
-    Member: a (0)
-      Primitive: int32_t
-    Member: b (0)
-      Primitive: int8_t
-    Member: c (0)
-      Primitive: int64_t
-)");
-}
-
-TEST(DrgnParserTest, Inheritance) {
-  test("TestInheritance",
-       R"(Pointer
-  Class: InheritanceChild (12)
-    Parent (0)
-      Class: InheritanceMiddle (8)
-        Parent (0)
-          Class: InheritanceBase (4)
-            Member: a (0)
-              Primitive: int32_t
-        Member: b (4)
-          Primitive: int32_t
-    Member: c (8)
-      Primitive: int32_t
-)");
-}
-
-TEST(DrgnParserTest, Container) { // TODO strip template parameters from containers
-  test("TestContainer",
-       R"(Pointer
-  Container: std::vector
-    Param
-      Struct: SimpleStruct (16)
+  test("TestSimpleClass", R"(
+[0] Pointer
+[1]   Class: SimpleClass (16)
         Member: a (0)
           Primitive: int32_t
         Member: b (4)
           Primitive: int8_t
         Member: c (8)
           Primitive: int64_t
-    Param
-      Class: allocator_SimpleStruct_ (1)
+)");
+}
+
+TEST(DrgnParserTest, SimpleStruct) {
+  test("TestSimpleStruct", R"(
+[0] Pointer
+[1]   Struct: SimpleStruct (16)
+        Member: a (0)
+          Primitive: int32_t
+        Member: b (4)
+          Primitive: int8_t
+        Member: c (8)
+          Primitive: int64_t
+)");
+}
+
+TEST(DrgnParserTest, SimpleUnion) {
+  test("TestSimpleUnion", R"(
+[0] Pointer
+[1]   Union: SimpleUnion (8)
+        Member: a (0)
+          Primitive: int32_t
+        Member: b (0)
+          Primitive: int8_t
+        Member: c (0)
+          Primitive: int64_t
+)");
+}
+
+TEST(DrgnParserTest, Inheritance) {
+  test("TestInheritance", R"(
+[0] Pointer
+[1]   Class: InheritanceChild (12)
         Parent (0)
-          Typedef: __allocator_base<SimpleStruct>
-            Class: new_allocator_SimpleStruct_ (1)
+[2]       Class: InheritanceMiddle (8)
+            Parent (0)
+[3]           Class: InheritanceBase (4)
+                Member: a (0)
+                  Primitive: int32_t
+            Member: b (4)
+              Primitive: int32_t
+        Member: c (8)
+          Primitive: int32_t
+)");
+}
+
+TEST(DrgnParserTest, Container) { // TODO strip template parameters from containers
+  test("TestContainer", R"(
+[0] Pointer
+[1]   Container: std::vector
+        Param
+[2]       Struct: SimpleStruct (16)
+            Member: a (0)
+              Primitive: int32_t
+            Member: b (4)
+              Primitive: int8_t
+            Member: c (8)
+              Primitive: int64_t
+        Param
+[3]       Class: allocator_SimpleStruct_ (1)
+            Parent (0)
+[4]           Typedef: __allocator_base<SimpleStruct>
+[5]             Class: new_allocator_SimpleStruct_ (1)
 )");
 }
 
 TEST(DrgnParserTest, Enum) {
-  test("TestEnum",
-       R"(Enum: MyEnum (4)
+  test("TestEnum", R"(
+    Enum: MyEnum (4)
 )");
 }
 
 TEST(DrgnParserTest, EnumInt8) {
-  test("TestEnumInt8",
-       R"(Enum: MyEnumInt8 (1)
+  test("TestEnumInt8", R"(
+    Enum: MyEnumInt8 (1)
 )");
 }
 
 TEST(DrgnParserTest, UnscopedEnum) {
-  test("TestUnscopedEnum",
-       R"(Enum: MyUnscopedEnum (4)
+  test("TestUnscopedEnum", R"(
+    Enum: MyUnscopedEnum (4)
 )");
 }
 
 TEST(DrgnParserTest, Typedef) {
-  test("TestTypedef",
-       R"(Typedef: UInt64
-  Typedef: uint64_t
-    Typedef: __uint64_t
-      Primitive: uint64_t
+  test("TestTypedef", R"(
+[0] Typedef: UInt64
+[1]   Typedef: uint64_t
+[2]     Typedef: __uint64_t
+          Primitive: uint64_t
 )");
 }
 
 TEST(DrgnParserTest, Using) { // TODO allocator param should not be here
-  test("TestUsing",
-       R"(Pointer
-  Typedef: IntVector
-    Container: std::vector
-      Param
-        Primitive: int32_t
-      Param
-        Class: allocator_int32_t_ (1)
-          Parent (0)
-            Typedef: __allocator_base<int>
-              Class: new_allocator_int32_t_ (1)
+  test("TestUsing", R"(
+[0] Pointer
+[1]   Typedef: IntVector
+[2]     Container: std::vector
+          Param
+            Primitive: int32_t
+          Param
+[3]         Class: allocator_int32_t_ (1)
+              Parent (0)
+[4]             Typedef: __allocator_base<int>
+[5]               Class: new_allocator_int32_t_ (1)
+)");
+}
+
+TEST(DrgnParserTest, Cycle) {
+  test("TestCycle", R"(
+[0] Pointer
+[1]   Struct: CyclicalNode (16)
+        Member: next (0)
+[2]       Pointer
+            [1]
+        Member: val (8)
+          Primitive: int32_t
 )");
 }
