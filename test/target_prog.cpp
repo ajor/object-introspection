@@ -57,8 +57,20 @@ struct CyclicalNode {
 };
 
 struct ArrayStruct {
-  int int_array[5];
-  SimpleStruct struct_array[3];
+  int intArray[5];
+  SimpleStruct structArray[3];
+  char charArray[0];
+};
+
+template <typename T>
+class TemplatedClass1 {
+  T templatedValue;
+};
+
+template <typename T, typename S>
+class TemplatedClass2 {
+  TemplatedClass1<T> tc1;
+  S arr[2];
 };
 
 extern "C" {
@@ -86,6 +98,12 @@ void TestCycle(const CyclicalNode &x) {
 }
 void TestArray(const ArrayStruct &x) {
 }
+void TestClassTemplateInt(const TemplatedClass1<int> &x) {
+}
+void TestClassTemplateVector(const TemplatedClass1<std::vector<int>> &x) {
+}
+void TestClassTemplateSimpleStructInt(const TemplatedClass2<SimpleStruct, int> &x) {
+}
 }
 
 int main() {
@@ -112,6 +130,15 @@ int main() {
 
   ArrayStruct as;
   TestArray(as);
+
+  TemplatedClass1<int> tc1int;
+  TestClassTemplateInt(tc1int);
+
+  TemplatedClass1<std::vector<int>> tc1vec;
+  TestClassTemplateVector(tc1vec);
+
+  TemplatedClass2<SimpleStruct, int> tc2ssint;
+  TestClassTemplateSimpleStructInt(tc2ssint);
 
   return 0;
 }

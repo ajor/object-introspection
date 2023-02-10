@@ -107,9 +107,13 @@ TEST(DrgnParserTest, Container) { // TODO strip template parameters from contain
               Primitive: int64_t
         Param
 [3]       Class: allocator_SimpleStruct_ (1)
+            Param
+              [2]
             Parent (0)
 [4]           Typedef: __allocator_base<SimpleStruct>
 [5]             Class: new_allocator_SimpleStruct_ (1)
+                  Param
+                    [2]
 )");
 }
 
@@ -149,9 +153,13 @@ TEST(DrgnParserTest, Using) { // TODO allocator param should not be here
             Primitive: int32_t
           Param
 [3]         Class: allocator_int32_t_ (1)
+              Param
+                Primitive: int32_t
               Parent (0)
 [4]             Typedef: __allocator_base<int>
 [5]               Class: new_allocator_int32_t_ (1)
+                    Param
+                      Primitive: int32_t
 )");
 }
 
@@ -171,10 +179,10 @@ TEST(DrgnParserTest, Array) {
   test("TestArray", R"(
 [0] Pointer
 [1]   Struct: ArrayStruct (72)
-        Member: int_array (0)
+        Member: intArray (0)
 [2]       Array: (5)
             Primitive: int32_t
-        Member: struct_array (24)
+        Member: structArray (24)
 [3]       Array: (3)
 [4]         Struct: SimpleStruct (16)
               Member: a (0)
@@ -183,5 +191,67 @@ TEST(DrgnParserTest, Array) {
                 Primitive: int8_t
               Member: c (8)
                 Primitive: int64_t
+        Member: charArray (72)
+[5]       Array: (0)
+            Primitive: int8_t
+)");
+}
+
+TEST(DrgnParserTest, ClassTemplateInt) {
+  test("TestClassTemplateInt", R"(
+[0] Pointer
+[1]   Class: TemplatedClass1_int32_t_ (4)
+        Param
+          Primitive: int32_t
+        Member: templatedValue (0)
+          Primitive: int32_t
+)");
+}
+
+TEST(DrgnParserTest, ClassTemplateVector) {
+  test("TestClassTemplateVector", R"(
+[0] Pointer
+[1]   Class: TemplatedClass1_std::vector_ (24)
+        Param
+[2]       Container: std::vector
+            Param
+              Primitive: int32_t
+            Param
+[3]           Class: allocator_int32_t_ (1)
+                Param
+                  Primitive: int32_t
+                Parent (0)
+[4]               Typedef: __allocator_base<int>
+[5]                 Class: new_allocator_int32_t_ (1)
+                      Param
+                        Primitive: int32_t
+        Member: templatedValue (0)
+          [2]
+)");
+}
+
+TEST(DrgnParserTest, ClassTemplateSimpleStructInt) {
+  test("TestClassTemplateSimpleStructInt", R"(
+[0] Pointer
+[1]   Class: TemplatedClass2_SimpleStruct_int32_t_ (24)
+        Param
+[2]       Struct: SimpleStruct (16)
+            Member: a (0)
+              Primitive: int32_t
+            Member: b (4)
+              Primitive: int8_t
+            Member: c (8)
+              Primitive: int64_t
+        Param
+          Primitive: int32_t
+        Member: tc1 (0)
+[3]       Class: TemplatedClass1_SimpleStruct_ (16)
+            Param
+              [2]
+            Member: templatedValue (0)
+              [2]
+        Member: arr (16)
+[4]       Array: (2)
+            Primitive: int32_t
 )");
 }

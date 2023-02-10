@@ -141,9 +141,9 @@ Type *DrgnParser::enumerateClass(struct drgn_type *type) {
 
   //classes_.push_back(c);
 
+  enumerateClassTemplateParams(type, c->template_params);
   enumerateClassParents(type, c->parents);
   enumerateClassMembers(type, c->members);
-  enumerateClassTemplateParams(type, c->template_params);
   enumerateClassFunctions(type, c->functions);
 
   return c;

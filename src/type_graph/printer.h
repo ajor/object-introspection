@@ -25,10 +25,10 @@ public:
   void visit(Array &a) override;
 
 private:
-  void prefix(Type *type=nullptr);
+  bool prefix(Type *type=nullptr);
+  void print_param(const TemplateParam &param);
   void print_parent(const Parent &parent);
   void print_member(const Member &member);
-  void print_param(const TemplateParam &param);
 
   std::ostream &out_;
   int depth_ = -1;

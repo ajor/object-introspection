@@ -9,7 +9,7 @@ struct drgn_type;
 
 namespace type_graph {
 
-// TODO rename DrgnParser
+// TODO coding style change: "struct drgn_type" -> "drgn_type"
 class DrgnParser {
 public:
   DrgnParser(TypeGraph &type_graph)
@@ -21,10 +21,10 @@ private:
   Container *enumerateContainer(struct drgn_type *type);
 
   Type  *enumerateClass(struct drgn_type *type);
-  void   enumerateClassParents(struct drgn_type *type, std::vector<Parent> &parents);
-  void   enumerateClassMembers(struct drgn_type *type, std::vector<Member> &members);
   void   enumerateClassTemplateParams(struct drgn_type *type,
                                       std::vector<TemplateParam> &params);
+  void   enumerateClassParents(struct drgn_type *type, std::vector<Parent> &parents);
+  void   enumerateClassMembers(struct drgn_type *type, std::vector<Member> &members);
   void   enumerateClassFunctions(struct drgn_type *type, std::vector<Function> &functions);
 
   Enum      *enumerateEnum(struct drgn_type *type);
