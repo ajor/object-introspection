@@ -171,3 +171,71 @@ std::unique_ptr<ContainerInfo> ContainerInfo::loadFromFile(
       },
   });
 }
+
+// TODO try inverting the if-conditions to avoid else branches
+ContainerInfo::ContainerInfo(const fs::path& path) {
+  // TODO this throws (catch above)
+  toml::table container = toml::parse_file(std::string(path));
+
+  if (!container["info"].is_table()){
+    // TODO throw
+    LOG(ERROR) << "a container info file requires an `info` table";
+  }
+
+  const auto &info = container["info"];
+
+  if (std::optional<std::string> str = info["typeName"].value<std::string>()) {
+    typeName = std::move(*str);
+  } else {
+    // TODO throw
+    LOG(ERROR) << "`info.typeName` is a required field";
+  }
+
+  if (std::optional<std::string> str =
+          info["matcher"].value<std::string>()) {
+    matcher = std::regex(*str, std::regex_constants::grep);
+  } else {
+    matcher = std::regex("^" + typeName, std::regex_constants::grep);
+  }
+
+  numTemplateParams = info["numTemplateParams"].value<size_t>();
+
+  if (std::optional<std::string> str = info["ctype"].value<std::string>()) {
+    ctype = containerTypeEnumFromStr(*str);
+    if (ctype == UNKNOWN_TYPE) {
+      // TODO throw
+      LOG(ERROR) << "`" << (*str) << "` is not a valid container type";
+    }
+  } else {
+    // TODO throw
+    LOG(ERROR) << "`info.ctype` is a required field";
+  }
+
+  if (std::optional<std::string> str = info["header"].value<std::string>()) {
+    header = std::move(*str);
+  } else {
+    // TODO throw
+    LOG(ERROR) << "`info.header` is a required field";
+  }
+
+  if (toml::array* arr = info["ns"].as_array()) {
+    ns.reserve(arr->size());
+    arr->for_each([&](auto&& el) {
+      if constexpr (toml::is_string<decltype(el)>) {
+        ns.emplace_back(el);
+      }
+    });
+  }
+
+  if (toml::array* arr = info["replaceTemplateParamIndex"].as_array()) {
+    replaceTemplateParamIndex.reserve(arr->size());
+    arr->for_each([&](auto&& el) {
+      if constexpr (toml::is_integer<decltype(el)>) {
+        replaceTemplateParamIndex.push_back(*el);
+      }
+    });
+  }
+
+  allocatorIndex = info["allocatorIndex"].value<size_t>();
+  underlyingContainerIndex = info["underlyingContainerIndex"].value<size_t>();
+}

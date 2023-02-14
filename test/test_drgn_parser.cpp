@@ -1,3 +1,4 @@
+#include <regex>
 #include <gtest/gtest.h>
 
 #include "type_graph/drgn_parser.h"
@@ -25,7 +26,21 @@ void test(std::string_view function, std::string_view expected) {
   auto drgnRoot = OICodeGen::getRootType(symbols, req);
 
   TypeGraph typeGraph;
-  DrgnParser drgnParser(typeGraph);
+  // TODO more container types, with various template parameter options
+  std::vector<ContainerInfo> containers = {
+    ContainerInfo{
+      "std::vector<",
+      std::regex{"^std::vector<"},
+      1,
+      SEQ_TYPE,
+      "vector",
+      {"namespace std"},
+      {},
+      1,
+      {}
+    },
+  };
+  DrgnParser drgnParser(typeGraph, containers);
   Type *type = drgnParser.parse(drgnRoot->type.type);
 
   std::stringstream out;

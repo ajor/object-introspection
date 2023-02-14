@@ -115,6 +115,7 @@ public:
 class Container : public Type {
 public:
   enum class Kind {
+    None,
     StdVector,
     StdMap,
   };

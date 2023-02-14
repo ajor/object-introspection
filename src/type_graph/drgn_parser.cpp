@@ -1,8 +1,11 @@
 #include "drgn_parser.h"
+#include "ContainerInfo.h"
 
 extern "C" {
 #include <drgn.h>
 }
+
+#include <regex>
 
 namespace type_graph {
 namespace {
@@ -98,13 +101,37 @@ Type *DrgnParser::enumerateType(struct drgn_type *type) {
 }
 
 Container *DrgnParser::enumerateContainer(struct drgn_type *type) {
-  auto c = make_type<Container>(type, Container::Kind::StdVector);
+  char *nameStr = nullptr;
+  size_t length = 0;
+  auto *err = drgn_type_fully_qualified_name(type, &nameStr, &length);
+  if (err != nullptr || nameStr == nullptr) {
+    return nullptr;
+  }
+
+  auto kind = Container::Kind::None;
+  std::string name{nameStr}; // TODO needs derefence??
+  for (const auto &container : containers_) {
+    if (std::regex_search(nameStr, container.matcher)) {
+      // TODO
+      kind = Container::Kind::StdVector;
+      break;
+    }
+  }
+  if (kind == Container::Kind::None) {
+    return nullptr;
+  }
+
+  auto c = make_type<Container>(type, kind);
   enumerateClassTemplateParams(type, c->template_params);
   c->template_params.erase(++c->template_params.begin()); // TODO hack to remove unimportant template parameters
   return c;
 }
 
 Type *DrgnParser::enumerateClass(struct drgn_type *type) {
+  auto *container = enumerateContainer(type);
+  if (container)
+    return container;
+
   std::string type_name;
   const char *type_tag = drgn_type_tag(type);
   if (type_tag)
@@ -115,11 +142,6 @@ Type *DrgnParser::enumerateClass(struct drgn_type *type) {
   auto template_start_pos = type_name.find('<');
   if (template_start_pos != std::string::npos)
     type_name.erase(template_start_pos);
-
-  // TODO detect containers properly
-  if (type_name == "vector") {
-    return enumerateContainer(type);
-  }
 
   auto size = get_drgn_type_size(type);
 

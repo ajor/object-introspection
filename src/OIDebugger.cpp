@@ -2919,7 +2919,11 @@ std::optional<std::string> OIDebugger::generateCode(const irequest& req) {
   }
 
   type_graph::TypeGraph type_graph;
-  type_graph::DrgnParser p(type_graph);
+
+  OICodeGen2 codegen2(type_graph);
+  codegen2.loadConfig(generatorConfig.containerConfigPaths);
+
+  type_graph::DrgnParser p(type_graph, codegen2.containerInfos);
   type_graph::Type *root_type = p.parse(root->type.type);
 
   // TODO free resources from visitor classes after running each one
@@ -2936,7 +2940,6 @@ std::optional<std::string> OIDebugger::generateCode(const irequest& req) {
     std::cout << t->name() << std::endl;
   };
 
-  OICodeGen2 codegen2(type_graph);
   std::cout << "class decls\n";
   std::cout << codegen2.ClassDecls(sorted_types) << std::endl;
   std::cout << "class defs\n";

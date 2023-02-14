@@ -17,11 +17,18 @@ std::string def(const Class &c) {
   return str;
 }
 
-std::string func(const Class &c) {
-  std::string str = "void getSize(const " + c.name() + "& t, blah result) {\n";
+std::string getClassSizeFunc(const Class &c) {
+  std::string str = "void getSize(const " + c.name() + " &t, size_t &size) {\n";
   for (const auto &member : c.members) {
     str += "  getSize(t." + member.name + ", result);\n";
   }
+  str += "}\n";
+  return str;
+}
+
+std::string getContainerSizeFunc(const Container &c) {
+  std::string str = "void getSize(const " + c.name() + " &t, size_t &size) {\n";
+  str += "  TODO - get code from TOML files\n";
   str += "}\n";
   return str;
 }
@@ -75,8 +82,32 @@ std::string OICodeGen2::GetSizeFuncs(const std::vector<Type*>& types) {
 
   for (const auto t : types) {
     if (const auto *c = dynamic_cast<Class*>(t))
-      funcs += func(*c);
+      funcs += getClassSizeFunc(*c);
+    if (const auto *c = dynamic_cast<Container*>(t))
+      funcs += getContainerSizeFunc(*c);
   }
 
   return funcs;
+}
+
+void OICodeGen2::registerContainer(const fs::path &path) {
+// TODO don't catch exceptions at this level?
+//  try {
+  const auto &info = containerInfos.emplace_back(path);
+//  }
+//  catch (const toml::parse_error &err) {
+//    // TODO
+//  }
+//  // TODO more exception types
+
+  // TODO replace this function:
+  // TODO rewrite FuncGen:
+  //   - use free functions
+  //   - TOML should not need to define declarations or function names - only function contents
+//  if (!funcGen.RegisterContainer(info.ctype, path)) {
+//    // TODO throw
+//    throw std::runtime_error("bad funcgen container");
+//  }
+
+//  VLOG(1) << "registered container: " << info.typeName;
 }

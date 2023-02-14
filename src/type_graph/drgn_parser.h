@@ -2,36 +2,37 @@
 
 #include <unordered_map>
 
+// TODO sort out header ordering everywhere
 #include "type_graph.h"
 #include "types.h"
 
 struct drgn_type;
+struct ContainerInfo;
 
 namespace type_graph {
 
 // TODO coding style change: "struct drgn_type" -> "drgn_type"
 class DrgnParser {
 public:
-  DrgnParser(TypeGraph &type_graph)
-    : type_graph_(type_graph) { }
+  DrgnParser(TypeGraph &type_graph, const std::vector<ContainerInfo> &containers)
+    : type_graph_(type_graph), containers_(containers) { }
   Type *parse(struct drgn_type *root);
 
 private:
-  Type *enumerateType(struct drgn_type *type);
+  Type      *enumerateType(struct drgn_type *type);
   Container *enumerateContainer(struct drgn_type *type);
-
-  Type  *enumerateClass(struct drgn_type *type);
-  void   enumerateClassTemplateParams(struct drgn_type *type,
-                                      std::vector<TemplateParam> &params);
-  void   enumerateClassParents(struct drgn_type *type, std::vector<Parent> &parents);
-  void   enumerateClassMembers(struct drgn_type *type, std::vector<Member> &members);
-  void   enumerateClassFunctions(struct drgn_type *type, std::vector<Function> &functions);
-
+  Type      *enumerateClass(struct drgn_type *type);
   Enum      *enumerateEnum(struct drgn_type *type);
   Typedef   *enumerateTypedef(struct drgn_type *type);
   Pointer   *enumeratePointer(struct drgn_type *type);
   Array     *enumerateArray(struct drgn_type *type);
   Primitive *enumeratePrimitive(struct drgn_type *type);
+
+  void   enumerateClassTemplateParams(struct drgn_type *type,
+                                      std::vector<TemplateParam> &params);
+  void   enumerateClassParents(struct drgn_type *type, std::vector<Parent> &parents);
+  void   enumerateClassMembers(struct drgn_type *type, std::vector<Member> &members);
+  void   enumerateClassFunctions(struct drgn_type *type, std::vector<Function> &functions);
 
   // Store a mapping of drgn types to type graph nodes for deduplication during
   // parsing. This stops us getting caught in cycles.
@@ -47,11 +48,8 @@ private:
     return type_raw_ptr;
   }
 
-  // TODO deuplicate names after type tree has been built
-
-  // TODO padding type?
-
   TypeGraph &type_graph_;
+  const std::vector<ContainerInfo> &containers_;
 };
 
 } // namespace type_graph

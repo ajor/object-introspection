@@ -78,6 +78,30 @@ struct ContainerInfo {
   bool operator<(const ContainerInfo& rhs) const {
     return (typeName < rhs.typeName);
   }
+
+  ContainerInfo() = default;
+  ContainerInfo(const fs::path& path);
+
+// TODO
+//private:
+  ContainerInfo(std::string typeName_,
+      std::regex matcher_,
+      std::optional<size_t> numTemplateParams_,
+      ContainerTypeEnum ctype_,
+      std::string header_,
+      std::vector<std::string> ns_,
+      std::vector<size_t> replaceTemplateParamIndex_,
+      std::optional<size_t> allocatorIndex_,
+      std::optional<size_t> underlyingContainerIndex_)
+    : typeName(std::move(typeName_)),
+      matcher(std::move(matcher_)),
+      numTemplateParams(numTemplateParams_),
+      ctype(ctype_),
+      header(std::move(header_)),
+      ns(std::move(ns_)),
+      replaceTemplateParamIndex(std::move(replaceTemplateParamIndex_)),
+      allocatorIndex(allocatorIndex_),
+      underlyingContainerIndex(underlyingContainerIndex_) { }
 };
 
 using ContainerInfoRefSet =
