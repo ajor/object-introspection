@@ -311,7 +311,7 @@ Typedef *DrgnParser::enumerateTypedef(struct drgn_type *type) {
 }
 
 // TODO what is an incomplete type?
-bool is_drgn_size_complete(struct drgn_type *type) {
+bool isDrgnSizeComplete(struct drgn_type *type) {
   uint64_t sz;
   struct drgn_error *err = drgn_type_sizeof(type, &sz);
   return err == nullptr;
@@ -334,9 +334,14 @@ Pointer *DrgnParser::enumeratePointer(struct drgn_type *type) {
   //    We will need to save previously encountered pointer values
   // 4. Smart pointers might make it easier to detect (1)/(2)
 
+  if (!isDrgnSizeComplete(pointee_type)) {
+    // TODO how can we allow these?
+    throw std::runtime_error("Incomplete pointer");
+  }
+
   Type *t = nullptr;
   if (drgn_type_kind(pointee_type) == DRGN_TYPE_FUNCTION ||
-      is_drgn_size_complete(pointee_type))
+      isDrgnSizeComplete(pointee_type))
     t = enumerateType(pointee_type); // TODO won't this cause cycles?
 
   return make_type<Pointer>(type, t);

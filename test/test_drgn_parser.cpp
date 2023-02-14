@@ -20,14 +20,25 @@ void EXPECT_EQ_TYPE(const Type *actual, const Type *expected);
 void EXPECT_EQ_TYPES(const std::vector<Type*> actual, const std::vector<Type*> expected);
 
 void test(std::string_view function, std::string_view expected) {
-  // TODO turn this into an absolute path
-  SymbolService symbols{"./target_prog"};
+  // TODO turn this into an absolute path so tests can be run from any directory
+  SymbolService symbols{"./integration/integration_test_target"};
   irequest req{"entry", std::string{function}, "arg0"};
   auto drgnRoot = OICodeGen::getRootType(symbols, req);
 
   TypeGraph typeGraph;
   // TODO more container types, with various template parameter options
   std::vector<ContainerInfo> containers = {
+    ContainerInfo{
+      "std::vector<",
+      std::regex{"^std::vector<"},
+      1,
+      SEQ_TYPE,
+      "vector",
+      {"namespace std"},
+      {},
+      1,
+      {}
+    },
     ContainerInfo{
       "std::vector<",
       std::regex{"^std::vector<"},
@@ -52,21 +63,8 @@ void test(std::string_view function, std::string_view expected) {
   EXPECT_EQ(expected, out.str());
 }
 
-TEST(DrgnParserTest, SimpleClass) {
-  test("TestSimpleClass", R"(
-[0] Pointer
-[1]   Class: SimpleClass (16)
-        Member: a (0)
-          Primitive: int32_t
-        Member: b (4)
-          Primitive: int8_t
-        Member: c (8)
-          Primitive: int64_t
-)");
-}
-
 TEST(DrgnParserTest, SimpleStruct) {
-  test("TestSimpleStruct", R"(
+  test("oid_test_case_simple_struct", R"(
 [0] Pointer
 [1]   Struct: SimpleStruct (16)
         Member: a (0)
@@ -78,8 +76,21 @@ TEST(DrgnParserTest, SimpleStruct) {
 )");
 }
 
+TEST(DrgnParserTest, SimpleClass) {
+  test("oid_test_case_simple_class", R"(
+[0] Pointer
+[1]   Class: SimpleClass (16)
+        Member: a (0)
+          Primitive: int32_t
+        Member: b (4)
+          Primitive: int8_t
+        Member: c (8)
+          Primitive: int64_t
+)");
+}
+
 TEST(DrgnParserTest, SimpleUnion) {
-  test("TestSimpleUnion", R"(
+  test("oid_test_case_simple_union", R"(
 [0] Pointer
 [1]   Union: SimpleUnion (8)
         Member: a (0)
@@ -92,56 +103,46 @@ TEST(DrgnParserTest, SimpleUnion) {
 }
 
 TEST(DrgnParserTest, Inheritance) {
-  test("TestInheritance", R"(
+  test("oid_test_case_inheritance_access_public", R"(
 [0] Pointer
-[1]   Class: InheritanceChild (12)
+[1]   Class: Public (12)
         Parent (0)
-[2]       Class: InheritanceMiddle (8)
-            Parent (0)
-[3]           Class: InheritanceBase (4)
-                Member: a (0)
-                  Primitive: int32_t
-            Member: b (4)
+[2]       Class: Base (8)
+            Member: base_int (4)
               Primitive: int32_t
-        Member: c (8)
+        Member: public_int (8)
           Primitive: int32_t
 )");
 }
 
 TEST(DrgnParserTest, Container) {
-  test("TestContainer", R"(
+  test("oid_test_case_std_vector_int_empty", R"(
 [0] Pointer
 [1]   Container: std::vector
         Param
-[2]       Struct: SimpleStruct (16)
-            Member: a (0)
-              Primitive: int32_t
-            Member: b (4)
-              Primitive: int8_t
-            Member: c (8)
-              Primitive: int64_t
+          Primitive: int32_t
 )");
 }
 
 TEST(DrgnParserTest, Enum) {
-  test("TestEnum", R"(
-    Enum: MyEnum (4)
+  test("oid_test_case_enums_scoped", R"(
+    Enum: ScopedEnum (4)
 )");
 }
 
 TEST(DrgnParserTest, EnumInt8) {
-  test("TestEnumInt8", R"(
-    Enum: MyEnumInt8 (1)
+  test("oid_test_case_enums_scoped_int8", R"(
+    Enum: ScopedEnumInt8 (1)
 )");
 }
 
 TEST(DrgnParserTest, UnscopedEnum) {
-  test("TestUnscopedEnum", R"(
-    Enum: MyUnscopedEnum (4)
+  test("oid_test_case_enums_unscoped", R"(
+    Enum: UNSCOPED_ENUM (4)
 )");
 }
 
-TEST(DrgnParserTest, Typedef) {
+TEST(DrgnParserTest, Typedef) { // TODO
   test("TestTypedef", R"(
 [0] Typedef: UInt64
 [1]   Typedef: uint64_t
@@ -150,7 +151,7 @@ TEST(DrgnParserTest, Typedef) {
 )");
 }
 
-TEST(DrgnParserTest, Using) {
+TEST(DrgnParserTest, Using) { // TODO
   test("TestUsing", R"(
 [0] Pointer
 [1]   Typedef: IntVector
@@ -161,14 +162,14 @@ TEST(DrgnParserTest, Using) {
 }
 
 TEST(DrgnParserTest, Cycle) {
-  test("TestCycle", R"(
+  test("oid_test_case_cycles_raw_ptr", R"(
 [0] Pointer
-[1]   Struct: CyclicalNode (16)
-        Member: next (0)
+[1]   Struct: RawNode (16)
+        Member: value (0)
+          Primitive: int64_t
+        Member: next (8)
 [2]       Pointer
             [1]
-        Member: val (8)
-          Primitive: int32_t
 )");
 }
 
