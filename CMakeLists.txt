@@ -224,6 +224,8 @@ add_library(oid_parser STATIC ${BISON_Parser_OUTPUTS} ${FLEX_Lexer_OUTPUTS})
 target_link_libraries(oid_parser glog::glog)
 
 ### Core OI
+add_subdirectory(src)
+
 include_directories(${CMAKE_CURRENT_BINARY_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/src)
 add_library(oicore
   src/ContainerInfo.cpp
@@ -231,14 +233,12 @@ add_library(oicore
   src/FuncGen.cpp
   src/Metrics.cpp
   src/OICache.cpp
-  src/OICodeGen.cpp
   src/OICompiler.cpp
   src/OIUtils.cpp
   src/PaddingHunter.cpp
   src/Serialize.cpp
-  src/SymbolService.cpp
 )
-add_dependencies(oicore libdrgn)
+add_dependencies(oicore codegen libdrgn)
 set_project_warnings(oicore)
 target_include_directories(oicore SYSTEM PRIVATE ${LLVM_INCLUDE_DIRS} ${CLANG_INCLUDE_DIRS})
 target_compile_definitions(oicore PRIVATE ${LLVM_DEFINITIONS})
