@@ -123,7 +123,9 @@ struct FuncDesc {
 
     std::optional<uintptr_t> findAddress(struct user_regs_struct *regs,
                                          uintptr_t /* pc */) const final {
-      return regs->rax;
+      return 0;
+      //      TODO
+//      return regs->rax;
     }
   };
 };
