@@ -26,6 +26,7 @@
 #include <stdexcept>
 
 #include "ContainerInfo.h"
+#include "drgn_helpers.h"
 #include "Metrics.h"
 #include "OICodeGen.h"
 #include "PaddingHunter.h"
@@ -530,8 +531,8 @@ void TreeBuilder::processContainer(const Variable &variable, Node &node) {
     kind = ARRAY_TYPE;
     struct drgn_type *arrayElementType = nullptr;
     size_t numElems = 0;
-    OICodeGen::getDrgnArrayElementType(variable.type, &arrayElementType,
-                                       numElems);
+    drgn_helpers::getDrgnArrayElementType(variable.type, &arrayElementType,
+                                          numElems);
     assert(numElems > 0);
     elementTypes.push_back(
         drgn_qualified_type{arrayElementType, (enum drgn_qualifiers)(0)});

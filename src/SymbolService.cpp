@@ -23,7 +23,7 @@
 #include <cstring>
 #include <fstream>
 
-#include "OICodeGen.h"
+#include "drgn_helpers.h"
 #include "OIParser.h"
 
 extern "C" {
@@ -733,7 +733,7 @@ std::string SymbolService::getTypeName(struct drgn_type *type) {
   if (drgn_type_kind(type) == DRGN_TYPE_POINTER) {
     type = drgn_type_type(type).type;
   }
-  return OICodeGen::typeToName(type);
+  return drgn_helpers::typeToName(type);
 }
 
 std::optional<RootInfo> SymbolService::getRootType(const irequest &req) {
