@@ -6,10 +6,10 @@
 #include "type_graph/type_graph.h"
 #include "type_graph/types.h"
 
-// TODO these shouldn't be needed for testing this unit
 #include "SymbolService.h"
-#include "OICodeGen.h"
+// TODO needed?:
 #include "OIParser.h"
+#include "ContainerInfo.h"
 
 using namespace type_graph;
 
@@ -23,7 +23,7 @@ void test(std::string_view function, std::string_view expected) {
   // TODO turn this into an absolute path so tests can be run from any directory
   SymbolService symbols{"./integration/integration_test_target"};
   irequest req{"entry", std::string{function}, "arg0"};
-  auto drgnRoot = OICodeGen::getRootType(symbols, req);
+  auto drgnRoot = symbols.getRootType(req);
 
   TypeGraph typeGraph;
   // TODO more container types, with various template parameter options

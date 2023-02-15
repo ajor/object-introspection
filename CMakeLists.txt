@@ -237,11 +237,12 @@ ADD_FLEX_BISON_DEPENDENCY(Lexer Parser)
 
 add_library(oid_parser STATIC ${BISON_Parser_OUTPUTS} ${FLEX_Lexer_OUTPUTS})
 target_link_libraries(oid_parser glog::glog)
+target_include_directories(oid_parser PUBLIC ${CMAKE_CURRENT_BINARY_DIR})
 
 ### Core OI
+include_directories(src)
 add_subdirectory(src)
 
-include_directories(${CMAKE_CURRENT_BINARY_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/src)
 add_library(oicore
   src/Descs.cpp
   src/Metrics.cpp
@@ -375,8 +376,6 @@ target_precompile_headers(oicore
 foreach(TARGET oil oip oid oitb)
   target_precompile_headers(${TARGET} REUSE_FROM oicore)
 endforeach()
-
-add_subdirectory("src/type_graph")
 
 # Add a hook for custom CMake rules
 if (DEFINED ENV{CMAKE_HOOK})

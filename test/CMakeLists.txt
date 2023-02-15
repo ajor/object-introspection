@@ -49,24 +49,17 @@ target_link_libraries(integration_sleepy folly_headers)
 
 # Unit tests
 
-add_executable(
-  target_prog
-  target_prog.cpp
-)
-
-add_executable(
-  test_type_graph
+add_executable(test_type_graph
   test_drgn_parser.cpp
   test_flattener.cpp
   test_required_type_collector.cpp
   test_topo_sorter.cpp
 )
-add_dependencies(test_type_graph libdrgn)
 
-target_link_libraries(
-  test_type_graph
+target_link_libraries(test_type_graph
+  type_graph
+
   ${GMOCK_MAIN_LIBS}
-  oicore
 )
 include(GoogleTest)
 gtest_discover_tests(test_type_graph)

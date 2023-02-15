@@ -36,3 +36,5 @@ target_link_libraries(codegen
   glog::glog
   tomlplusplus::tomlplusplus
 )
+
+add_subdirectory("type_graph")
