@@ -39,10 +39,10 @@ std::ostream &operator<<(std::ostream &os, const FuncDesc::Range &r) {
  */
 std::optional<uintptr_t> FuncDesc::Arg::findAddress(
     struct user_regs_struct *regs, uintptr_t pc) const {
-  auto prevRip = std::exchange(regs->rip, pc);
-  BOOST_SCOPE_EXIT_ALL(&) {
-    regs->rip = prevRip;
-  };
+//  auto prevRip = std::exchange(regs->rip, pc);
+//  BOOST_SCOPE_EXIT_ALL(&) {
+//    regs->rip = prevRip;
+//  };
 
   struct drgn_object object {};
   BOOST_SCOPE_EXIT_ALL(&) {
