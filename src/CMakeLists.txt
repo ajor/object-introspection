@@ -22,6 +22,7 @@ target_link_libraries(symbol_service
 )
 
 add_library(codegen
+  CodeGen.cpp
   ContainerInfo.cpp
   Features.cpp
   FuncGen.cpp

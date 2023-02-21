@@ -14,8 +14,8 @@ namespace type_graph {
 // TODO coding style change: "struct drgn_type" -> "drgn_type"
 class DrgnParser {
 public:
-  DrgnParser(TypeGraph &type_graph, const std::vector<ContainerInfo> &containers)
-    : type_graph_(type_graph), containers_(containers) { }
+  DrgnParser(TypeGraph &typeGraph, const std::vector<ContainerInfo> &containers)
+    : typeGraph_(typeGraph), containers_(containers) { }
   Type *parse(struct drgn_type *root);
 
 private:
@@ -43,12 +43,12 @@ private:
   T *make_type(struct drgn_type *type, Args &&...args) {
     auto type_unique_ptr = std::make_unique<T>(std::forward<Args>(args)...);
     auto type_raw_ptr = type_unique_ptr.get();
-    type_graph_.add(std::move(type_unique_ptr));
+    typeGraph_.add(std::move(type_unique_ptr));
     drgn_types_.insert({type, type_raw_ptr});
     return type_raw_ptr;
   }
 
-  TypeGraph &type_graph_;
+  TypeGraph &typeGraph_;
   const std::vector<ContainerInfo> &containers_;
 };
 

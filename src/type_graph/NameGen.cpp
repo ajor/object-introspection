@@ -26,19 +26,6 @@ void NameGen::visit(Class &c) {
   name += std::to_string(n++);
 
   c.setName(name);
-
-//    std::string str = name_;
-//    if (!template_params.empty()) {
-//      str.push_back('_');
-//      for (const auto &tparam : template_params) {
-//        // TODO has value?
-//        str += tparam.type->name() + "_";
-//      }
-//      // todo nasty
-//      str.pop_back();
-//      str.push_back('_');
-//    }
-//    return str;
 }
 
 void NameGen::visit(Container &c) {

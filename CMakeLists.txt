@@ -251,8 +251,6 @@ add_library(oicore
   src/OIUtils.cpp
   src/PaddingHunter.cpp
   src/Serialize.cpp
-
-  src/OICodeGen2.cpp
 )
 add_dependencies(oicore libdrgn)
 set_project_warnings(oicore)

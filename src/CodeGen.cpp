@@ -1,6 +1,40 @@
-#include "OICodeGen2.h"
+#include "CodeGen.h"
+
+#include <iostream> // TODO remove
+
+#include "type_graph/flattener.h"
+#include "type_graph/NameGen.h"
+#include "type_graph/required_type_collector.h"
+#include "type_graph/topo_sorter.h"
+#include "type_graph/type_graph.h"
 
 using namespace type_graph;
+
+void CodeGen::generate(Type &rootType) {
+  // TODO free resources from visitor classes after running each one
+  RequiredTypeCollector req_types;
+  auto required_types = req_types.collect({&rootType});
+  // TODO try Flattener.flatten()
+  Flattener flattener;
+  flattener.flatten(req_types.classes());
+  TopoSorter topo_sort;
+  auto sorted_types = topo_sort.sort(required_types);
+
+  NameGen nameGen;
+  nameGen.generateNames(sorted_types);
+
+  std::cout << "sorted types:\n";
+  for (auto &t : sorted_types) {
+    std::cout << t->name() << std::endl;
+  };
+
+  std::cout << "class decls\n";
+  std::cout << ClassDecls(sorted_types) << std::endl;
+  std::cout << "class defs\n";
+  std::cout << ClassDefs(sorted_types) << std::endl;
+  std::cout << "get size funcs:\n";
+  std::cout << GetSizeFuncs(sorted_types) << std::endl;
+}
 
 // TODO use C++20 std::format?
 std::string decl(const Class &c) {
@@ -49,7 +83,7 @@ std::string getContainerSizeFunc(const Container &c) {
 //  return str;
 //}
 
-std::string OICodeGen2::ClassDecls(const std::vector<Type*>& types) {
+std::string CodeGen::ClassDecls(const std::vector<Type*>& types) {
   std::string decls;
 
 //  for (const auto c : type_graph_.classes()) {
@@ -63,7 +97,7 @@ std::string OICodeGen2::ClassDecls(const std::vector<Type*>& types) {
   return decls;
 }
 
-std::string OICodeGen2::ClassDefs(const std::vector<Type*>& types) {
+std::string CodeGen::ClassDefs(const std::vector<Type*>& types) {
   std::string defs;
 
 //  for (const auto c : type_graph_.classes()) {
@@ -77,7 +111,7 @@ std::string OICodeGen2::ClassDefs(const std::vector<Type*>& types) {
   return defs;
 }
 
-std::string OICodeGen2::GetSizeFuncs(const std::vector<Type*>& types) {
+std::string CodeGen::GetSizeFuncs(const std::vector<Type*>& types) {
   std::string funcs;
 
   for (const auto t : types) {
@@ -90,7 +124,7 @@ std::string OICodeGen2::GetSizeFuncs(const std::vector<Type*>& types) {
   return funcs;
 }
 
-void OICodeGen2::registerContainer(const fs::path &path) {
+void CodeGen::registerContainer(const fs::path &path) {
 // TODO don't catch exceptions at this level?
 //  try {
   const auto &info = containerInfos.emplace_back(path);

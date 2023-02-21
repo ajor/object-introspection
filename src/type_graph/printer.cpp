@@ -13,7 +13,7 @@ void Printer::visit(Class &c) {
     return;
 
   std::string kind;
-  switch (c.kind_) {
+  switch (c.kind()) {
     case Class::Kind::Class:
       kind = "Class";
       break;

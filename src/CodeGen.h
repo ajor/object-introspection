@@ -9,9 +9,10 @@
 
 namespace fs = std::filesystem;
 
-class OICodeGen2 {
+class CodeGen {
 public:
-  OICodeGen2(const type_graph::TypeGraph &type_graph) : type_graph_(type_graph) { }
+  CodeGen(type_graph::TypeGraph &typeGraph) : typeGraph_(typeGraph) { }
+  void generate(type_graph::Type &rootType);
   std::string ClassDecls(const std::vector<type_graph::Type*>& types);
   std::string ClassDefs(const std::vector<type_graph::Type*>& types);
   std::string GetSizeFuncs(const std::vector<type_graph::Type*>& types);
@@ -24,11 +25,10 @@ void loadConfig(const T &containerConfigPaths) {
   }
 }
 
-// TODO private:
   std::vector<ContainerInfo> containerInfos;
 
 private:
   void registerContainer(const fs::path &path);
 
-  const type_graph::TypeGraph &type_graph_;
+  type_graph::TypeGraph &typeGraph_;
 };

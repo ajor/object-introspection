@@ -80,6 +80,10 @@ public:
 
   DECLARE_ACCEPT
 
+  Kind kind() const {
+    return kind_;
+  }
+
   // TODO don't recalculate this on every call - save it in the ctor
   virtual std::string name() const override {
     return name_;
@@ -98,11 +102,10 @@ public:
   std::vector<Member> members; // Sorted by offset
   std::vector<Function> functions;
 
-//private:
+private:
   Kind kind_;
   std::string name_;
   std::size_t size_;
-  // TODO namespace
 };
 
 class Container : public Type {

@@ -51,17 +51,14 @@ extern "C" {
 #include "PaddingHunter.h"
 #include "Syscall.h"
 
-#include "type_graph/drgn_parser.h"
-#include "type_graph/flattener.h"
-#include "type_graph/NameGen.h"
-#include "type_graph/required_type_collector.h"
-#include "type_graph/topo_sorter.h"
-#include "type_graph/type_graph.h"
-#include "OICodeGen2.h"
+#include "CodeGen.h"
 
 #ifndef OSS_ENABLE
 #include "cea/object-introspection/internal/GobsService.h"
 #endif
+
+// TODO:
+#include "type_graph/drgn_parser.h"
 
 using namespace std;
 using namespace ObjectIntrospection;
@@ -2919,37 +2916,13 @@ std::optional<std::string> OIDebugger::generateCode(const irequest& req) {
     return nullopt;
   }
 
-  type_graph::TypeGraph type_graph;
-
-  OICodeGen2 codegen2(type_graph);
+  type_graph::TypeGraph typeGraph;
+  CodeGen codegen2(typeGraph);
   codegen2.loadConfig(generatorConfig.containerConfigPaths);
-
-  type_graph::DrgnParser p(type_graph, codegen2.containerInfos);
-  type_graph::Type *root_type = p.parse(root->type.type);
-
-  // TODO free resources from visitor classes after running each one
-  type_graph::RequiredTypeCollector req_types;
-  auto required_types = req_types.collect({root_type});
-  // TODO try Flattener.flatten()
-  type_graph::Flattener flattener;
-  flattener.flatten(req_types.classes());
-  type_graph::TopoSorter topo_sort;
-  auto sorted_types = topo_sort.sort(required_types);
-
-  type_graph::NameGen nameGen;
-  nameGen.generateNames(sorted_types);
-
-  std::cout << "sorted types:\n";
-  for (auto &t : sorted_types) {
-    std::cout << t->name() << std::endl;
-  };
-
-  std::cout << "class decls\n";
-  std::cout << codegen2.ClassDecls(sorted_types) << std::endl;
-  std::cout << "class defs\n";
-  std::cout << codegen2.ClassDefs(sorted_types) << std::endl;
-  std::cout << "get size funcs:\n";
-  std::cout << codegen2.GetSizeFuncs(sorted_types) << std::endl;
+  // TODO nasty circular dependencies:
+  type_graph::DrgnParser drgnParser(typeGraph, codegen2.containerInfos);
+  type_graph::Type *rootType = drgnParser.parse(root->type.type);
+  codegen2.generate(*rootType);
 
   RootInfo rootInfo = *root;
   codegen->setRootType(rootInfo.type);
