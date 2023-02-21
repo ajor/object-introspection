@@ -52,6 +52,7 @@ target_link_libraries(integration_sleepy folly_headers)
 add_executable(test_type_graph
   test_drgn_parser.cpp
   test_flattener.cpp
+  test_name_gen.cpp
   test_required_type_collector.cpp
   test_topo_sorter.cpp
 )

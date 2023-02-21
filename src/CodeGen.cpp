@@ -36,7 +36,6 @@ void CodeGen::generate(Type &rootType) {
   std::cout << GetSizeFuncs(sorted_types) << std::endl;
 }
 
-// TODO use C++20 std::format?
 std::string decl(const Class &c) {
   return "struct " + c.name() + ";\n";
 }
