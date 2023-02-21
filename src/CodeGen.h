@@ -29,6 +29,7 @@ void loadConfig(const T &containerConfigPaths) {
 
 private:
   void registerContainer(const fs::path &path);
+  std::string getContainerSizeFunc(const type_graph::Container &c);
 
   type_graph::TypeGraph &typeGraph_;
 };

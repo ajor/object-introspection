@@ -60,9 +60,11 @@ std::string getClassSizeFunc(const Class &c) {
   return str;
 }
 
-std::string getContainerSizeFunc(const Container &c) {
+std::string CodeGen::getContainerSizeFunc(const Container &c) {
   std::string str = "void getSize(const " + c.name() + " &t, size_t &size) {\n";
-  str += "  TODO - get code from TOML files\n";
+  // TODO pick the right container
+  // TODO sort out templating + boilerplate
+  str += containerInfos[0].funcBody;
   str += "}\n";
   return str;
 }

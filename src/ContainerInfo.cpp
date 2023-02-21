@@ -238,4 +238,21 @@ ContainerInfo::ContainerInfo(const fs::path& path) {
 
   allocatorIndex = info["allocatorIndex"].value<size_t>();
   underlyingContainerIndex = info["underlyingContainerIndex"].value<size_t>();
+
+  if (!container["codegen"].is_table()) {
+    // TODO throw
+    LOG(ERROR) << "a container info file requires a `codegen` table";
+  }
+
+  const auto &codegen = container["codegen"];
+
+  // decl is not used
+
+  if (std::optional<std::string> str =
+          codegen["func"].value<std::string>()) {
+    funcBody = std::move(*str);
+  } else {
+    // TODO throw
+    LOG(ERROR) << "`codegen.func` is a required field";
+  }
 }

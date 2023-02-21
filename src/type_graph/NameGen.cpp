@@ -56,6 +56,7 @@ void NameGen::visit(Container &c) {
   removeTemplateParams(name);
 
   name.push_back('<');
+  // TODO check which container params should be kept
   for (const auto &param : c.template_params) {
     name += param.type->name();
     name += ", ";
