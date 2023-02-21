@@ -53,6 +53,7 @@ extern "C" {
 
 #include "type_graph/drgn_parser.h"
 #include "type_graph/flattener.h"
+#include "type_graph/NameGen.h"
 #include "type_graph/required_type_collector.h"
 #include "type_graph/topo_sorter.h"
 #include "type_graph/type_graph.h"
@@ -2934,6 +2935,9 @@ std::optional<std::string> OIDebugger::generateCode(const irequest& req) {
   flattener.flatten(req_types.classes());
   type_graph::TopoSorter topo_sort;
   auto sorted_types = topo_sort.sort(required_types);
+
+  type_graph::NameGen nameGen;
+  nameGen.generateNames(sorted_types);
 
   std::cout << "sorted types:\n";
   for (auto &t : sorted_types) {

@@ -201,7 +201,7 @@ TEST(DrgnParserTest, ArrayDirect) {
 TEST(DrgnParserTest, ClassTemplateInt) {
   test("oid_test_case_templates_int", R"(
 [0] Pointer
-[1]   Class TemplatedClass1<int> (4)
+[1]   Class: TemplatedClass1<int> (4)
         Param
           Primitive: int32_t
         Member: val (0)
@@ -212,32 +212,32 @@ TEST(DrgnParserTest, ClassTemplateInt) {
 TEST(DrgnParserTest, ClassTemplateVector) {
   test("oid_test_case_templates_vector", R"(
 [0] Pointer
-[1]   Class TemplatedClass1<std::vector<int>> (24)
+[1]   Class: TemplatedClass1<std::vector<int, std::allocator<int> > > (24)
         Param
 [2]       Container: std::vector
             Param
               Primitive: int32_t
         Member: val (0)
           [2]
-        Function: TemplatedClass1 (virtuality: 0)
         Function: ~TemplatedClass1 (virtuality: 0)
+        Function: TemplatedClass1 (virtuality: 0)
 )");
 }
 
 TEST(DrgnParserTest, ClassTemplateTwo) {
   test("oid_test_case_templates_two", R"(
 [0] Pointer
-[1]   Class: TemplatedClass2<SimpleStruct,int32_t> (12)
+[1]   Class: TemplatedClass2<ns_templates::Foo, int> (12)
         Param
 [2]       Struct: Foo (8)
             Member: a (0)
               Primitive: int32_t
             Member: b (4)
-              Primitive: int8_t
+              Primitive: int32_t
         Param
           Primitive: int32_t
         Member: tc1 (0)
-[3]       Class: TemplatedClass1<Foo> (8)
+[3]       Class: TemplatedClass1<ns_templates::Foo> (8)
             Param
               [2]
             Member: val (0)
@@ -246,6 +246,19 @@ TEST(DrgnParserTest, ClassTemplateTwo) {
           Primitive: int32_t
 )");
 }
+
+// TODO
+//TEST(DrgnParserTest, ClassTemplateValue) {
+//  test("oid_test_case_templates_value", R"(
+//[0] Pointer
+//[1]   Class: TemplatedClassVal<3> (12)
+//        Param
+//          Value: 3
+//        Member: arr (0)
+//[2]       Array: (3)
+//            Primitive: int32_t
+//)");
+//}
 
 // TODO
 //TEST(DrgnParserTest, ClassFunctions) {

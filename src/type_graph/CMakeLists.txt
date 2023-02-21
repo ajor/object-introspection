@@ -1,5 +1,6 @@
 add_library(type_graph
   drgn_parser.cpp
+  NameGen.cpp
   printer.cpp
   required_type_collector.cpp
   topo_sorter.cpp

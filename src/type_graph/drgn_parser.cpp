@@ -138,11 +138,6 @@ Type *DrgnParser::enumerateClass(struct drgn_type *type) {
     type_name = std::string(type_tag);
   // else this is an anonymous type
 
-  // Remove template parameters from the type name
-  auto template_start_pos = type_name.find('<');
-  if (template_start_pos != std::string::npos)
-    type_name.erase(template_start_pos);
-
   auto size = get_drgn_type_size(type);
 
   Class::Kind kind;

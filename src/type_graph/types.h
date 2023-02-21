@@ -82,18 +82,11 @@ public:
 
   // TODO don't recalculate this on every call - save it in the ctor
   virtual std::string name() const override {
-    std::string str = name_;
-    if (!template_params.empty()) {
-      str.push_back('_');
-      for (const auto &tparam : template_params) {
-        // TODO has value?
-        str += tparam.type->name() + "_";
-      }
-      // todo nasty
-      str.pop_back();
-      str.push_back('_');
-    }
-    return str;
+    return name_;
+  }
+
+  void setName(std::string name) {
+    name_ = std::move(name);
   }
 
   virtual std::size_t size() const override {
