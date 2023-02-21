@@ -8,13 +8,32 @@ void NameGen::generateNames(const std::vector<Type*> &types) {
   }
 };
 
-// TODO no need to be a visitor?
-void NameGen::visit(Class &c) {
-  // Remove template parameters from the type name
-  std::string name = c.name();
+void NameGen::nameType(Type *type) {
+  if (visited_.count(type) != 0)
+    return;
+
+  visited_.insert(type);
+  type->accept(*this);
+}
+
+/*
+ * Remove template parameters from the type name
+ *
+ * "std::vector<int>" -> "std::vector"
+ */
+void NameGen::removeTemplateParams(std::string &name) {
   auto template_start_pos = name.find('<');
   if (template_start_pos != std::string::npos)
     name.erase(template_start_pos);
+}
+
+void NameGen::visit(Class &c) {
+  for (const auto &template_param : c.template_params) {
+    nameType(template_param.type);
+  }
+
+  std::string name = c.name();
+  removeTemplateParams(name);
 
   name.push_back('_');
   for (const auto &param : c.template_params) {
@@ -29,6 +48,23 @@ void NameGen::visit(Class &c) {
 }
 
 void NameGen::visit(Container &c) {
+  for (const auto &template_param : c.template_params) {
+    nameType(template_param.type);
+  }
+
+  std::string name = c.name();
+  removeTemplateParams(name);
+
+  name.push_back('<');
+  for (const auto &param : c.template_params) {
+    name += param.type->name();
+    name += ", ";
+  }
+  name.pop_back();
+  name.pop_back();
+  name.push_back('>');
+
+  c.setName(name);
 }
 
 void NameGen::visit(Enum &e) {

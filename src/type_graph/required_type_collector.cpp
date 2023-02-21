@@ -33,6 +33,7 @@ void RequiredTypeCollector::visit(Class &c) {
 void RequiredTypeCollector::visit(Container &c) {
   // Containers themselves don't need to be collected, but their template
   // parameters might be required
+  required_types_.push_back(&c);
   for (const auto &template_param : c.template_params) {
     collect_type(template_param.type);
   }

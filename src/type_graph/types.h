@@ -121,7 +121,11 @@ public:
   DECLARE_ACCEPT
 
   virtual std::string name() const override {
-    return "std::vector"; // TODO
+    return name_;
+  }
+
+  void setName(std::string name) {
+    name_ = std::move(name);
   }
 
   virtual std::size_t size() const override {
@@ -130,6 +134,9 @@ public:
 
   std::vector<TemplateParam> template_params;
   Kind kind_;
+
+private:
+  std::string name_ = "std::vector"; // TODO
 };
 
 class Enum : public Type {

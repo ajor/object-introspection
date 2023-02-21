@@ -29,13 +29,12 @@ public:
   void visit(Array &a) override;
 
 private:
+  void collect_type(Type *type);
+  bool chasePointer() const;
+
   std::unordered_set<Type*> visited_;
   std::vector<Type*> required_types_;
   std::vector<Class*> required_classes_;
-
-  void collect_type(Type *type);
-
-  bool chasePointer() const;
   int depth;
 };
 
