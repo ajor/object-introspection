@@ -2,11 +2,11 @@
 
 #include <iostream> // TODO remove
 
-#include "type_graph/flattener.h"
+#include "type_graph/Flattener.h"
 #include "type_graph/NameGen.h"
-#include "type_graph/required_type_collector.h"
-#include "type_graph/topo_sorter.h"
-#include "type_graph/type_graph.h"
+#include "type_graph/RequiredTypeCollector.h"
+#include "type_graph/TopoSorter.h"
+#include "type_graph/TypeGraph.h"
 
 using namespace type_graph;
 

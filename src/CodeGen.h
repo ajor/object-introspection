@@ -5,7 +5,7 @@
 #include <string>
 
 #include "ContainerInfo.h"
-#include "type_graph/type_graph.h"
+#include "type_graph/TypeGraph.h"
 
 namespace fs = std::filesystem;
 

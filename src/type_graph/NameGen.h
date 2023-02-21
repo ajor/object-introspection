@@ -3,8 +3,8 @@
 #include <unordered_set>
 #include <vector>
 
-#include "types.h"
-#include "visitor.h"
+#include "Types.h"
+#include "Visitor.h"
 
 namespace type_graph {
 

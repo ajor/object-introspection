@@ -3,8 +3,8 @@
 
 #include <gtest/gtest.h>
 
-#include "type_graph/flattener.h"
-#include "type_graph/types.h"
+#include "type_graph/Flattener.h"
+#include "type_graph/Types.h"
 
 using namespace type_graph;
 

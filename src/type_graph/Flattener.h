@@ -3,20 +3,20 @@
 #include <unordered_set>
 #include <vector>
 
-#include "types.h"
-#include "visitor.h"
+#include "Types.h"
+#include "Visitor.h"
 
 namespace type_graph {
 
 /*
- * TopoSorter
+ * Flattener
  *
- * Topologically sorts a list of types so that dependencies appear before
- * dependent types.
+ * Flattens classes by removing parents and adding their members directly into
+ * derived classes.
  */
-class TopoSorter : public Visitor {
+class Flattener : public Visitor {
 public:
-  std::vector<Type*> sort(const std::vector<Type*> &types);
+  void flatten(const std::vector<Class*> &classes);
 
   void visit(Class &c) override;
   void visit(Container &c) override;
@@ -27,10 +27,11 @@ public:
   void visit(Array &a) override;
 
 private:
-  std::unordered_set<Type*> visited_;
-  std::vector<Type*> sorted_types_;
+  std::vector<Member> flattened_members_;
 
-  void sort_type(Type *type);
+  void flatten_class(Class &c);
+
+  std::vector<uint64_t> offset_stack_;
 };
 
 } // namespace type_graph

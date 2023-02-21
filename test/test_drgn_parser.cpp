@@ -1,10 +1,10 @@
 #include <regex>
 #include <gtest/gtest.h>
 
-#include "type_graph/drgn_parser.h"
-#include "type_graph/printer.h"
-#include "type_graph/type_graph.h"
-#include "type_graph/types.h"
+#include "type_graph/DrgnParser.h"
+#include "type_graph/Printer.h"
+#include "type_graph/TypeGraph.h"
+#include "type_graph/Types.h"
 
 #include "SymbolService.h"
 // TODO needed?:

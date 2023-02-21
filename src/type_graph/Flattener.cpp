@@ -1,4 +1,4 @@
-#include "flattener.h"
+#include "Flattener.h"
 
 namespace type_graph {
 

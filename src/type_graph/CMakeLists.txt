@@ -1,11 +1,11 @@
 add_library(type_graph
-  drgn_parser.cpp
+  DrgnParser.cpp
   NameGen.cpp
-  printer.cpp
-  required_type_collector.cpp
-  topo_sorter.cpp
-  flattener.cpp
-  types.cpp
+  Printer.cpp
+  RequiredTypeCollector.cpp
+  TopoSorter.cpp
+  Flattener.cpp
+  Types.cpp
 )
 add_dependencies(type_graph libdrgn)
 target_link_libraries(type_graph

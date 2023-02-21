@@ -1,4 +1,4 @@
-#include "topo_sorter.h"
+#include "TopoSorter.h"
 
 namespace type_graph {
 

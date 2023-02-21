@@ -1,6 +1,6 @@
-#include "types.h"
+#include "Types.h"
 
-#include "visitor.h"
+#include "Visitor.h"
 
 namespace type_graph {
 

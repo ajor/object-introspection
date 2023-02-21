@@ -3,8 +3,8 @@
 #include <unordered_map>
 
 // TODO sort out header ordering everywhere
-#include "type_graph.h"
-#include "types.h"
+#include "TypeGraph.h"
+#include "Types.h"
 
 struct drgn_type;
 struct ContainerInfo;

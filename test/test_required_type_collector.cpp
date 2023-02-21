@@ -1,7 +1,7 @@
 #include <gtest/gtest.h>
 
-#include "type_graph/required_type_collector.h"
-#include "type_graph/types.h"
+#include "type_graph/RequiredTypeCollector.h"
+#include "type_graph/Types.h"
 
 using namespace type_graph;
 

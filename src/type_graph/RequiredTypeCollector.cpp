@@ -1,4 +1,4 @@
-#include "required_type_collector.h"
+#include "RequiredTypeCollector.h"
 
 namespace type_graph {
 

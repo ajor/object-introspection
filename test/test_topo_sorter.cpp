@@ -1,7 +1,7 @@
 #include <gtest/gtest.h>
 
-#include "type_graph/topo_sorter.h"
-#include "type_graph/types.h"
+#include "type_graph/TopoSorter.h"
+#include "type_graph/Types.h"
 
 using namespace type_graph;
 

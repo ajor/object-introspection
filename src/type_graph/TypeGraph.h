@@ -3,7 +3,7 @@
 #include <memory>
 #include <vector>
 
-#include "types.h"
+#include "Types.h"
 
 namespace type_graph {
 

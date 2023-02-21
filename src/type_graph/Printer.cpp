@@ -1,4 +1,4 @@
-#include "printer.h"
+#include "Printer.h"
 
 namespace type_graph {
 

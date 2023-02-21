@@ -58,7 +58,7 @@ extern "C" {
 #endif
 
 // TODO:
-#include "type_graph/drgn_parser.h"
+#include "type_graph/DrgnParser.h"
 
 using namespace std;
 using namespace ObjectIntrospection;
