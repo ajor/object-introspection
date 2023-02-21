@@ -65,12 +65,12 @@ void test(std::string_view function, std::string_view expected) {
 TEST(DrgnParserTest, SimpleStruct) {
   test("oid_test_case_simple_struct", R"(
 [0] Pointer
-[1]   Struct: SimpleStruct (16)
-        Member: a (0)
+[1]   Struct: SimpleStruct (size: 16)
+        Member: a (offset: 0)
           Primitive: int32_t
-        Member: b (4)
+        Member: b (offset: 4)
           Primitive: int8_t
-        Member: c (8)
+        Member: c (offset: 8)
           Primitive: int64_t
 )");
 }
@@ -78,12 +78,12 @@ TEST(DrgnParserTest, SimpleStruct) {
 TEST(DrgnParserTest, SimpleClass) {
   test("oid_test_case_simple_class", R"(
 [0] Pointer
-[1]   Class: SimpleClass (16)
-        Member: a (0)
+[1]   Class: SimpleClass (size: 16)
+        Member: a (offset: 0)
           Primitive: int32_t
-        Member: b (4)
+        Member: b (offset: 4)
           Primitive: int8_t
-        Member: c (8)
+        Member: c (offset: 8)
           Primitive: int64_t
 )");
 }
@@ -91,12 +91,12 @@ TEST(DrgnParserTest, SimpleClass) {
 TEST(DrgnParserTest, SimpleUnion) {
   test("oid_test_case_simple_union", R"(
 [0] Pointer
-[1]   Union: SimpleUnion (8)
-        Member: a (0)
+[1]   Union: SimpleUnion (size: 8)
+        Member: a (offset: 0)
           Primitive: int32_t
-        Member: b (0)
+        Member: b (offset: 0)
           Primitive: int8_t
-        Member: c (0)
+        Member: c (offset: 0)
           Primitive: int64_t
 )");
 }
@@ -104,12 +104,12 @@ TEST(DrgnParserTest, SimpleUnion) {
 TEST(DrgnParserTest, Inheritance) {
   test("oid_test_case_inheritance_access_public", R"(
 [0] Pointer
-[1]   Class: Public (8)
-        Parent (0)
-[2]       Class: Base (4)
-            Member: base_int (0)
+[1]   Class: Public (size: 8)
+        Parent (offset: 0)
+[2]       Class: Base (size: 4)
+            Member: base_int (offset: 0)
               Primitive: int32_t
-        Member: public_int (4)
+        Member: public_int (offset: 4)
           Primitive: int32_t
 )");
 }
@@ -126,19 +126,19 @@ TEST(DrgnParserTest, Container) {
 
 TEST(DrgnParserTest, Enum) {
   test("oid_test_case_enums_scoped", R"(
-    Enum: ScopedEnum (4)
+    Enum: ScopedEnum (size: 4)
 )");
 }
 
 TEST(DrgnParserTest, EnumInt8) {
   test("oid_test_case_enums_scoped_int8", R"(
-    Enum: ScopedEnumInt8 (1)
+    Enum: ScopedEnumInt8 (size: 1)
 )");
 }
 
 TEST(DrgnParserTest, UnscopedEnum) {
   test("oid_test_case_enums_unscoped", R"(
-    Enum: UNSCOPED_ENUM (4)
+    Enum: UNSCOPED_ENUM (size: 4)
 )");
 }
 
@@ -164,10 +164,10 @@ TEST(DrgnParserTest, Using) {
 TEST(DrgnParserTest, Cycle) { // TODO switch this integration test to use "int" instead uint64_t", to remove typedefs
   test("oid_test_case_cycles_raw_ptr", R"(
 [0] Pointer
-[1]   Struct: RawNode (16)
-        Member: value (0)
+[1]   Struct: RawNode (size: 16)
+        Member: value (offset: 0)
           Primitive: int64_t
-        Member: next (8)
+        Member: next (offset: 8)
 [2]       Pointer
             [1]
 )");
@@ -176,9 +176,9 @@ TEST(DrgnParserTest, Cycle) { // TODO switch this integration test to use "int" 
 TEST(DrgnParserTest, ArrayMember) {
   test("oid_test_case_arrays_member_int10", R"(
 [0] Pointer
-[1]   Struct: Foo10 (40)
-        Member: arr (0)
-[2]       Array: (10)
+[1]   Struct: Foo10 (size: 40)
+        Member: arr (offset: 0)
+[2]       Array: (length: 10)
             Primitive: int32_t
 )");
 }
@@ -186,7 +186,7 @@ TEST(DrgnParserTest, ArrayMember) {
 TEST(DrgnParserTest, ArrayRef) {
   test("oid_test_case_arrays_ref_int10", R"(
 [0] Pointer
-[1]   Array: (10)
+[1]   Array: (length: 10)
         Primitive: int32_t
 )");
 }
@@ -201,10 +201,10 @@ TEST(DrgnParserTest, ArrayDirect) {
 TEST(DrgnParserTest, ClassTemplateInt) {
   test("oid_test_case_templates_int", R"(
 [0] Pointer
-[1]   Class: TemplatedClass1<int> (4)
+[1]   Class: TemplatedClass1<int> (size: 4)
         Param
           Primitive: int32_t
-        Member: val (0)
+        Member: val (offset: 0)
           Primitive: int32_t
 )");
 }
@@ -212,12 +212,12 @@ TEST(DrgnParserTest, ClassTemplateInt) {
 TEST(DrgnParserTest, ClassTemplateVector) {
   test("oid_test_case_templates_vector", R"(
 [0] Pointer
-[1]   Class: TemplatedClass1<std::vector<int, std::allocator<int> > > (24)
+[1]   Class: TemplatedClass1<std::vector<int, std::allocator<int> > > (size: 24)
         Param
 [2]       Container: std::vector
             Param
               Primitive: int32_t
-        Member: val (0)
+        Member: val (offset: 0)
           [2]
         Function: ~TemplatedClass1 (virtuality: 0)
         Function: TemplatedClass1 (virtuality: 0)
@@ -227,22 +227,22 @@ TEST(DrgnParserTest, ClassTemplateVector) {
 TEST(DrgnParserTest, ClassTemplateTwo) {
   test("oid_test_case_templates_two", R"(
 [0] Pointer
-[1]   Class: TemplatedClass2<ns_templates::Foo, int> (12)
+[1]   Class: TemplatedClass2<ns_templates::Foo, int> (size: 12)
         Param
-[2]       Struct: Foo (8)
-            Member: a (0)
+[2]       Struct: Foo (size: 8)
+            Member: a (offset: 0)
               Primitive: int32_t
-            Member: b (4)
+            Member: b (offset: 4)
               Primitive: int32_t
         Param
           Primitive: int32_t
-        Member: tc1 (0)
-[3]       Class: TemplatedClass1<ns_templates::Foo> (8)
+        Member: tc1 (offset: 0)
+[3]       Class: TemplatedClass1<ns_templates::Foo> (size: 8)
             Param
               [2]
-            Member: val (0)
+            Member: val (offset: 0)
               [2]
-        Member: val2 (8)
+        Member: val2 (offset: 8)
           Primitive: int32_t
 )");
 }
@@ -251,11 +251,11 @@ TEST(DrgnParserTest, ClassTemplateTwo) {
 //TEST(DrgnParserTest, ClassTemplateValue) {
 //  test("oid_test_case_templates_value", R"(
 //[0] Pointer
-//[1]   Class: TemplatedClassVal<3> (12)
+//[1]   Class: TemplatedClassVal<3> (size: 12)
 //        Param
 //          Value: 3
-//        Member: arr (0)
-//[2]       Array: (3)
+//        Member: arr (offset: 0)
+//[2]       Array: (length: 3)
 //            Primitive: int32_t
 //)");
 //}
@@ -264,8 +264,8 @@ TEST(DrgnParserTest, ClassTemplateTwo) {
 //TEST(DrgnParserTest, ClassFunctions) {
 //  test("TestClassFunctions", R"(
 //[0] Pointer
-//[1]   Class: ClassFunctions (4)
-//        Member: memberA (0)
+//[1]   Class: ClassFunctions (size: 4)
+//        Member: memberA (offset: 0)
 //          Primitive: int32_t
 //        Function: foo (virtuality: 0)
 //        Function: bar (virtuality: 0)

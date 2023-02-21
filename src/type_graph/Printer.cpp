@@ -24,7 +24,7 @@ void Printer::visit(Class &c) {
       kind = "Union";
       break;
   }
-  out_ << kind << ": " << c.name() << " (" << c.size() << ")" << std::endl;
+  out_ << kind << ": " << c.name() << " (size: " << c.size() << ")" << std::endl;
   for (const auto &param : c.template_params) {
     print_param(param);
   }
@@ -51,7 +51,7 @@ void Printer::visit(Container &c) {
 
 void Printer::visit(Enum &e) {
   prefix();
-  out_ << "Enum: " << e.name() << " (" << e.size() << ")" << std::endl;
+  out_ << "Enum: " << e.name() << " (size: " << e.size() << ")" << std::endl;
 }
 
 void Printer::visit(Primitive &p) {
@@ -79,7 +79,7 @@ void Printer::visit(Array &a) {
   if (prefix(&a))
     return;
 
-  out_ << "Array: (" << a.len() << ")" << std::endl;
+  out_ << "Array: (length: " << a.len() << ")" << std::endl;
   print(*a.element_type());
 }
 
@@ -116,7 +116,7 @@ void Printer::print_param(const TemplateParam &param) {
 void Printer::print_parent(const Parent &parent) {
   depth_++;
   prefix();
-  out_ << "Parent (" << parent.offset << ")" << std::endl;
+  out_ << "Parent (offset: " << parent.offset << ")" << std::endl;
   print(*parent.type);
   depth_--;
 }
@@ -124,7 +124,7 @@ void Printer::print_parent(const Parent &parent) {
 void Printer::print_member(const Member &member) {
   depth_++;
   prefix();
-  out_ << "Member: " << member.name << " (" << member.offset << ")" << std::endl;
+  out_ << "Member: " << member.name << " (offset: " << member.offset << ")" << std::endl;
   print(*member.type);
   depth_--;
 }
