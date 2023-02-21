@@ -55,6 +55,9 @@ add_executable(test_type_graph
   test_required_type_collector.cpp
   test_topo_sorter.cpp
 )
+target_compile_definitions(test_type_graph PRIVATE
+  TARGET_EXE_PATH="${CMAKE_CURRENT_BINARY_DIR}/integration/integration_test_target"
+)
 
 target_link_libraries(test_type_graph
   type_graph

@@ -20,8 +20,7 @@ void EXPECT_EQ_TYPE(const Type *actual, const Type *expected);
 void EXPECT_EQ_TYPES(const std::vector<Type*> actual, const std::vector<Type*> expected);
 
 void test(std::string_view function, std::string_view expected) {
-  // TODO turn this into an absolute path so tests can be run from any directory
-  SymbolService symbols{"./integration/integration_test_target"};
+  SymbolService symbols{TARGET_EXE_PATH};
   irequest req{"entry", std::string{function}, "arg0"};
   auto drgnRoot = symbols.getRootType(req);
 
