@@ -1,0 +1,53 @@
+# TODO alignas enums, other types
+includes = ["optional"]
+definitions = '''
+  struct alignas(16) Align16 {
+    char c;
+  };
+
+  struct TwoStruct {
+    Align16 x1;
+    char c;
+    Align16 x2;
+  };
+
+  struct MemberAlignment {
+    int c;
+    alignas(32) char c32;
+  };
+
+  struct MemberAlignmentOverriden {
+    int c;
+    alignas(32) Align16 alignmentIncreased;
+  };
+
+  struct alignas(128) AlignedStructMemberAlignLower {
+    int c;
+    alignas(32) char c32;
+  };
+'''
+[cases]
+  [cases.struct]
+    param_types = ["const Align16&"]
+    setup = "return {};"
+    expect_json = '[{"staticSize":16, "dynamicSize":0}]'
+  [cases.two_members]
+    param_types = ["const TwoStruct&"]
+    setup = "return {};"
+    expect_json = '[{"staticSize":48, "dynamicSize":0}]'
+  [cases.member_alignment]
+    param_types = ["const MemberAlignment&"]
+    setup = "return {};"
+    expect_json = '[{"staticSize":64, "dynamicSize":0}]'
+  [cases.member_override]
+    param_types = ["const MemberAlignmentOverriden&"]
+    setup = "return {};"
+    expect_json = '[{"staticSize":64, "dynamicSize":0}]'
+  [cases.member_lower]
+    param_types = ["const AlignedStructMemberAlignLower&"]
+    setup = "return {};"
+    expect_json = '[{"staticSize":128, "dynamicSize":0}]'
+  [cases.optional]
+    param_types = ["const std::optional<Align16>&"]
+    setup = "return {};"
+    expect_json = '[{"staticSize":32, "dynamicSize":0}]'
