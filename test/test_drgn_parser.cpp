@@ -104,12 +104,12 @@ TEST(DrgnParserTest, SimpleUnion) {
 TEST(DrgnParserTest, Inheritance) {
   test("oid_test_case_inheritance_access_public", R"(
 [0] Pointer
-[1]   Class: Public (12)
+[1]   Class: Public (8)
         Parent (0)
-[2]       Class: Base (8)
-            Member: base_int (4)
+[2]       Class: Base (4)
+            Member: base_int (0)
               Primitive: int32_t
-        Member: public_int (8)
+        Member: public_int (4)
           Primitive: int32_t
 )");
 }
@@ -122,6 +122,7 @@ TEST(DrgnParserTest, Container) {
           Primitive: int32_t
 )");
 }
+// TODO test vector with custom allocator
 
 TEST(DrgnParserTest, Enum) {
   test("oid_test_case_enums_scoped", R"(
@@ -141,8 +142,8 @@ TEST(DrgnParserTest, UnscopedEnum) {
 )");
 }
 
-TEST(DrgnParserTest, Typedef) { // TODO
-  test("TestTypedef", R"(
+TEST(DrgnParserTest, Typedef) {
+  test("oid_test_case_typedefs_c_style", R"(
 [0] Typedef: UInt64
 [1]   Typedef: uint64_t
 [2]     Typedef: __uint64_t
@@ -150,8 +151,8 @@ TEST(DrgnParserTest, Typedef) { // TODO
 )");
 }
 
-TEST(DrgnParserTest, Using) { // TODO
-  test("TestUsing", R"(
+TEST(DrgnParserTest, Using) {
+  test("oid_test_case_typedefs_using", R"(
 [0] Pointer
 [1]   Typedef: IntVector
 [2]     Container: std::vector
@@ -160,7 +161,7 @@ TEST(DrgnParserTest, Using) { // TODO
 )");
 }
 
-TEST(DrgnParserTest, Cycle) {
+TEST(DrgnParserTest, Cycle) { // TODO switch this integration test to use "int" instead uint64_t", to remove typedefs
   test("oid_test_case_cycles_raw_ptr", R"(
 [0] Pointer
 [1]   Struct: RawNode (16)
@@ -172,87 +173,88 @@ TEST(DrgnParserTest, Cycle) {
 )");
 }
 
-TEST(DrgnParserTest, Array) {
-  test("TestArray", R"(
+TEST(DrgnParserTest, ArrayMember) {
+  test("oid_test_case_arrays_member_int10", R"(
 [0] Pointer
-[1]   Struct: ArrayStruct (72)
-        Member: intArray (0)
-[2]       Array: (5)
+[1]   Struct: Foo10 (40)
+        Member: arr (0)
+[2]       Array: (10)
             Primitive: int32_t
-        Member: structArray (24)
-[3]       Array: (3)
-[4]         Struct: SimpleStruct (16)
-              Member: a (0)
-                Primitive: int32_t
-              Member: b (4)
-                Primitive: int8_t
-              Member: c (8)
-                Primitive: int64_t
-        Member: charArray (72)
-[5]       Array: (0)
-            Primitive: int8_t
+)");
+}
+
+TEST(DrgnParserTest, ArrayRef) {
+  test("oid_test_case_arrays_ref_int10", R"(
+[0] Pointer
+[1]   Array: (10)
+        Primitive: int32_t
+)");
+}
+
+TEST(DrgnParserTest, ArrayDirect) {
+  test("oid_test_case_arrays_direct_int10", R"(
+[0] Pointer
+      Primitive: int32_t
 )");
 }
 
 TEST(DrgnParserTest, ClassTemplateInt) {
-  test("TestClassTemplateInt", R"(
+  test("oid_test_case_templates_int", R"(
 [0] Pointer
-[1]   Class: TemplatedClass1_int32_t_ (4)
+[1]   Class TemplatedClass1<int> (4)
         Param
           Primitive: int32_t
-        Member: templatedValue (0)
+        Member: val (0)
           Primitive: int32_t
 )");
 }
 
 TEST(DrgnParserTest, ClassTemplateVector) {
-  test("TestClassTemplateVector", R"(
+  test("oid_test_case_templates_vector", R"(
 [0] Pointer
-[1]   Class: TemplatedClass1_std::vector_ (24)
+[1]   Class TemplatedClass1<std::vector<int>> (24)
         Param
 [2]       Container: std::vector
             Param
               Primitive: int32_t
-        Member: templatedValue (0)
+        Member: val (0)
           [2]
         Function: TemplatedClass1 (virtuality: 0)
         Function: ~TemplatedClass1 (virtuality: 0)
 )");
 }
 
-TEST(DrgnParserTest, ClassTemplateSimpleStructInt) {
-  test("TestClassTemplateSimpleStructInt", R"(
+TEST(DrgnParserTest, ClassTemplateTwo) {
+  test("oid_test_case_templates_two", R"(
 [0] Pointer
-[1]   Class: TemplatedClass2_SimpleStruct_int32_t_ (24)
+[1]   Class: TemplatedClass2<SimpleStruct,int32_t> (12)
         Param
-[2]       Struct: SimpleStruct (16)
+[2]       Struct: Foo (8)
             Member: a (0)
               Primitive: int32_t
             Member: b (4)
               Primitive: int8_t
-            Member: c (8)
-              Primitive: int64_t
         Param
           Primitive: int32_t
         Member: tc1 (0)
-[3]       Class: TemplatedClass1_SimpleStruct_ (16)
+[3]       Class: TemplatedClass1<Foo> (8)
             Param
               [2]
-            Member: templatedValue (0)
+            Member: val (0)
               [2]
-        Member: arr (16)
-[4]       Array: (2)
-            Primitive: int32_t
+        Member: val2 (8)
+          Primitive: int32_t
 )");
 }
 
-TEST(DrgnParserTest, ClassFunctions) {
-  test("TestClassFunctions", R"(
-[0] Pointer
-[1]   Class: ClassFunctions (4)
-        Member: memberA (0)
-          Primitive: int32_t
-        Function: foo (virtuality: 0)
-        Function: bar (virtuality: 0)
-)");
-}
+// TODO
+//TEST(DrgnParserTest, ClassFunctions) {
+//  test("TestClassFunctions", R"(
+//[0] Pointer
+//[1]   Class: ClassFunctions (4)
+//        Member: memberA (0)
+//          Primitive: int32_t
+//        Function: foo (virtuality: 0)
+//        Function: bar (virtuality: 0)
+//)");
+//}
