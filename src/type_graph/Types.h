@@ -30,6 +30,7 @@ public:
   // TODO don't always return a copy for name()
   virtual std::string name() const = 0;
   virtual std::size_t size() const = 0;
+  virtual uint64_t align() const = 0;
 };
 
 struct Member {
@@ -39,6 +40,7 @@ struct Member {
   Type *type;
   std::string name; // TODO make optional?
   uint64_t offset;
+  uint64_t align = 0;
 };
 
 struct Function {
@@ -97,6 +99,14 @@ public:
     return size_;
   }
 
+  virtual uint64_t align() const override {
+    return align_;
+  }
+
+  void setAlign(uint64_t alignment) {
+    align_ = alignment;
+  }
+
   std::vector<TemplateParam> template_params;
   std::vector<Parent> parents; // Sorted by offset
   std::vector<Member> members; // Sorted by offset
@@ -106,6 +116,7 @@ private:
   Kind kind_;
   std::string name_;
   std::size_t size_;
+  uint64_t align_ = 0;
 };
 
 class Container : public Type {
@@ -132,6 +143,10 @@ public:
     return 0; // TODO
   }
 
+  virtual uint64_t align() const override {
+    return 8; // TODO not needed for containers?
+  }
+
   std::vector<TemplateParam> template_params;
   Kind kind_;
 
@@ -153,6 +168,10 @@ public:
   virtual std::size_t size() const override {
     return size_;
   }
+
+  virtual uint64_t align() const override {
+    return size();
+  }
 private:
   std::string name_;
   std::size_t size_;
@@ -171,6 +190,10 @@ public:
 
   virtual std::size_t size() const override {
     return len_ * element_type_->size();
+  }
+
+  virtual uint64_t align() const override {
+    return element_type_->size();
   }
 
   Type *element_type() const {
@@ -212,6 +235,9 @@ public:
 
   virtual std::string name() const override;
   virtual std::size_t size() const override;
+  virtual uint64_t align() const override {
+    return size();
+  }
 
 private:
   Kind kind_;
@@ -229,7 +255,11 @@ public:
   }
 
   virtual std::size_t size() const override {
-    return 0; // TODO
+    return underlying_type_->size();
+  }
+
+  virtual uint64_t align() const override {
+    return underlying_type_->align();
   }
 
   Type *underlying_type() const {
@@ -254,6 +284,10 @@ public:
 
   virtual std::size_t size() const override {
     return sizeof(uintptr_t);
+  }
+
+  virtual uint64_t align() const override {
+    return size();
   }
 
   Type *pointee_type() const {

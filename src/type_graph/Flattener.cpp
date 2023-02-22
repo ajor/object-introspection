@@ -43,6 +43,7 @@ void Flattener::visit(Class &c) {
 
   std::size_t member_idx = 0;
   std::size_t parent_idx = 0;
+  // TODO is this loop necessary??
   while (member_idx < c.members.size() && parent_idx < c.parents.size()) {
     auto member_offset = c.members[member_idx].offset;
     auto parent_offset = c.parents[parent_idx].offset;

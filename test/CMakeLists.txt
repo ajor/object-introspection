@@ -50,6 +50,7 @@ target_link_libraries(integration_sleepy folly_headers)
 # Unit tests
 
 add_executable(test_type_graph
+  test_alignment_calc.cpp
   test_drgn_parser.cpp
   test_flattener.cpp
   test_name_gen.cpp

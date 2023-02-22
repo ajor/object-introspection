@@ -4,7 +4,7 @@ namespace type_graph {
 
 void NameGen::generateNames(const std::vector<Type*> &types) {
   for (auto *type : types) {
-    type->accept(*this);
+    nameType(type);
   }
 };
 

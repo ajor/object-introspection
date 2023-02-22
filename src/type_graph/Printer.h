@@ -30,6 +30,7 @@ private:
   void print_parent(const Parent &parent);
   void print_member(const Member &member);
   void print_function(const Function &function);
+  static std::string align_str(uint64_t align);
 
   std::ostream &out_;
   int depth_ = -1;

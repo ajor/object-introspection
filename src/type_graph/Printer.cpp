@@ -24,7 +24,7 @@ void Printer::visit(Class &c) {
       kind = "Union";
       break;
   }
-  out_ << kind << ": " << c.name() << " (size: " << c.size() << ")" << std::endl;
+  out_ << kind << ": " << c.name() << " (size: " << c.size() << align_str(c.align()) << ")" << std::endl;
   for (const auto &param : c.template_params) {
     print_param(param);
   }
@@ -124,7 +124,7 @@ void Printer::print_parent(const Parent &parent) {
 void Printer::print_member(const Member &member) {
   depth_++;
   prefix();
-  out_ << "Member: " << member.name << " (offset: " << member.offset << ")" << std::endl;
+  out_ << "Member: " << member.name << " (offset: " << member.offset << align_str(member.align) << ")" << std::endl;
   print(*member.type);
   depth_--;
 }
@@ -134,6 +134,12 @@ void Printer::print_function(const Function &function) {
   prefix();
   out_ << "Function: " << function.name << " (virtuality: " << function.virtuality << ")" << std::endl;
   depth_--;
+}
+
+std::string Printer::align_str(uint64_t align) {
+  if (align == 0)
+    return "";
+  return ", align: " + std::to_string(align);
 }
 
 } // namespace type_graph

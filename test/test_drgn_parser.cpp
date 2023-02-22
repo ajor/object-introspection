@@ -271,3 +271,12 @@ TEST(DrgnParserTest, ClassTemplateTwo) {
 //        Function: bar (virtuality: 0)
 //)");
 //}
+
+TEST(DrgnParserTest, Alignment) {
+  test("oid_test_case_alignment_struct", R"(
+[0] Pointer
+[1]   Struct: Align16 (size: 16, align: 16)
+        Member: c (offset: 0)
+          Primitive: int8_t
+)");
+}

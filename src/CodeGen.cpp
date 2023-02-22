@@ -2,6 +2,7 @@
 
 #include <iostream> // TODO remove
 
+#include "type_graph/AlignmentCalc.h"
 #include "type_graph/Flattener.h"
 #include "type_graph/NameGen.h"
 #include "type_graph/RequiredTypeCollector.h"
@@ -22,6 +23,9 @@ void CodeGen::generate(Type &rootType) {
 
   NameGen nameGen;
   nameGen.generateNames(sorted_types);
+
+  AlignmentCalc alignmentCalc;
+  alignmentCalc.calculateAlignments(sorted_types);
 
   std::cout << "sorted types:\n";
   for (auto &t : sorted_types) {

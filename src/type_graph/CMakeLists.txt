@@ -1,4 +1,5 @@
 add_library(type_graph
+  AlignmentCalc.cpp
   DrgnParser.cpp
   NameGen.cpp
   Printer.cpp
