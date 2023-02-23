@@ -70,6 +70,7 @@ struct ContainerInfo {
   // adapter
   std::optional<size_t> underlyingContainerIndex{};
   std::string funcBody;
+  std::vector<size_t> templateParamIndexes{};
 
   Codegen codegen;
 

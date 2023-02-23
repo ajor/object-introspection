@@ -7,6 +7,7 @@
 #include "Types.h"
 
 struct drgn_type;
+struct drgn_type_template_parameter;
 struct ContainerInfo;
 
 namespace type_graph {
@@ -28,11 +29,17 @@ private:
   Array     *enumerateArray(struct drgn_type *type);
   Primitive *enumeratePrimitive(struct drgn_type *type);
 
-  void   enumerateClassTemplateParams(struct drgn_type *type,
-                                      std::vector<TemplateParam> &params);
-  void   enumerateClassParents(struct drgn_type *type, std::vector<Parent> &parents);
-  void   enumerateClassMembers(struct drgn_type *type, std::vector<Member> &members);
-  void   enumerateClassFunctions(struct drgn_type *type, std::vector<Function> &functions);
+  void enumerateTemplateParam(drgn_type_template_parameter *tparams,
+                              size_t i,
+                              std::vector<TemplateParam> &params);
+  void enumerateContainerTemplateParams(struct drgn_type *type,
+                                        std::vector<TemplateParam> &params,
+                                        const std::vector<size_t> &paramIndexes);
+  void enumerateClassTemplateParams(struct drgn_type *type,
+                                    std::vector<TemplateParam> &params);
+  void enumerateClassParents(struct drgn_type *type, std::vector<Parent> &parents);
+  void enumerateClassMembers(struct drgn_type *type, std::vector<Member> &members);
+  void enumerateClassFunctions(struct drgn_type *type, std::vector<Function> &functions);
 
   // Store a mapping of drgn types to type graph nodes for deduplication during
   // parsing. This stops us getting caught in cycles.

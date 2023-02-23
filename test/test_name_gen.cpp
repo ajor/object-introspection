@@ -3,12 +3,14 @@
 #include "type_graph/NameGen.h"
 #include "type_graph/Types.h"
 
+#include "ContainerInfo.h"
+
 using namespace type_graph;
 
 TEST(NameGenTest, ContainerParams) {
   auto myparam1 = std::make_unique<Class>(Class::Kind::Struct, "MyParam", 13);
   auto myparam2 = std::make_unique<Class>(Class::Kind::Struct, "MyParam", 13);
-  auto mycontainer = std::make_unique<Container>(Container::Kind::StdVector);
+  auto mycontainer = std::make_unique<Container>(SEQ_TYPE);
   mycontainer->templateParams.push_back((myparam1.get()));
   mycontainer->templateParams.push_back((myparam2.get()));
 
@@ -22,7 +24,7 @@ TEST(NameGenTest, ContainerParams) {
 
 TEST(NameGenTest, ContainerParamsDuplicates) {
   auto myparam = std::make_unique<Class>(Class::Kind::Struct, "MyParam", 13);
-  auto mycontainer = std::make_unique<Container>(Container::Kind::StdVector);
+  auto mycontainer = std::make_unique<Container>(SEQ_TYPE);
   mycontainer->templateParams.push_back((myparam.get()));
   mycontainer->templateParams.push_back((myparam.get()));
 
@@ -36,10 +38,10 @@ TEST(NameGenTest, ContainerParamsDuplicates) {
 TEST(NameGenTest, ContainerParamsDuplicatesDeep) {
   auto myparam = std::make_unique<Class>(Class::Kind::Struct, "MyParam", 13);
 
-  auto mycontainer1 = std::make_unique<Container>(Container::Kind::StdVector);
+  auto mycontainer1 = std::make_unique<Container>(SEQ_TYPE);
   mycontainer1->templateParams.push_back((myparam.get()));
 
-  auto mycontainer2 = std::make_unique<Container>(Container::Kind::StdVector);
+  auto mycontainer2 = std::make_unique<Container>(SEQ_TYPE);
   mycontainer2->templateParams.push_back((myparam.get()));
   mycontainer2->templateParams.push_back((mycontainer1.get()));
 
@@ -56,11 +58,11 @@ TEST(NameGenTest, ContainerParamsDuplicatesAcrossContainers) {
   auto myparam2 = std::make_unique<Class>(Class::Kind::Struct, "MyParam", 13);
   auto myparam3 = std::make_unique<Class>(Class::Kind::Struct, "MyParam", 13);
 
-  auto mycontainer1 = std::make_unique<Container>(Container::Kind::StdVector);
+  auto mycontainer1 = std::make_unique<Container>(SEQ_TYPE);
   mycontainer1->templateParams.push_back((myparam1.get()));
   mycontainer1->templateParams.push_back((myparam2.get()));
 
-  auto mycontainer2 = std::make_unique<Container>(Container::Kind::StdVector);
+  auto mycontainer2 = std::make_unique<Container>(SEQ_TYPE);
   mycontainer2->templateParams.push_back((myparam2.get()));
   mycontainer2->templateParams.push_back((myparam3.get()));
 

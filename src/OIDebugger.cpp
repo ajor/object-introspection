@@ -51,14 +51,13 @@ extern "C" {
 #include "PaddingHunter.h"
 #include "Syscall.h"
 
+// TODO put these in order
 #include "CodeGen.h"
+#include "type_graph/TypeGraph.h"
 
 #ifndef OSS_ENABLE
 #include "cea/object-introspection/internal/GobsService.h"
 #endif
-
-// TODO:
-#include "type_graph/DrgnParser.h"
 
 using namespace std;
 using namespace ObjectIntrospection;
@@ -2919,10 +2918,7 @@ std::optional<std::string> OIDebugger::generateCode(const irequest& req) {
   type_graph::TypeGraph typeGraph;
   CodeGen codegen2(typeGraph);
   codegen2.loadConfig(generatorConfig.containerConfigPaths);
-  // TODO nasty circular dependencies:
-  type_graph::DrgnParser drgnParser(typeGraph, codegen2.containerInfos);
-  type_graph::Type *rootType = drgnParser.parse(root->type.type);
-  codegen2.generate(*rootType);
+  codegen2.generate(root->type.type);
 
   RootInfo rootInfo = *root;
   codegen->setRootType(rootInfo.type);

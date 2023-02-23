@@ -108,23 +108,17 @@ Container *DrgnParser::enumerateContainer(struct drgn_type *type) {
     return nullptr;
   }
 
-  auto kind = Container::Kind::None;
   std::string name{nameStr}; // TODO needs derefence??
   for (const auto &container : containers_) {
-    if (std::regex_search(nameStr, container.matcher)) {
-      // TODO
-      kind = Container::Kind::StdVector;
-      break;
+    if (!std::regex_search(nameStr, container.matcher)) {
+      continue;
     }
-  }
-  if (kind == Container::Kind::None) {
-    return nullptr;
-  }
 
-  auto *c = make_type<Container>(type, kind);
-  enumerateClassTemplateParams(type, c->templateParams);
-  c->templateParams.erase(++c->templateParams.begin()); // TODO hack to remove unimportant template parameters
-  return c;
+    auto *c = make_type<Container>(type, container.ctype);
+    enumerateContainerTemplateParams(type, c->templateParams, container.templateParamIndexes);
+    return c;
+  }
+  return nullptr;
 }
 
 Type *DrgnParser::enumerateClass(struct drgn_type *type) {
@@ -239,24 +233,49 @@ void DrgnParser::enumerateClassMembers(struct drgn_type *type, std::vector<Membe
             });
 }
 
+void DrgnParser::enumerateTemplateParam(drgn_type_template_parameter *tparams,
+                                        size_t i,
+                                        std::vector<TemplateParam> &params) {
+  struct drgn_qualified_type tparamQualType;
+  struct drgn_error *err = drgn_template_parameter_type(&tparams[i], &tparamQualType);
+  if (err)
+    abort(); // TODO
+
+  struct drgn_type *tparamType = tparamQualType.type;
+
+  auto ttype = enumerateType(tparamType);
+  params.emplace_back(ttype);
+}
+
+// TODO also replace template params
+// TODO also allocator index? can this be handles by excluding from templateParamIndexes array?
+void DrgnParser::enumerateContainerTemplateParams(struct drgn_type *type,
+    std::vector<TemplateParam> &params,
+    const std::vector<size_t> &paramIndexes) {
+  assert(params.empty());
+  size_t numParams = drgn_type_num_template_parameters(type);
+  params.reserve(paramIndexes.size());
+
+  struct drgn_type_template_parameter *tparams = drgn_type_template_parameters(type);
+  for (size_t i : paramIndexes) {
+    if (i >= numParams) {
+      throw std::runtime_error("TODO nice error message");
+    }
+    enumerateTemplateParam(tparams, i, params);
+  }
+
+  // TODO sort?
+}
+
 void DrgnParser::enumerateClassTemplateParams(struct drgn_type *type,
     std::vector<TemplateParam> &params) {
   assert(params.empty());
-  size_t num_params = drgn_type_num_template_parameters(type);
-  params.reserve(num_params);
+  size_t numParams = drgn_type_num_template_parameters(type);
+  params.reserve(numParams);
 
   struct drgn_type_template_parameter *tparams = drgn_type_template_parameters(type);
-  for (size_t i = 0; i < num_params; i++) {
-    struct drgn_qualified_type tparam_qual_type;
-    struct drgn_error *err = drgn_template_parameter_type(&tparams[i], &tparam_qual_type);
-    if (err)
-      abort(); // TODO
-
-    struct drgn_type *tparam_type = tparam_qual_type.type;
-
-    auto ttype = enumerateType(tparam_type);
-    TemplateParam tp(ttype); // TODO tparam values
-    params.push_back(tp);
+  for (size_t i = 0; i < numParams; i++) {
+    enumerateTemplateParam(tparams, i, params);
   }
 
   // TODO sort?

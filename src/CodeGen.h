@@ -5,14 +5,21 @@
 #include <string>
 
 #include "ContainerInfo.h"
-#include "type_graph/TypeGraph.h"
 
 namespace fs = std::filesystem;
+
+struct drgn_type;
+
+namespace type_graph {
+class Container;
+class Type;
+class TypeGraph;
+} // namespace type_graph
 
 class CodeGen {
 public:
   CodeGen(type_graph::TypeGraph &typeGraph) : typeGraph_(typeGraph) { }
-  void generate(type_graph::Type &rootType);
+  void generate(drgn_type *drgnType);
   std::string ClassDecls(const std::vector<type_graph::Type*>& types);
   std::string ClassDefs(const std::vector<type_graph::Type*>& types);
   std::string GetSizeFuncs(const std::vector<type_graph::Type*>& types);
@@ -25,11 +32,10 @@ void loadConfig(const T &containerConfigPaths) {
   }
 }
 
-  std::vector<ContainerInfo> containerInfos;
-
 private:
   void registerContainer(const fs::path &path);
   std::string getContainerSizeFunc(const type_graph::Container &c);
 
   type_graph::TypeGraph &typeGraph_;
+  std::vector<ContainerInfo> containerInfos_;
 };

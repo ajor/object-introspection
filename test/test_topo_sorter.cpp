@@ -97,7 +97,7 @@ TEST(TopoSorterTest, TemplateParams) {
 
 TEST(TopoSorterTest, Containers) {
   auto myparam = std::make_unique<Class>(Class::Kind::Struct, "MyParam", 13);
-  auto mycontainer = std::make_unique<Container>(Container::Kind::StdVector);
+  auto mycontainer = std::make_unique<Container>(SEQ_TYPE);
   mycontainer->templateParams.push_back((myparam.get()));
 
   std::vector<Type*> input = {mycontainer.get(), myparam.get()};

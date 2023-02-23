@@ -5,6 +5,9 @@
 #include <string>
 #include <vector>
 
+// TODO make ContainerTypeEnum a scoped enum and forward declare it instead of including
+#include "ContainerInfo.h"
+
 #define OI_TYPE_LIST \
   X(Class) \
   X(Container) \
@@ -121,13 +124,7 @@ private:
 
 class Container : public Type {
 public:
-  enum class Kind {
-    None,
-    StdVector,
-    StdMap,
-  };
-
-  Container(Kind kind) : kind_(kind) { }
+  Container(ContainerTypeEnum kind) : kind_(kind) { }
 
   DECLARE_ACCEPT
 
@@ -148,7 +145,7 @@ public:
   }
 
   std::vector<TemplateParam> templateParams;
-  Kind kind_;
+  ContainerTypeEnum kind_;
 
 private:
   std::string name_ = "std::vector"; // TODO

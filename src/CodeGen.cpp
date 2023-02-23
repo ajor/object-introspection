@@ -3,18 +3,25 @@
 #include <iostream> // TODO remove
 
 #include "type_graph/AlignmentCalc.h"
+#include "type_graph/DrgnParser.h"
 #include "type_graph/Flattener.h"
 #include "type_graph/NameGen.h"
 #include "type_graph/RequiredTypeCollector.h"
 #include "type_graph/TopoSorter.h"
 #include "type_graph/TypeGraph.h"
+#include "type_graph/Types.h"
 
+// TODO don't do this:
 using namespace type_graph;
 
-void CodeGen::generate(Type &rootType) {
+void CodeGen::generate(drgn_type *drgnType) {
+  DrgnParser drgnParser(typeGraph_, containerInfos_);
+  Type *rootType = drgnParser.parse(drgnType);
+
   // TODO free resources from visitor classes after running each one
+  // A pass manager would achieve this
   RequiredTypeCollector req_types;
-  auto required_types = req_types.collect({&rootType});
+  auto required_types = req_types.collect({rootType});
   // TODO try Flattener.flatten()
   Flattener flattener;
   flattener.flatten(req_types.classes());
@@ -67,7 +74,7 @@ std::string CodeGen::getContainerSizeFunc(const Container &c) {
   std::string str = "void getSize(const " + c.name() + " &t, size_t &size) {\n";
   // TODO pick the right container
   // TODO sort out templating + boilerplate
-  str += containerInfos[0].funcBody;
+  str += containerInfos_[0].funcBody;
   str += "}\n";
   return str;
 }
@@ -132,7 +139,7 @@ std::string CodeGen::GetSizeFuncs(const std::vector<Type*>& types) {
 void CodeGen::registerContainer(const fs::path &path) {
 // TODO don't catch exceptions at this level?
 //  try {
-  const auto &info = containerInfos.emplace_back(path);
+  const auto &info = containerInfos_.emplace_back(path);
 //  }
 //  catch (const toml::parse_error &err) {
 //    // TODO
