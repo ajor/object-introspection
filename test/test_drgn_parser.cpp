@@ -26,30 +26,15 @@ void test(std::string_view function, std::string_view expected) {
 
   TypeGraph typeGraph;
   // TODO more container types, with various template parameter options
-  std::vector<ContainerInfo> containers = {
-    ContainerInfo{
-      "std::vector<",
-      std::regex{"^std::vector<"},
-      1,
-      SEQ_TYPE,
-      "vector",
-      {"namespace std"},
-      {},
-      1,
-      {}
-    },
-    ContainerInfo{
-      "std::vector<",
-      std::regex{"^std::vector<"},
-      1,
-      SEQ_TYPE,
-      "vector",
-      {"namespace std"},
-      {},
-      1,
-      {}
-    },
-  };
+  ContainerInfo std_vector;
+  std_vector.typeName = "std::vector<";
+  std_vector.matcher = "std::vector<";
+  std_vector.ctype = SEQ_TYPE;
+  std_vector.templateParams = {0};
+
+  std::vector<ContainerInfo> containers;
+  containers.emplace_back(std::move(std_vector));
+
   DrgnParser drgnParser(typeGraph, containers);
   Type *type = drgnParser.parse(drgnRoot->type.type);
 

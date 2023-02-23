@@ -1,4 +1,5 @@
 # TODO alignas enums, other types
+# TODO put all tests inside optional?
 includes = ["optional"]
 definitions = '''
   struct alignas(16) Align16 {

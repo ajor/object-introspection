@@ -115,7 +115,7 @@ Container *DrgnParser::enumerateContainer(struct drgn_type *type) {
     }
 
     auto *c = make_type<Container>(type, container.ctype);
-    enumerateContainerTemplateParams(type, c->templateParams, container.templateParamIndexes);
+    enumerateContainerTemplateParams(type, c->templateParams, container.templateParams);
     return c;
   }
   return nullptr;
@@ -248,7 +248,6 @@ void DrgnParser::enumerateTemplateParam(drgn_type_template_parameter *tparams,
 }
 
 // TODO also replace template params
-// TODO also allocator index? can this be handles by excluding from templateParamIndexes array?
 void DrgnParser::enumerateContainerTemplateParams(struct drgn_type *type,
     std::vector<TemplateParam> &params,
     const std::vector<size_t> &paramIndexes) {

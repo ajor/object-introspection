@@ -48,6 +48,7 @@ const char* containerTypeEnumToStr(ContainerTypeEnum ty) {
   }
 }
 
+[[deprecated]]
 std::unique_ptr<ContainerInfo> ContainerInfo::loadFromFile(
     const fs::path& path) {
   toml::table container;
@@ -164,7 +165,7 @@ std::unique_ptr<ContainerInfo> ContainerInfo::loadFromFile(
       std::move(replaceTemplateParamIndex),
       allocatorIndex,
       underlyingContainerIndex,
-
+      {},
       {
           std::move(decl),
           std::move(func),
@@ -198,7 +199,8 @@ ContainerInfo::ContainerInfo(const fs::path& path) {
     matcher = std::regex("^" + typeName, std::regex_constants::grep);
   }
 
-  numTemplateParams = info["numTemplateParams"].value<size_t>();
+  //  TODO remove:
+//  numTemplateParams = info["numTemplateParams"].value<size_t>();
 
   if (std::optional<std::string> str = info["ctype"].value<std::string>()) {
     ctype = containerTypeEnumFromStr(*str);
@@ -227,6 +229,19 @@ ContainerInfo::ContainerInfo(const fs::path& path) {
     });
   }
 
+  if (toml::array* arr = info["template_params"].as_array()) {
+    templateParams.reserve(arr->size());
+    arr->for_each([&](auto&& el) {
+      if constexpr (toml::is_integer<decltype(el)>) {
+        replaceTemplateParamIndex.push_back(*el);
+      }
+      else {
+        // TODO custom error types
+        throw std::runtime_error("template_params should only contain integers");
+      }
+    });
+  }
+
   if (toml::array* arr = info["replaceTemplateParamIndex"].as_array()) {
     replaceTemplateParamIndex.reserve(arr->size());
     arr->for_each([&](auto&& el) {
@@ -235,9 +250,6 @@ ContainerInfo::ContainerInfo(const fs::path& path) {
       }
     });
   }
-
-  allocatorIndex = info["allocatorIndex"].value<size_t>();
-  underlyingContainerIndex = info["underlyingContainerIndex"].value<size_t>();
 
   if (!container["codegen"].is_table()) {
     // TODO throw

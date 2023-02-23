@@ -45,6 +45,7 @@ struct ContainerInfo {
                 std::vector<size_t> replaceTemplateParamIndex_,
                 std::optional<size_t> allocatorIndex_,
                 std::optional<size_t> underlyingContainerIndex_,
+                std::vector<size_t> templateParams_,
                 ContainerInfo::Codegen codegen_)
       : typeName(std::move(typeName_)),
         matcher(std::move(matcher_)),
@@ -55,8 +56,12 @@ struct ContainerInfo {
         replaceTemplateParamIndex(std::move(replaceTemplateParamIndex_)),
         allocatorIndex(allocatorIndex_),
         underlyingContainerIndex(underlyingContainerIndex_),
+        templateParams(std::move(templateParams_)),
         codegen(std::move(codegen_)) {
   }
+
+  ContainerInfo(ContainerInfo&&) = default;
+  ContainerInfo& operator=(ContainerInfo&&) = default;
 
   std::string typeName;
   std::regex matcher;
@@ -70,7 +75,7 @@ struct ContainerInfo {
   // adapter
   std::optional<size_t> underlyingContainerIndex{};
   std::string funcBody;
-  std::vector<size_t> templateParamIndexes{};
+  std::vector<size_t> templateParams{};
 
   Codegen codegen;
 
@@ -81,29 +86,7 @@ struct ContainerInfo {
     return (typeName < rhs.typeName);
   }
 
-  ContainerInfo() = default;
-  ContainerInfo(const fs::path& path);
-
-// TODO
-//private:
-  ContainerInfo(std::string typeName_,
-      std::regex matcher_,
-      std::optional<size_t> numTemplateParams_,
-      ContainerTypeEnum ctype_,
-      std::string header_,
-      std::vector<std::string> ns_,
-      std::vector<size_t> replaceTemplateParamIndex_,
-      std::optional<size_t> allocatorIndex_,
-      std::optional<size_t> underlyingContainerIndex_)
-    : typeName(std::move(typeName_)),
-      matcher(std::move(matcher_)),
-      numTemplateParams(numTemplateParams_),
-      ctype(ctype_),
-      header(std::move(header_)),
-      ns(std::move(ns_)),
-      replaceTemplateParamIndex(std::move(replaceTemplateParamIndex_)),
-      allocatorIndex(allocatorIndex_),
-      underlyingContainerIndex(underlyingContainerIndex_) { }
+  ContainerInfo(const std::filesystem::path& path);
 };
 
 using ContainerInfoRefSet =

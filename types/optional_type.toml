@@ -1,12 +1,10 @@
 [info]
 typeName = "std::optional<"
+template_params = [0]
 numTemplateParams = 1
 ctype = "OPTIONAL_TYPE"
 header = "optional"
 ns = ["namespace std"]
-replaceTemplateParamIndex = []
-# allocatorIndex = 0
-# underlyingContainerIndex = 0
 
 [codegen]
 decl = """
