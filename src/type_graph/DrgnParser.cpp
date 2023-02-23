@@ -121,9 +121,9 @@ Container *DrgnParser::enumerateContainer(struct drgn_type *type) {
     return nullptr;
   }
 
-  auto c = make_type<Container>(type, kind);
-  enumerateClassTemplateParams(type, c->template_params);
-  c->template_params.erase(++c->template_params.begin()); // TODO hack to remove unimportant template parameters
+  auto *c = make_type<Container>(type, kind);
+  enumerateClassTemplateParams(type, c->templateParams);
+  c->templateParams.erase(++c->templateParams.begin()); // TODO hack to remove unimportant template parameters
   return c;
 }
 
@@ -159,7 +159,7 @@ Type *DrgnParser::enumerateClass(struct drgn_type *type) {
 
   //classes_.push_back(c);
 
-  enumerateClassTemplateParams(type, c->template_params);
+  enumerateClassTemplateParams(type, c->templateParams);
   enumerateClassParents(type, c->parents);
   enumerateClassMembers(type, c->members);
   enumerateClassFunctions(type, c->functions);
@@ -300,8 +300,8 @@ Typedef *DrgnParser::enumerateTypedef(struct drgn_type *type) {
   std::string name = drgn_type_name(type);
   // TODO anonymous typedefs?
 
-  struct drgn_type *underlying_type = drgn_type_type(type).type;
-  auto t = enumerateType(underlying_type); // TODO won't this cause cycles?
+  struct drgn_type *underlyingType = drgn_type_type(type).type;
+  auto t = enumerateType(underlyingType); // TODO won't this cause cycles?
   return make_type<Typedef>(type, name, t);
 }
 
@@ -318,7 +318,7 @@ bool isDrgnSizeComplete(struct drgn_type *type) {
 // - sometimes they must be followed, sometimes not?
 
 Pointer *DrgnParser::enumeratePointer(struct drgn_type *type) {
-  struct drgn_type *pointee_type = drgn_type_type(type).type;
+  struct drgn_type *pointeeType = drgn_type_type(type).type;
 
   // Not handling pointers right now. Pointer members in classes are going to be
   // tricky. If we enumerate objects from pointers there are many questions :-
@@ -329,23 +329,23 @@ Pointer *DrgnParser::enumeratePointer(struct drgn_type *type) {
   //    We will need to save previously encountered pointer values
   // 4. Smart pointers might make it easier to detect (1)/(2)
 
-  if (!isDrgnSizeComplete(pointee_type)) {
+  if (!isDrgnSizeComplete(pointeeType)) {
     // TODO how can we allow these?
     throw std::runtime_error("Incomplete pointer");
   }
 
   Type *t = nullptr;
-  if (drgn_type_kind(pointee_type) == DRGN_TYPE_FUNCTION ||
-      isDrgnSizeComplete(pointee_type))
-    t = enumerateType(pointee_type); // TODO won't this cause cycles?
+  if (drgn_type_kind(pointeeType) == DRGN_TYPE_FUNCTION ||
+      isDrgnSizeComplete(pointeeType))
+    t = enumerateType(pointeeType); // TODO won't this cause cycles?
 
   return make_type<Pointer>(type, t);
 }
 
 Array *DrgnParser::enumerateArray(struct drgn_type *type) {
-  struct drgn_type *element_type = drgn_type_type(type).type;
+  struct drgn_type *elementType = drgn_type_type(type).type;
   uint64_t len = drgn_type_length(type);
-  auto t = enumerateType(element_type); // TODO won't this cause cycles?
+  auto t = enumerateType(elementType); // TODO won't this cause cycles?
   return make_type<Array>(type, "ARRAY_SMELLS", len, t);
 }
 

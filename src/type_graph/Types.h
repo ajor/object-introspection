@@ -29,7 +29,7 @@ public:
 
   // TODO don't always return a copy for name()
   virtual std::string name() const = 0;
-  virtual std::size_t size() const = 0;
+  virtual size_t size() const = 0;
   virtual uint64_t align() const = 0;
 };
 
@@ -76,7 +76,7 @@ public:
     Union,
   };
 
-  Class(Kind kind, const std::string &name, std::size_t size)
+  Class(Kind kind, const std::string &name, size_t size)
     : kind_(kind), name_(name), size_(size) {
   }
 
@@ -95,7 +95,7 @@ public:
     name_ = std::move(name);
   }
 
-  virtual std::size_t size() const override {
+  virtual size_t size() const override {
     return size_;
   }
 
@@ -107,7 +107,7 @@ public:
     align_ = alignment;
   }
 
-  std::vector<TemplateParam> template_params;
+  std::vector<TemplateParam> templateParams;
   std::vector<Parent> parents; // Sorted by offset
   std::vector<Member> members; // Sorted by offset
   std::vector<Function> functions;
@@ -115,7 +115,7 @@ public:
 private:
   Kind kind_;
   std::string name_;
-  std::size_t size_;
+  size_t size_;
   uint64_t align_ = 0;
 };
 
@@ -139,7 +139,7 @@ public:
     name_ = std::move(name);
   }
 
-  virtual std::size_t size() const override {
+  virtual size_t size() const override {
     return 0; // TODO
   }
 
@@ -147,7 +147,7 @@ public:
     return 8; // TODO not needed for containers?
   }
 
-  std::vector<TemplateParam> template_params;
+  std::vector<TemplateParam> templateParams;
   Kind kind_;
 
 private:
@@ -156,7 +156,7 @@ private:
 
 class Enum : public Type {
 public:
-  explicit Enum(const std::string &name, std::size_t size)
+  explicit Enum(const std::string &name, size_t size)
     : name_(name), size_(size) { }
 
   DECLARE_ACCEPT
@@ -165,7 +165,7 @@ public:
     return name_;
   }
 
-  virtual std::size_t size() const override {
+  virtual size_t size() const override {
     return size_;
   }
 
@@ -174,13 +174,13 @@ public:
   }
 private:
   std::string name_;
-  std::size_t size_;
+  size_t size_;
 };
 
 class Array : public Type {
 public:
-  Array(const std::string &name, std::size_t len, Type *element_type)
-    : name_(name), len_(len), element_type_(element_type) { }
+  Array(const std::string &name, size_t len, Type *elementType)
+    : name_(name), len_(len), elementType_(elementType) { }
 
   DECLARE_ACCEPT
 
@@ -188,27 +188,27 @@ public:
     return name_;
   }
 
-  virtual std::size_t size() const override {
-    return len_ * element_type_->size();
+  virtual size_t size() const override {
+    return len_ * elementType_->size();
   }
 
   virtual uint64_t align() const override {
-    return element_type_->size();
+    return elementType_->size();
   }
 
-  Type *element_type() const {
-    return element_type_;
+  Type *elementType() const {
+    return elementType_;
   }
 
   // TODO remove std:: prefix from size_t
-  std::size_t len() const {
+  size_t len() const {
     return len_;
   }
 
 private:
   std::string name_;
-  std::size_t len_;
-  Type *element_type_;
+  size_t len_;
+  Type *elementType_;
 };
 
 class Primitive : public Type {
@@ -234,7 +234,7 @@ public:
   DECLARE_ACCEPT
 
   virtual std::string name() const override;
-  virtual std::size_t size() const override;
+  virtual size_t size() const override;
   virtual uint64_t align() const override {
     return size();
   }
@@ -245,8 +245,8 @@ private:
 
 class Typedef : public Type {
 public:
-  explicit Typedef(const std::string &name, Type *underlying_type)
-    : name_(name), underlying_type_(underlying_type) { }
+  explicit Typedef(const std::string &name, Type *underlyingType)
+    : name_(name), underlyingType_(underlyingType) { }
 
   DECLARE_ACCEPT
 
@@ -254,27 +254,27 @@ public:
     return name_;
   }
 
-  virtual std::size_t size() const override {
-    return underlying_type_->size();
+  virtual size_t size() const override {
+    return underlyingType_->size();
   }
 
   virtual uint64_t align() const override {
-    return underlying_type_->align();
+    return underlyingType_->align();
   }
 
-  Type *underlying_type() const {
-    return underlying_type_;
+  Type *underlyingType() const {
+    return underlyingType_;
   }
 
 private:
   std::string name_;
-  Type *underlying_type_;
+  Type *underlyingType_;
 };
 
 class Pointer : public Type {
 public:
-  explicit Pointer(Type *pointee_type)
-    : pointee_type_(pointee_type) { }
+  explicit Pointer(Type *pointeeType)
+    : pointeeType_(pointeeType) { }
 
   DECLARE_ACCEPT
 
@@ -282,7 +282,7 @@ public:
     return ""; // TODO
   }
 
-  virtual std::size_t size() const override {
+  virtual size_t size() const override {
     return sizeof(uintptr_t);
   }
 
@@ -290,12 +290,12 @@ public:
     return size();
   }
 
-  Type *pointee_type() const {
-    return pointee_type_;
+  Type *pointeeType() const {
+    return pointeeType_;
   }
 
 private:
-  Type *pointee_type_;
+  Type *pointeeType_;
 };
 
 } // namespace type_graph

@@ -86,7 +86,7 @@ TEST(TopoSorterTest, Parents) {
 TEST(TopoSorterTest, TemplateParams) {
   auto myparam = std::make_unique<Class>(Class::Kind::Struct, "MyParam", 13);
   auto myclass = std::make_unique<Class>(Class::Kind::Class, "MyClass", 69);
-  myclass->template_params.push_back(TemplateParam(myparam.get()));
+  myclass->templateParams.push_back(TemplateParam(myparam.get()));
 
   std::vector<Type*> input = {myclass.get(), myparam.get()};
   std::vector<Type*> expected = {myparam.get(), myclass.get()};
@@ -98,7 +98,7 @@ TEST(TopoSorterTest, TemplateParams) {
 TEST(TopoSorterTest, Containers) {
   auto myparam = std::make_unique<Class>(Class::Kind::Struct, "MyParam", 13);
   auto mycontainer = std::make_unique<Container>(Container::Kind::StdVector);
-  mycontainer->template_params.push_back((myparam.get()));
+  mycontainer->templateParams.push_back((myparam.get()));
 
   std::vector<Type*> input = {mycontainer.get(), myparam.get()};
   std::vector<Type*> expected = {myparam.get(), mycontainer.get()};
@@ -116,7 +116,7 @@ TEST(TopoSorterTest, Containers) {
 //  auto mycontainer = std::make_unique<Container>("MyContainer");
 //  mycontainer->members.push_back(Member(mymember.get(), "mymember", 0));
 //  mycontainer->parents.push_back(Parent(myparent.get(), 0));
-//  mycontainer->template_params.push_back(TemplateParam(myparam.get()));
+//  mycontainer->templateParams.push_back(TemplateParam(myparam.get()));
 //
 //  std::vector<Type*> input = {mycontainer.get(), mymember.get(), myparent.get(), myparam.get()};
 //  std::vector<Type*> expected = {myparam.get(), mycontainer.get(), mymember.get(), myparent.get()};

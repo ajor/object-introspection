@@ -9,8 +9,8 @@ TEST(NameGenTest, ContainerParams) {
   auto myparam1 = std::make_unique<Class>(Class::Kind::Struct, "MyParam", 13);
   auto myparam2 = std::make_unique<Class>(Class::Kind::Struct, "MyParam", 13);
   auto mycontainer = std::make_unique<Container>(Container::Kind::StdVector);
-  mycontainer->template_params.push_back((myparam1.get()));
-  mycontainer->template_params.push_back((myparam2.get()));
+  mycontainer->templateParams.push_back((myparam1.get()));
+  mycontainer->templateParams.push_back((myparam2.get()));
 
   NameGen nameGen;
   nameGen.generateNames({mycontainer.get()});
@@ -23,8 +23,8 @@ TEST(NameGenTest, ContainerParams) {
 TEST(NameGenTest, ContainerParamsDuplicates) {
   auto myparam = std::make_unique<Class>(Class::Kind::Struct, "MyParam", 13);
   auto mycontainer = std::make_unique<Container>(Container::Kind::StdVector);
-  mycontainer->template_params.push_back((myparam.get()));
-  mycontainer->template_params.push_back((myparam.get()));
+  mycontainer->templateParams.push_back((myparam.get()));
+  mycontainer->templateParams.push_back((myparam.get()));
 
   NameGen nameGen;
   nameGen.generateNames({mycontainer.get()});
@@ -37,11 +37,11 @@ TEST(NameGenTest, ContainerParamsDuplicatesDeep) {
   auto myparam = std::make_unique<Class>(Class::Kind::Struct, "MyParam", 13);
 
   auto mycontainer1 = std::make_unique<Container>(Container::Kind::StdVector);
-  mycontainer1->template_params.push_back((myparam.get()));
+  mycontainer1->templateParams.push_back((myparam.get()));
 
   auto mycontainer2 = std::make_unique<Container>(Container::Kind::StdVector);
-  mycontainer2->template_params.push_back((myparam.get()));
-  mycontainer2->template_params.push_back((mycontainer1.get()));
+  mycontainer2->templateParams.push_back((myparam.get()));
+  mycontainer2->templateParams.push_back((mycontainer1.get()));
 
   NameGen nameGen;
   nameGen.generateNames({mycontainer2.get()});
@@ -57,12 +57,12 @@ TEST(NameGenTest, ContainerParamsDuplicatesAcrossContainers) {
   auto myparam3 = std::make_unique<Class>(Class::Kind::Struct, "MyParam", 13);
 
   auto mycontainer1 = std::make_unique<Container>(Container::Kind::StdVector);
-  mycontainer1->template_params.push_back((myparam1.get()));
-  mycontainer1->template_params.push_back((myparam2.get()));
+  mycontainer1->templateParams.push_back((myparam1.get()));
+  mycontainer1->templateParams.push_back((myparam2.get()));
 
   auto mycontainer2 = std::make_unique<Container>(Container::Kind::StdVector);
-  mycontainer2->template_params.push_back((myparam2.get()));
-  mycontainer2->template_params.push_back((myparam3.get()));
+  mycontainer2->templateParams.push_back((myparam2.get()));
+  mycontainer2->templateParams.push_back((myparam3.get()));
 
   NameGen nameGen;
   nameGen.generateNames({mycontainer1.get(), mycontainer2.get()});

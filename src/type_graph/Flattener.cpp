@@ -81,7 +81,7 @@ void Flattener::visit(Class &c) {
 //  for (const auto &parent : c.parents) {
 //    sort_type(parent.type);
 //  }
-//  for (const auto &template_param : c.template_params) {
+//  for (const auto &template_param : c.templateParams) {
 //    sort_type(template_param.type);
 //  }
 }

@@ -25,7 +25,7 @@ void Printer::visit(Class &c) {
       break;
   }
   out_ << kind << ": " << c.name() << " (size: " << c.size() << align_str(c.align()) << ")" << std::endl;
-  for (const auto &param : c.template_params) {
+  for (const auto &param : c.templateParams) {
     print_param(param);
   }
   for (const auto &parent : c.parents) {
@@ -44,7 +44,7 @@ void Printer::visit(Container &c) {
     return;
 
   out_ << "Container: " << c.name() << std::endl;
-  for (const auto &param : c.template_params) {
+  for (const auto &param : c.templateParams) {
     print_param(param);
   }
 }
@@ -64,7 +64,7 @@ void Printer::visit(Typedef &td) {
     return;
 
   out_ << "Typedef: " << td.name() << std::endl;
-  print(*td.underlying_type());
+  print(*td.underlyingType());
 }
 
 void Printer::visit(Pointer &p) {
@@ -72,7 +72,7 @@ void Printer::visit(Pointer &p) {
     return;
 
   out_ << "Pointer" << std::endl;
-  print(*p.pointee_type());
+  print(*p.pointeeType());
 }
 
 void Printer::visit(Array &a) {
@@ -80,7 +80,7 @@ void Printer::visit(Array &a) {
     return;
 
   out_ << "Array: (length: " << a.len() << ")" << std::endl;
-  print(*a.element_type());
+  print(*a.elementType());
 }
 
 bool Printer::prefix(Type *type) {

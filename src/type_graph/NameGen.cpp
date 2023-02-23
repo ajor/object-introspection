@@ -28,7 +28,7 @@ void NameGen::removeTemplateParams(std::string &name) {
 }
 
 void NameGen::visit(Class &c) {
-  for (const auto &template_param : c.template_params) {
+  for (const auto &template_param : c.templateParams) {
     nameType(template_param.type);
   }
 
@@ -36,7 +36,7 @@ void NameGen::visit(Class &c) {
   removeTemplateParams(name);
 
   name.push_back('_');
-  for (const auto &param : c.template_params) {
+  for (const auto &param : c.templateParams) {
     name += param.type->name();
     name.push_back('_');
   }
@@ -48,7 +48,7 @@ void NameGen::visit(Class &c) {
 }
 
 void NameGen::visit(Container &c) {
-  for (const auto &template_param : c.template_params) {
+  for (const auto &template_param : c.templateParams) {
     nameType(template_param.type);
   }
 
@@ -57,7 +57,7 @@ void NameGen::visit(Container &c) {
 
   name.push_back('<');
   // TODO check which container params should be kept
-  for (const auto &param : c.template_params) {
+  for (const auto &param : c.templateParams) {
     name += param.type->name();
     name += ", ";
   }

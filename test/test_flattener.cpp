@@ -23,9 +23,9 @@ void EXPECT_EQ_CLASS(const Class &actual, const Class &expected) {
     EXPECT_EQ(actual.parents[i].type, expected.parents[i].type);
     EXPECT_EQ(actual.parents[i].offset, expected.parents[i].offset);
   }
-  ASSERT_EQ(actual.template_params.size(), expected.template_params.size());
-  for (std::size_t i=0; i<actual.template_params.size(); i++) {
-    EXPECT_EQ(actual.template_params[i].type, expected.template_params[i].type);
+  ASSERT_EQ(actual.templateParams.size(), expected.templateParams.size());
+  for (std::size_t i=0; i<actual.templateParams.size(); i++) {
+    EXPECT_EQ(actual.templateParams[i].type, expected.templateParams[i].type);
     // TODO check template values
   }
 }

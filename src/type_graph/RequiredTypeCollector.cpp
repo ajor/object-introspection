@@ -34,7 +34,7 @@ void RequiredTypeCollector::visit(Container &c) {
   // Containers themselves don't need to be collected, but their template
   // parameters might be required
   required_types_.push_back(&c);
-  for (const auto &template_param : c.template_params) {
+  for (const auto &template_param : c.templateParams) {
     collect_type(template_param.type);
   }
 }
@@ -53,12 +53,12 @@ void RequiredTypeCollector::visit(Typedef &td) {
 // TODO chase raw pointers flag
 void RequiredTypeCollector::visit(Pointer &p) {
   if (chasePointer()) {
-    collect_type(p.pointee_type());
+    collect_type(p.pointeeType());
   }
 }
 
 void RequiredTypeCollector::visit(Array &a) {
-  collect_type(a.element_type());
+  collect_type(a.elementType());
 }
 
 bool RequiredTypeCollector::chasePointer() const {

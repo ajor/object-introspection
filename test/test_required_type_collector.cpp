@@ -94,7 +94,7 @@ TEST(RequiredTypeCollectorTest, Parents) {
 TEST(RequiredTypeCollectorTest, TemplateParams) {
   auto myparam = std::make_unique<Class>(Class::Kind::Struct, "MyParam", 13);
   auto myclass = std::make_unique<Class>(Class::Kind::Class, "MyClass", 69);
-  myclass->template_params.push_back(TemplateParam(myparam.get()));
+  myclass->templateParams.push_back(TemplateParam(myparam.get()));
 
   std::vector<Type*> input = {myclass.get()};
 
@@ -116,7 +116,7 @@ TEST(RequiredTypeCollectorTest, ContainerMembers) {
 TEST(RequiredTypeCollectorTest, ContainerParams) {
   auto myparam = std::make_unique<Class>(Class::Kind::Struct, "MyParam", 13);
   auto mycontainer = std::make_unique<Container>(Container::Kind::StdVector);
-  mycontainer->template_params.push_back((myparam.get()));
+  mycontainer->templateParams.push_back((myparam.get()));
 
   std::vector<Type*> input = {mycontainer.get()};
   std::vector<Type*> expected = {myparam.get()};
