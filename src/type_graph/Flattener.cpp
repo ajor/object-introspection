@@ -1,92 +1,118 @@
 #include "Flattener.h"
 
+// TODO remove?
+#include "TypeGraph.h"
+
 namespace type_graph {
 
-void Flattener::flatten(const std::vector<Class*> &classes) {
-  for (auto c : classes) {
-    flatten_class(*c);
+//Pass Flattener::createPass() {
+//  return [](Type &root, TypeGraph &typeGraph) {
+//    Flattener flattener;
+//    flattener.flatten(typeGraph);
+//
+////    for (auto &root : typeGraph.rootTypes()) {
+////      root.accept(flattener);
+////    }
+////    flattener.flatten({&root}); // TODO this should take a list of nodes, not just root
+//  };
+//}
+
+void Flattener::flatten(std::vector<std::reference_wrapper<Type>> types) {
+  for (auto &type : types) {
+    visit(type);
   }
 }
 
-void Flattener::flatten_class(Class &c) {
-  flattened_members_ = {};
-  offset_stack_ = {0};
-  c.accept(*this);
-  c.members = std::move(flattened_members_);
-  c.parents.clear();
+void Flattener::visit(Type &type) {
+  if (visited_.count(&type) != 0)
+    return;
+
+  visited_.insert(&type);
+  type.accept(*this);
 }
 
 void Flattener::visit(Class &c) {
-  // Members of a base class will be contiguous, but it's possible for derived
-  // class members to be intersperced between embedded parent classes.
+  // WARNING: This does not work for virtual inheritance
   //
-  // e.g. Givin the original C++ classes:
-  //   class Parent {
-  //     int x;
-  //     int y;
+  // Given the following setup, with "Root" being the root type:
+  //   struct C {
+  //     int cMember;
   //   };
-  //   class Child : Parent {
-  //     int a;
-  //     int b;
+  //   struct BParent {
+  //     int bParentMember;
+  //   };
+  //   struct B : BParent {
+  //     int bMember;
+  //     C c;
+  //   };
+  //   struct AParent {
+  //     int aParentMember;
+  //   };
+  //   struct A : AParent {
+  //     int aMember;
+  //   };
+  //   struct Root : B {
+  //     A a;
+  //     int rootMember;
   //   };
   //
-  // The in memory (flattened) representation could be:
-  //   class Child {
-  //     int a;
-  //     int x;
-  //     int y;
-  //     int b;
+  // We will transform the type graph into:
+  //   struct C {
+  //     int cMember;
+  //   };
+  //   struct BParent {
+  //     int bParentMember;
+  //   };
+  //   struct B {
+  //     int bParentMember;
+  //     C c;
+  //   };
+  //   struct AParent {
+  //     int aParentMember;
+  //   }
+  //   struct A {
+  //     int aParentMember;
+  //     int aMember;
+  //   };
+  //   struct Root {
+  //     int bParentMember;
+  //     int bMember;
+  //     C c;
+  //     A a;
+  //     int rootMember;
   //   };
 
-  // Base offset of the class "c" in the class being flattened
-  auto base_offset = offset_stack_.back();
+  // TODO alignment of parent classes
 
-  std::size_t member_idx = 0;
-  std::size_t parent_idx = 0;
-  // TODO is this loop necessary??
-  while (member_idx < c.members.size() && parent_idx < c.parents.size()) {
-    auto member_offset = c.members[member_idx].offset;
-    auto parent_offset = c.parents[parent_idx].offset;
-    if (member_offset < parent_offset) {
-      // Add our own member
-      auto member = c.members[member_idx++];
-      member.offset += base_offset;
-      flattened_members_.push_back(member);
-    }
-    else {
-      // Add parent's members
-      // If member_offset == parent_offset then the parent is empty. Also take this path.
-      auto &parent = c.parents[parent_idx++];
-      offset_stack_.push_back(base_offset + parent.offset);
-      parent.type->accept(*this);
-      offset_stack_.pop_back();
-    }
-  }
-  while (member_idx < c.members.size()) {
-    auto member = c.members[member_idx++];
-    member.offset += base_offset;
-    flattened_members_.push_back(member);
-  }
-  while (parent_idx < c.parents.size()) {
-    auto &parent = c.parents[parent_idx++];
-    offset_stack_.push_back(base_offset + parent.offset);
-    parent.type->accept(*this);
-    offset_stack_.pop_back();
+  // Flatten types referenced by member variables
+  for (const auto &member : c.members) {
+    visit(*member.type);
   }
 
-//  // TODO also walk members
-//  for (const auto &mem : c.members) {
-//    sort_type(mem.type);
-//  }
-//  for (const auto &parent : c.parents) {
-//    sort_type(parent.type);
-//  }
-//  for (const auto &template_param : c.templateParams) {
-//    sort_type(template_param.type);
-//  }
+  // Flatten parent classes into this class
+  std::vector<Member> flattenedMembers;
+  for (const auto &parent : c.parents) {
+    visit(*parent.type);
+    // TODO account for typedefs
+    const Class &parentClass = dynamic_cast<Class&>(*parent.type);
+    for (const auto &member : parentClass.members) {
+      flattenedMembers.push_back(member);
+      flattenedMembers.back().offset += parent.offset;
+    }
+  }
+  c.parents.clear();
+
+  flattenedMembers.insert(flattenedMembers.end(),
+      c.members.begin(), c.members.end());
+  c.members = std::move(flattenedMembers);
 }
 
 void Flattener::visit(Container &c) {
+  // Containers themselves don't need to be flattened, but their template
+  // parameters might need to be
+  for (const auto &templateParam : c.templateParams) {
+    visit(*templateParam.type);
+  }
 }
 
 void Flattener::visit(Enum &e) {
@@ -96,12 +122,16 @@ void Flattener::visit(Primitive &p) {
 }
 
 void Flattener::visit(Typedef &td) {
+  // TODO flatten typedefs
+  visit(*td.underlyingType());
 }
 
 void Flattener::visit(Pointer &p) {
+  visit(*p.pointeeType());
 }
 
 void Flattener::visit(Array &a) {
+  visit(*a.elementType());
 }
 
 } // namespace type_graph

@@ -16,7 +16,10 @@ namespace type_graph {
  */
 class Flattener : public Visitor {
 public:
-  void flatten(const std::vector<Class*> &classes);
+//  static Pass createPass();
+
+  void flatten(std::vector<std::reference_wrapper<Type>> types);
+  void visit(Type &type);
 
   void visit(Class &c) override;
   void visit(Container &c) override;
@@ -27,10 +30,8 @@ public:
   void visit(Array &a) override;
 
 private:
+  std::unordered_set<Type*> visited_;
   std::vector<Member> flattened_members_;
-
-  void flatten_class(Class &c);
-
   std::vector<uint64_t> offset_stack_;
 };
 

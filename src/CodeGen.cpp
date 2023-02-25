@@ -17,6 +17,7 @@ using namespace type_graph;
 void CodeGen::generate(drgn_type *drgnType) {
   DrgnParser drgnParser(typeGraph_, containerInfos_);
   Type *rootType = drgnParser.parse(drgnType);
+  typeGraph_.addRoot(*rootType);
 
   // TODO free resources from visitor classes after running each one
   // A pass manager would achieve this
@@ -24,7 +25,7 @@ void CodeGen::generate(drgn_type *drgnType) {
   auto required_types = req_types.collect({rootType});
   // TODO try Flattener.flatten()
   Flattener flattener;
-  flattener.flatten(req_types.classes());
+  flattener.flatten(typeGraph_.rootTypes());
   TopoSorter topo_sort;
   auto sorted_types = topo_sort.sort(required_types);
 

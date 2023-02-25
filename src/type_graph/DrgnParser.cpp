@@ -67,6 +67,7 @@ Type *DrgnParser::enumerateType(struct drgn_type *type) {
 
   enum drgn_type_kind kind = drgn_type_kind(type);
   Type *t = nullptr;
+  depth_++;
   switch (kind) {
     case DRGN_TYPE_CLASS:
     case DRGN_TYPE_STRUCT:
@@ -96,6 +97,7 @@ Type *DrgnParser::enumerateType(struct drgn_type *type) {
       break;
       // TODO ensure that missing cases are a compile error
   }
+  depth_--;
 
   return t;
 }
@@ -319,11 +321,10 @@ Typedef *DrgnParser::enumerateTypedef(struct drgn_type *type) {
   // TODO anonymous typedefs?
 
   struct drgn_type *underlyingType = drgn_type_type(type).type;
-  auto t = enumerateType(underlyingType); // TODO won't this cause cycles?
+  auto t = enumerateType(underlyingType);
   return make_type<Typedef>(type, name, t);
 }
 
-// TODO what is an incomplete type?
 bool isDrgnSizeComplete(struct drgn_type *type) {
   uint64_t sz;
   struct drgn_error *err = drgn_type_sizeof(type, &sz);
@@ -335,39 +336,32 @@ bool isDrgnSizeComplete(struct drgn_type *type) {
 // TODO will have to do something about pointers in the visitor classes
 // - sometimes they must be followed, sometimes not?
 
-Pointer *DrgnParser::enumeratePointer(struct drgn_type *type) {
-  struct drgn_type *pointeeType = drgn_type_type(type).type;
-
-  // Not handling pointers right now. Pointer members in classes are going to be
-  // tricky. If we enumerate objects from pointers there are many questions :-
-  // 1. How to handle uninitialized pointers
-  // 2. How to handle NULL pointers
-  // 3. How to handle cyclical references with pointers
-  //    Very common for two structs/classes to have pointers to each other
-  //    We will need to save previously encountered pointer values
-  // 4. Smart pointers might make it easier to detect (1)/(2)
-
-  if (!isDrgnSizeComplete(pointeeType)) {
-    // TODO how can we allow these?
-    throw std::runtime_error("Incomplete pointer");
+Type *DrgnParser::enumeratePointer(struct drgn_type *type) {
+  if (!chasePointer()) {
+    // TODO dodgy nullptr - primitives should be handled as singletons
+    return make_type<Primitive>(nullptr, Primitive::Kind::UIntPtr);
   }
 
-  Type *t = nullptr;
-  if (drgn_type_kind(pointeeType) == DRGN_TYPE_FUNCTION ||
-      isDrgnSizeComplete(pointeeType))
-    t = enumerateType(pointeeType); // TODO won't this cause cycles?
+  struct drgn_type *pointeeType = drgn_type_type(type).type;
 
+  // TODO why was old CodeGen following funciton pointers?
+
+  if (!isDrgnSizeComplete(pointeeType)) {
+    return make_type<Primitive>(nullptr, Primitive::Kind::UIntPtr);
+  }
+
+  Type *t = enumerateType(pointeeType);
   return make_type<Pointer>(type, t);
 }
 
 Array *DrgnParser::enumerateArray(struct drgn_type *type) {
   struct drgn_type *elementType = drgn_type_type(type).type;
   uint64_t len = drgn_type_length(type);
-  auto t = enumerateType(elementType); // TODO won't this cause cycles?
+  auto t = enumerateType(elementType);
   return make_type<Array>(type, "ARRAY_SMELLS", len, t);
 }
 
-// TODO deduplication of primitive types
+// TODO deduplication of primitive types (also remember they're not only created here)
 Primitive *DrgnParser::enumeratePrimitive(struct drgn_type *type) {
   Primitive::Kind kind;
   switch (drgn_type_kind(type)) {
@@ -384,6 +378,12 @@ Primitive *DrgnParser::enumeratePrimitive(struct drgn_type *type) {
       abort(); // TODO
   }
   return make_type<Primitive>(type, kind);
+}
+
+bool DrgnParser::chasePointer() const {
+  // Chase top-level pointers
+  return depth_ == 1;
+  // TODO obey chase-raw-pointers command line argument
 }
 
 } // namespace type_graph

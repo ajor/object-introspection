@@ -1,5 +1,6 @@
 #pragma once
 
+#include <functional>
 #include <memory>
 #include <vector>
 
@@ -9,6 +10,15 @@ namespace type_graph {
 
 class TypeGraph {
 public:
+  // TODO try making return "const span"
+  std::vector<std::reference_wrapper<Type>> rootTypes() const {
+    return rootTypes_;
+  }
+
+  void addRoot(Type &type) {
+    rootTypes_.push_back(type);
+  }
+
   void add(std::unique_ptr<Type> type) {
     types_.push_back(std::move(type));
     // TODO this could put types into the appropriate vectors if needed
@@ -29,6 +39,7 @@ public:
   }
 
 private:
+  std::vector<std::reference_wrapper<Type>> rootTypes_;
   // Store all type objects in vectors for ownership. Order is not significant.
   std::vector<std::unique_ptr<Type>> types_;
 

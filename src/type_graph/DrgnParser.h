@@ -25,7 +25,7 @@ private:
   Type      *enumerateClass(struct drgn_type *type);
   Enum      *enumerateEnum(struct drgn_type *type);
   Typedef   *enumerateTypedef(struct drgn_type *type);
-  Pointer   *enumeratePointer(struct drgn_type *type);
+  Type      *enumeratePointer(struct drgn_type *type);
   Array     *enumerateArray(struct drgn_type *type);
   Primitive *enumeratePrimitive(struct drgn_type *type);
 
@@ -54,9 +54,11 @@ private:
     drgn_types_.insert({type, type_raw_ptr});
     return type_raw_ptr;
   }
+  bool chasePointer() const;
 
   TypeGraph &typeGraph_;
   const std::vector<ContainerInfo> &containers_;
+  int depth_;
 };
 
 } // namespace type_graph

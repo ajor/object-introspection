@@ -24,6 +24,7 @@ class Visitor;
 
 // TODO delete copy and move ctors
 
+// TODO make types hold references instead of pointers
 // TODO type qualifiers are needed for some stuff?
 class Type {
 public:
@@ -224,6 +225,8 @@ public:
     Float80, // TODO worth including?
     Float128, // TODO can we generate this?
     Bool,
+
+    UIntPtr, // Really an alias, but usful to have as it's own primitive
   };
 
   explicit Primitive(Kind kind) : kind_(kind) { }

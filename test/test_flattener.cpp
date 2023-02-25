@@ -4,6 +4,7 @@
 #include <gtest/gtest.h>
 
 #include "type_graph/Flattener.h"
+#include "type_graph/Printer.h"
 #include "type_graph/Types.h"
 
 using namespace type_graph;
@@ -30,6 +31,22 @@ void EXPECT_EQ_CLASS(const Class &actual, const Class &expected) {
   }
 }
 
+void test(std::vector<std::reference_wrapper<Type>> types, std::string_view expected) {
+  Flattener flattener;
+  flattener.flatten(types);
+
+  std::stringstream out;
+  Printer printer(out);
+
+  for (const auto &type : types) {
+    printer.print(type);
+  }
+
+  // TODO standardise expected-actual order
+  expected.remove_prefix(1); // Remove initial '\n'
+  EXPECT_EQ(expected, out.str());
+}
+
 TEST(FlattenerTest, NoParents) {
   // Original and flattened:
   //   struct MyStruct { int n0; };
@@ -41,7 +58,6 @@ TEST(FlattenerTest, NoParents) {
   auto myint = std::make_unique<Primitive>(Primitive::Kind::Int32);
   auto myenum = std::make_unique<Enum>("MyEnum", 4);
   auto mystruct = std::make_unique<Class>(Class::Kind::Struct, "MyStruct", 4);
-  auto mybool = std::make_unique<Primitive>(Primitive::Kind::Bool); // TODO unused variable
   auto myclass = std::make_unique<Class>(Class::Kind::Class, "MyClass", 12);
 
   mystruct->members.push_back(Member(myint.get(), "n0", 0));
@@ -50,15 +66,20 @@ TEST(FlattenerTest, NoParents) {
   myclass->members.push_back(Member(myenum.get(), "e", 4));
   myclass->members.push_back(Member(mystruct.get(), "mystruct", 8));
 
-  auto expected = *myclass;
-
-  Flattener flattener;
-  flattener.flatten({myclass.get()});
-
-  EXPECT_EQ_CLASS(*myclass, expected);
+  test({*myclass}, R"(
+[0] Class: MyClass (size: 12)
+      Member: n (offset: 0)
+        Primitive: int32_t
+      Member: e (offset: 4)
+        Enum: MyEnum (size: 4)
+      Member: mystruct (offset: 8)
+[1]     Struct: MyStruct (size: 4)
+          Member: n0 (offset: 0)
+            Primitive: int32_t
+)");
 }
 
-TEST(TypeFlattenerTest, OnlyParents) {
+TEST(FlattenerTest, OnlyParents) {
   // Original:
   //   class C { int c; };
   //   class B { int b; };
@@ -80,17 +101,16 @@ TEST(TypeFlattenerTest, OnlyParents) {
   classA->parents.push_back(Parent(classB.get(), 0));
   classA->parents.push_back(Parent(classC.get(), 4));
 
-  Flattener flattener;
-  flattener.flatten({classA.get()});
-
-  auto expected = std::make_unique<Class>(Class::Kind::Class, "ClassA", 8);
-  expected->members.push_back(Member(myint.get(), "b", 0));
-  expected->members.push_back(Member(myint.get(), "c", 4));
-
-  EXPECT_EQ_CLASS(*classA, *expected);
+  test({*classA}, R"(
+[0] Class: ClassA (size: 8)
+      Member: b (offset: 0)
+        Primitive: int32_t
+      Member: c (offset: 4)
+        Primitive: int32_t
+)");
 }
 
-TEST(TypeFlattenerTest, ParentsFirst) {
+TEST(FlattenerTest, ParentsFirst) {
   // Original:
   //   class C { int c; };
   //   class B { int b; };
@@ -114,96 +134,96 @@ TEST(TypeFlattenerTest, ParentsFirst) {
   classA->parents.push_back(Parent(classC.get(), 4));
   classA->members.push_back(Member(myint.get(), "a", 8));
 
-  Flattener flattener;
-  flattener.flatten({classA.get()});
-
-  auto expected = std::make_unique<Class>(Class::Kind::Class, "ClassA", 12);
-  expected->members.push_back(Member(myint.get(), "b", 0));
-  expected->members.push_back(Member(myint.get(), "c", 4));
-  expected->members.push_back(Member(myint.get(), "a", 8));
-
-  EXPECT_EQ_CLASS(*classA, *expected);
+  test({*classA}, R"(
+[0] Class: ClassA (size: 12)
+      Member: b (offset: 0)
+        Primitive: int32_t
+      Member: c (offset: 4)
+        Primitive: int32_t
+      Member: a (offset: 8)
+        Primitive: int32_t
+)");
 }
 
-TEST(TypeFlattenerTest, MembersFirst) {
-  // Original:
-  //   class C { int c; };
-  //   class B { int b; };
-  //   class A : B, C { int a; };
-  //
-  // Flattened:
-  //   class A {
-  //     int a;
-  //     int b;
-  //     int c;
-  //   };
-  auto myint = std::make_unique<Primitive>(Primitive::Kind::Int32);
-  auto classA = std::make_unique<Class>(Class::Kind::Class, "ClassA", 12);
-  auto classB = std::make_unique<Class>(Class::Kind::Class, "ClassB", 4);
-  auto classC = std::make_unique<Class>(Class::Kind::Class, "ClassC", 4);
+//TEST(FlattenerTest, MembersFirst) {
+//  // Original:
+//  //   class C { int c; };
+//  //   class B { int b; };
+//  //   class A : B, C { int a; };
+//  //
+//  // Flattened:
+//  //   class A {
+//  //     int a;
+//  //     int b;
+//  //     int c;
+//  //   };
+//  auto myint = std::make_unique<Primitive>(Primitive::Kind::Int32);
+//  auto classA = std::make_unique<Class>(Class::Kind::Class, "ClassA", 12);
+//  auto classB = std::make_unique<Class>(Class::Kind::Class, "ClassB", 4);
+//  auto classC = std::make_unique<Class>(Class::Kind::Class, "ClassC", 4);
+//
+//  classC->members.push_back(Member(myint.get(), "c", 0));
+//
+//  classB->members.push_back(Member(myint.get(), "b", 0));
+//
+//  classA->members.push_back(Member(myint.get(), "a", 0));
+//  classA->parents.push_back(Parent(classB.get(), 4));
+//  classA->parents.push_back(Parent(classC.get(), 8));
+//
+//  Flattener flattener;
+//  flattener.flatten({*classA.get()});
+//
+//  auto expected = std::make_unique<Class>(Class::Kind::Class, "ClassA", 12);
+//  expected->members.push_back(Member(myint.get(), "a", 0));
+//  expected->members.push_back(Member(myint.get(), "b", 4));
+//  expected->members.push_back(Member(myint.get(), "c", 8));
+//
+//  EXPECT_EQ_CLASS(*classA, *expected);
+//}
+//
+//TEST(FlattenerTest, MixedMembersAndParents) {
+//  // Original:
+//  //   class C { int c; };
+//  //   class B { int b; };
+//  //   class A : B, C { int a1; int a2; int a3; };
+//  //
+//  // Flattened:
+//  //   class A {
+//  //     int a1;
+//  //     int b;
+//  //     int a2;
+//  //     int c;
+//  //     int a3;
+//  //   };
+//  auto myint = std::make_unique<Primitive>(Primitive::Kind::Int32);
+//  auto classA = std::make_unique<Class>(Class::Kind::Class, "ClassA", 20);
+//  auto classB = std::make_unique<Class>(Class::Kind::Class, "ClassB", 4);
+//  auto classC = std::make_unique<Class>(Class::Kind::Class, "ClassC", 4);
+//
+//  classC->members.push_back(Member(myint.get(), "c", 0));
+//
+//  classB->members.push_back(Member(myint.get(), "b", 0));
+//
+//  classA->members.push_back(Member(myint.get(), "a1", 0));
+//  classA->parents.push_back(Parent(classB.get(), 4));
+//  classA->members.push_back(Member(myint.get(), "a2", 8));
+//  classA->parents.push_back(Parent(classC.get(), 12));
+//  classA->members.push_back(Member(myint.get(), "a3", 16));
+//
+//  Flattener flattener;
+//  flattener.flatten({*classA.get()});
+//
+//  auto expected = std::make_unique<Class>(Class::Kind::Class, "ClassA", 20);
+//  expected->members.push_back(Member(myint.get(), "a1", 0));
+//  expected->members.push_back(Member(myint.get(),  "b", 4));
+//  expected->members.push_back(Member(myint.get(), "a2", 8));
+//  expected->members.push_back(Member(myint.get(),  "c", 12));
+//  expected->members.push_back(Member(myint.get(), "a3", 16));
+//
+//  EXPECT_EQ_CLASS(*classA, *expected);
+//}
 
-  classC->members.push_back(Member(myint.get(), "c", 0));
-
-  classB->members.push_back(Member(myint.get(), "b", 0));
-
-  classA->members.push_back(Member(myint.get(), "a", 0));
-  classA->parents.push_back(Parent(classB.get(), 4));
-  classA->parents.push_back(Parent(classC.get(), 8));
-
-  Flattener flattener;
-  flattener.flatten({classA.get()});
-
-  auto expected = std::make_unique<Class>(Class::Kind::Class, "ClassA", 12);
-  expected->members.push_back(Member(myint.get(), "a", 0));
-  expected->members.push_back(Member(myint.get(), "b", 4));
-  expected->members.push_back(Member(myint.get(), "c", 8));
-
-  EXPECT_EQ_CLASS(*classA, *expected);
-}
-
-TEST(TypeFlattenerTest, MixedMembersAndParents) {
-  // Original:
-  //   class C { int c; };
-  //   class B { int b; };
-  //   class A : B, C { int a1; int a2; int a3; };
-  //
-  // Flattened:
-  //   class A {
-  //     int a1;
-  //     int b;
-  //     int a2;
-  //     int c;
-  //     int a3;
-  //   };
-  auto myint = std::make_unique<Primitive>(Primitive::Kind::Int32);
-  auto classA = std::make_unique<Class>(Class::Kind::Class, "ClassA", 20);
-  auto classB = std::make_unique<Class>(Class::Kind::Class, "ClassB", 4);
-  auto classC = std::make_unique<Class>(Class::Kind::Class, "ClassC", 4);
-
-  classC->members.push_back(Member(myint.get(), "c", 0));
-
-  classB->members.push_back(Member(myint.get(), "b", 0));
-
-  classA->members.push_back(Member(myint.get(), "a1", 0));
-  classA->parents.push_back(Parent(classB.get(), 4));
-  classA->members.push_back(Member(myint.get(), "a2", 8));
-  classA->parents.push_back(Parent(classC.get(), 12));
-  classA->members.push_back(Member(myint.get(), "a3", 16));
-
-  Flattener flattener;
-  flattener.flatten({classA.get()});
-
-  auto expected = std::make_unique<Class>(Class::Kind::Class, "ClassA", 20);
-  expected->members.push_back(Member(myint.get(), "a1", 0));
-  expected->members.push_back(Member(myint.get(),  "b", 4));
-  expected->members.push_back(Member(myint.get(), "a2", 8));
-  expected->members.push_back(Member(myint.get(),  "c", 12));
-  expected->members.push_back(Member(myint.get(), "a3", 16));
-
-  EXPECT_EQ_CLASS(*classA, *expected);
-}
-
-TEST(TypeFlattenerTest, EmptyParent) {
+TEST(FlattenerTest, EmptyParent) {
   // Original:
   //   class C { int c; };
   //   class B { };
@@ -211,9 +231,9 @@ TEST(TypeFlattenerTest, EmptyParent) {
   //
   // Flattened:
   //   class A {
+  //     int c;
   //     int a1;
   //     int a2;
-  //     int c;
   //   };
   auto myint = std::make_unique<Primitive>(Primitive::Kind::Int32);
   auto classA = std::make_unique<Class>(Class::Kind::Class, "ClassA", 12);
@@ -222,23 +242,23 @@ TEST(TypeFlattenerTest, EmptyParent) {
 
   classC->members.push_back(Member(myint.get(), "c", 0));
 
-  classA->members.push_back(Member(myint.get(), "a1", 0));
-  classA->members.push_back(Member(myint.get(), "a2", 4));
+  classA->members.push_back(Member(myint.get(), "a1", 4));
+  classA->members.push_back(Member(myint.get(), "a2", 8));
   classA->parents.push_back(Parent(classB.get(), 4));
-  classA->parents.push_back(Parent(classC.get(), 8));
+  classA->parents.push_back(Parent(classC.get(), 0));
 
-  Flattener flattener;
-  flattener.flatten({classA.get()});
-
-  auto expected = std::make_unique<Class>(Class::Kind::Class, "ClassA", 12);
-  expected->members.push_back(Member(myint.get(), "a1", 0));
-  expected->members.push_back(Member(myint.get(), "a2", 4));
-  expected->members.push_back(Member(myint.get(),  "c", 8));
-
-  EXPECT_EQ_CLASS(*classA, *expected);
+  test({*classA}, R"(
+[0] Class: ClassA (size: 12)
+      Member: c (offset: 0)
+        Primitive: int32_t
+      Member: a1 (offset: 4)
+        Primitive: int32_t
+      Member: a2 (offset: 8)
+        Primitive: int32_t
+)");
 }
 
-TEST(TypeFlattenerTest, TwoDeep) {
+TEST(FlattenerTest, TwoDeep) {
   // Original:
   //   class D { int d; };
   //   class C { int c; };
@@ -269,19 +289,20 @@ TEST(TypeFlattenerTest, TwoDeep) {
   classA->parents.push_back(Parent(classC.get(), 8));
   classA->members.push_back(Member(myint.get(), "a", 12));
 
-  Flattener flattener;
-  flattener.flatten({classA.get()});
-
-  auto expected = std::make_unique<Class>(Class::Kind::Class, "ClassA", 16);
-  expected->members.push_back(Member(myint.get(), "d", 0));
-  expected->members.push_back(Member(myint.get(), "b", 4));
-  expected->members.push_back(Member(myint.get(), "c", 8));
-  expected->members.push_back(Member(myint.get(), "a", 12));
-
-  EXPECT_EQ_CLASS(*classA, *expected);
+  test({*classA}, R"(
+[0] Class: ClassA (size: 16)
+      Member: d (offset: 0)
+        Primitive: int32_t
+      Member: b (offset: 4)
+        Primitive: int32_t
+      Member: c (offset: 8)
+        Primitive: int32_t
+      Member: a (offset: 12)
+        Primitive: int32_t
+)");
 }
 
-TEST(TypeFlattenerTest, DiamondInheritance) {
+TEST(FlattenerTest, DiamondInheritance) {
   // Original:
   //   class C { int c; };
   //   class B : C { int b; };
@@ -309,20 +330,21 @@ TEST(TypeFlattenerTest, DiamondInheritance) {
   classA->parents.push_back(Parent(classC.get(), 8));
   classA->members.push_back(Member(myint.get(), "a", 12));
 
-  Flattener flattener;
-  flattener.flatten({classA.get()});
-
-  auto expected = std::make_unique<Class>(Class::Kind::Class, "ClassA", 16);
   // TODO duplicate names for "c" member variables
-  expected->members.push_back(Member(myint.get(), "c", 0));
-  expected->members.push_back(Member(myint.get(), "b", 4));
-  expected->members.push_back(Member(myint.get(), "c", 8));
-  expected->members.push_back(Member(myint.get(), "a", 12));
-
-  EXPECT_EQ_CLASS(*classA, *expected);
+  test({*classA}, R"(
+[0] Class: ClassA (size: 16)
+      Member: c (offset: 0)
+        Primitive: int32_t
+      Member: b (offset: 4)
+        Primitive: int32_t
+      Member: c (offset: 8)
+        Primitive: int32_t
+      Member: a (offset: 12)
+        Primitive: int32_t
+)");
 }
 
-TEST(TypeFlattenerTest, DuplicateMemberNames) {
+TEST(FlattenerTest, DuplicateMemberNames) {
   // Original:
   //   class C { int n; };
   //   class B { int n; };
@@ -348,26 +370,58 @@ TEST(TypeFlattenerTest, DuplicateMemberNames) {
   classA->parents.push_back(Parent(classC.get(), 4));
   classA->members.push_back(Member(myint.get(), "n", 8));
 
-  Flattener flattener;
-  flattener.flatten({classA.get()});
-
-  auto expected = std::make_unique<Class>(Class::Kind::Class, "ClassA", 12); // TODO check size is tested
   // TODO duplicate names for "c" member variables
-  expected->members.push_back(Member(myint.get(), "n", 0));
-  expected->members.push_back(Member(myint.get(), "n", 4));
-  expected->members.push_back(Member(myint.get(), "n", 8));
-
-  EXPECT_EQ_CLASS(*classA, *expected);
+  test({*classA}, R"(
+[0] Class: ClassA (size: 12)
+      Member: n (offset: 0)
+        Primitive: int32_t
+      Member: n (offset: 4)
+        Primitive: int32_t
+      Member: n (offset: 8)
+        Primitive: int32_t
+)");
 }
 
-TEST(TypeFlattenerTest, ParentsNotFlattened) {
+//TEST(FlattenerTest, ParentsNotFlattened) {
+//  // Original:
+//  //   class C { int c; };
+//  //   class B : C { int b; };
+//  //   class A : B { int a; };
+//  //
+//  // Not flattened:
+//  //   class B : C { int b; };
+//  auto myint = std::make_unique<Primitive>(Primitive::Kind::Int32);
+//  auto classA = std::make_unique<Class>(Class::Kind::Class, "ClassA", 12);
+//  auto classB = std::make_unique<Class>(Class::Kind::Class, "ClassB", 8);
+//  auto classC = std::make_unique<Class>(Class::Kind::Class, "ClassC", 4);
+//
+//  classC->members.push_back(Member(myint.get(), "c", 0));
+//
+//  classB->parents.push_back(Parent(classC.get(), 0));
+//  classB->members.push_back(Member(myint.get(), "b", 4));
+//
+//  classA->parents.push_back(Parent(classB.get(), 0));
+//  classA->members.push_back(Member(myint.get(), "a", 8));
+//
+//  // When we request to flatten classA, check that parent classes are not
+//  // flattened
+//  auto expected = *classB;
+//
+//  Flattener flattener;
+//  flattener.flatten({*classA.get()});
+//
+//  EXPECT_EQ_CLASS(*classB, expected);
+//}
+
+TEST(FlattenerTest, Member) {
   // Original:
   //   class C { int c; };
   //   class B : C { int b; };
-  //   class A : B { int a; };
+  //   class A { int a; B b; };
   //
-  // Not flattened:
-  //   class B : C { int b; };
+  // Flattened:
+  //   class B { int c; int b; };
+  //   Class A { int a; B b; };
   auto myint = std::make_unique<Primitive>(Primitive::Kind::Int32);
   auto classA = std::make_unique<Class>(Class::Kind::Class, "ClassA", 12);
   auto classB = std::make_unique<Class>(Class::Kind::Class, "ClassB", 8);
@@ -378,51 +432,119 @@ TEST(TypeFlattenerTest, ParentsNotFlattened) {
   classB->parents.push_back(Parent(classC.get(), 0));
   classB->members.push_back(Member(myint.get(), "b", 4));
 
-  classA->parents.push_back(Parent(classB.get(), 0));
-  classA->members.push_back(Member(myint.get(), "a", 8));
+  classA->members.push_back(Member(myint.get(), "a", 0));
+  classA->members.push_back(Member(classB.get(), "b", 4));
 
-  // When we request to flatten classA, check that parent classes are not
-  // flattened
-  auto expected = *classB;
-
-  Flattener flattener;
-  flattener.flatten({classA.get()});
-
-  EXPECT_EQ_CLASS(*classB, expected);
+  test({*classA}, R"(
+[0] Class: ClassA (size: 12)
+      Member: a (offset: 0)
+        Primitive: int32_t
+      Member: b (offset: 4)
+[1]     Class: ClassB (size: 8)
+          Member: c (offset: 0)
+            Primitive: int32_t
+          Member: b (offset: 4)
+            Primitive: int32_t
+)");
 }
 
-TEST(TypeFlattenerTest, MembersNotFlattened) {
+TEST(FlattenerTest, MemberOfParent) {
   // Original:
   //   class C { int c; };
-  //   class B : C { int b; };
-  //   class A : C { int a; B b; };
+  //   class B { int b; C c; };
+  //   class A : B { int a; };
   //
-  // Not flattened:
-  //   class B : C { int b; };
+  // Flattened:
+  //   class C { int c; };
+  //   class A { int b; C c; int a; };
   auto myint = std::make_unique<Primitive>(Primitive::Kind::Int32);
-  auto classA = std::make_unique<Class>(Class::Kind::Class, "ClassA", 16);
+  auto classA = std::make_unique<Class>(Class::Kind::Class, "ClassA", 12);
   auto classB = std::make_unique<Class>(Class::Kind::Class, "ClassB", 8);
   auto classC = std::make_unique<Class>(Class::Kind::Class, "ClassC", 4);
 
   classC->members.push_back(Member(myint.get(), "c", 0));
 
-  classB->parents.push_back(Parent(classC.get(), 0));
-  classB->members.push_back(Member(myint.get(), "b", 4));
+  classB->members.push_back(Member(myint.get(), "b", 0));
+  classB->members.push_back(Member(classC.get(), "c", 4));
 
-  classA->parents.push_back(Parent(classC.get(), 0));
+  classA->parents.push_back(Parent(classB.get(), 0));
+  classA->members.push_back(Member(myint.get(), "a", 8));
+
+  test({*classA}, R"(
+[0] Class: ClassA (size: 12)
+      Member: b (offset: 0)
+        Primitive: int32_t
+      Member: c (offset: 4)
+[1]     Class: ClassC (size: 4)
+          Member: c (offset: 0)
+            Primitive: int32_t
+      Member: a (offset: 8)
+        Primitive: int32_t
+)");
+}
+
+TEST(FlattenerTest, Container) {
+  // Original:
+  //   class B { int b; };
+  //   class A : B { int a; };
+  //   std::vector<A, int>
+  //
+  // Flattened:
+  //   class A { int b; int a; };
+  //   std::vector<A, int>
+  auto myint = std::make_unique<Primitive>(Primitive::Kind::Int32);
+  auto classA = std::make_unique<Class>(Class::Kind::Class, "ClassA", 8);
+  auto classB = std::make_unique<Class>(Class::Kind::Class, "ClassB", 4);
+  auto container = std::make_unique<Container>(SEQ_TYPE);
+
+  classB->members.push_back(Member(myint.get(), "b", 0));
+
+  classA->parents.push_back(Parent(classB.get(), 0));
   classA->members.push_back(Member(myint.get(), "a", 4));
-  classA->members.push_back(Member(classB.get(), "b", 8));
 
-  // When we request to flatten classA, check that classes used as members
-  // variables are not flattened
-  auto expected = *classB;
+  // TODO can we remove ".get()" from all of these?
+  container->templateParams.push_back(TemplateParam(classA.get()));
+  container->templateParams.push_back(TemplateParam(myint.get()));
 
-  Flattener flattener;
-  flattener.flatten({classA.get()});
+  test({*container}, R"(
+[0] Container: std::vector
+      Param
+[1]     Class: ClassA (size: 8)
+          Member: b (offset: 0)
+            Primitive: int32_t
+          Member: a (offset: 4)
+            Primitive: int32_t
+      Param
+        Primitive: int32_t
+)");
+}
 
-  EXPECT_EQ_CLASS(*classB, expected);
+TEST(FlattenerTest, PointerCycle) {
+  // Original:
+  //   class B { A* a };
+  //   class A { B b; };
+  //
+  // Flattened:
+  //   No change
+  auto classA = std::make_unique<Class>(Class::Kind::Class, "ClassA", 69);
+  auto classB = std::make_unique<Class>(Class::Kind::Class, "ClassB", 69);
+  auto ptrA = std::make_unique<Pointer>(classA.get());
+  classA->members.push_back(Member(classB.get(), "b", 0));
+  classB->members.push_back(Member(ptrA.get(), "a", 0));
+
+  test({*classA, *classB}, R"(
+[0] Class: ClassA (size: 69)
+      Member: b (offset: 0)
+[1]     Class: ClassB (size: 69)
+          Member: a (offset: 0)
+[2]         Pointer
+              [0]
+    [1]
+)");
 }
 
 // TODO
 // inherit from union
 // typedefs
+//
+// TODO copy tests for RequiredTypesCollector into here

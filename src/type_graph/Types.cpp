@@ -8,6 +8,7 @@ namespace type_graph {
 OI_TYPE_LIST
 #undef X
 
+  // TODO enable error if not all switch cases are handled
 std::string Primitive::name() const {
   switch (kind_) {
     case Kind::Int8:
@@ -36,6 +37,8 @@ std::string Primitive::name() const {
       abort();
     case Kind::Bool:
       return "bool";
+    case Kind::UIntPtr:
+      return "uintptr_t";
   }
 }
 

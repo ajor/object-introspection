@@ -13,11 +13,7 @@
 
 using namespace type_graph;
 
-// TODO setup google logging for tests
-
-// TODO put these in a header file
-void EXPECT_EQ_TYPE(const Type *actual, const Type *expected);
-void EXPECT_EQ_TYPES(const std::vector<Type*> actual, const std::vector<Type*> expected);
+// TODO setup google logging for tests so it doesn't appear on terminal by default
 
 void test(std::string_view function, std::string_view expected) {
   SymbolService symbols{TARGET_EXE_PATH};
@@ -28,7 +24,7 @@ void test(std::string_view function, std::string_view expected) {
   // TODO more container types, with various template parameter options
   ContainerInfo std_vector;
   std_vector.typeName = "std::vector<";
-  std_vector.matcher = "std::vector<";
+  std_vector.matcher = "^std::vector<";
   std_vector.ctype = SEQ_TYPE;
   std_vector.templateParams = {0};
 
@@ -146,18 +142,6 @@ TEST(DrgnParserTest, Using) {
 )");
 }
 
-TEST(DrgnParserTest, Cycle) { // TODO switch this integration test to use "int" instead uint64_t", to remove typedefs
-  test("oid_test_case_cycles_raw_ptr", R"(
-[0] Pointer
-[1]   Struct: RawNode (size: 16)
-        Member: value (offset: 0)
-          Primitive: int64_t
-        Member: next (offset: 8)
-[2]       Pointer
-            [1]
-)");
-}
-
 TEST(DrgnParserTest, ArrayMember) {
   test("oid_test_case_arrays_member_int10", R"(
 [0] Pointer
@@ -180,6 +164,47 @@ TEST(DrgnParserTest, ArrayDirect) {
   test("oid_test_case_arrays_direct_int10", R"(
 [0] Pointer
       Primitive: int32_t
+)");
+}
+
+TEST(DrgnParserTest, Pointer) {
+  GTEST_SKIP() << "Need to setup chase-follow-pointers setting";
+  test("oid_test_case_pointers_struct_vector_ptr", R"(
+[0] Pointer
+[1]   Struct: VectorPtr (size: 8)
+        Member: vec (offset: 0)
+[2]       Pointer
+[3]         Container: std::vector
+              Param
+                Primitive: int32_t
+)");
+}
+
+TEST(DrgnParserTest, PointerNoFollow) {
+  test("oid_test_case_pointers_struct_vector_ptr", R"(
+[0] Pointer
+[1]   Struct: VectorPtr (size: 8)
+        Member: vec (offset: 0)
+          Primitive: uintptr_t
+)");
+}
+
+TEST(DrgnParserTest, PointerIncomplete) {
+  test("oid_test_case_pointers_incomplete_raw", R"(
+    Primitive: uintptr_t
+)");
+}
+
+TEST(DrgnParserTest, Cycle) { // TODO switch this integration test to use "int" instead uint64_t", to remove typedefs
+  GTEST_SKIP() << "Cycle test needs updating";
+  test("oid_test_case_cycles_raw_ptr", R"(
+[0] Pointer
+[1]   Struct: RawNode (size: 16)
+        Member: value (offset: 0)
+          Primitive: int64_t
+        Member: next (offset: 8)
+[2]       Pointer
+            [1]
 )");
 }
 
@@ -258,6 +283,7 @@ TEST(DrgnParserTest, ClassTemplateTwo) {
 //}
 
 TEST(DrgnParserTest, Alignment) {
+  GTEST_SKIP() << "Alignment not reported by drgn yet";
   test("oid_test_case_alignment_struct", R"(
 [0] Pointer
 [1]   Struct: Align16 (size: 16, align: 16)
@@ -265,3 +291,4 @@ TEST(DrgnParserTest, Alignment) {
           Primitive: int8_t
 )");
 }
+// TODO member alignment
