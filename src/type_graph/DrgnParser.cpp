@@ -57,6 +57,7 @@ Primitive::Kind primitiveFloatKind(struct drgn_type *type) {
 // TODO type stubs
 
 Type *DrgnParser::parse(struct drgn_type *root) {
+  depth_ = 0;
   return enumerateType(root);
 }
 
