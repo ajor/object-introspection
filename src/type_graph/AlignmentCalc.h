@@ -3,6 +3,7 @@
 #include <functional>
 #include <vector>
 
+#include "PassManager.h"
 #include "Types.h"
 #include "Visitor.h"
 
@@ -15,6 +16,8 @@ namespace type_graph {
  */
 class AlignmentCalc final : public Visitor {
 public:
+  static Pass createPass();
+
   void calculateAlignments(const std::vector<std::reference_wrapper<Type>> &types);
 
   void visit(Class &c) override;

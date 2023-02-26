@@ -1,21 +1,18 @@
 #include "Flattener.h"
 
-// TODO remove?
 #include "TypeGraph.h"
 
 namespace type_graph {
 
-//Pass Flattener::createPass() {
-//  return [](Type &root, TypeGraph &typeGraph) {
-//    Flattener flattener;
-//    flattener.flatten(typeGraph);
-//
-////    for (auto &root : typeGraph.rootTypes()) {
-////      root.accept(flattener);
-////    }
-////    flattener.flatten({&root}); // TODO this should take a list of nodes, not just root
-//  };
-//}
+Pass Flattener::createPass() {
+  auto fn = [](TypeGraph &typeGraph) {
+    Flattener flattener;
+    flattener.flatten(typeGraph.rootTypes());
+    // TODO should flatten just operate on a single type and we do the looping here?
+  };
+
+  return Pass("Flattener", fn);
+}
 
 void Flattener::flatten(std::vector<std::reference_wrapper<Type>> types) {
   for (auto &type : types) {

@@ -299,6 +299,30 @@ private:
   Type *pointeeType_;
 };
 
+class Dummy : public Type {
+public:
+  explicit Dummy(size_t size, uint64_t align)
+    : size_(size), align_(align) { }
+
+  DECLARE_ACCEPT
+
+  virtual std::string name() const override {
+    return ""; // TODO
+  }
+
+  virtual size_t size() const override {
+    return size_;
+  }
+
+  virtual uint64_t align() const override {
+    return align_;
+  }
+
+private:
+  size_t size_;
+  uint64_t align_;
+};
+
 } // namespace type_graph
 
 #undef DECLARE_ACCEPT

@@ -1,9 +1,20 @@
 #include "NameGen.h"
 
+#include "TypeGraph.h"
+
 template <typename T>
 using ref = std::reference_wrapper<T>;
 
 namespace type_graph {
+
+Pass NameGen::createPass() {
+  auto fn = [](TypeGraph &typeGraph) {
+    NameGen nameGen;
+    nameGen.generateNames(typeGraph.rootTypes());
+  };
+
+  return Pass("NameGen", fn);
+}
 
 void NameGen::generateNames(const std::vector<ref<Type>> &types) {
   for (auto &type : types) {

@@ -173,6 +173,7 @@ std::unique_ptr<ContainerInfo> ContainerInfo::loadFromFile(
   });
 }
 
+// TODO don't put this in ctor?
 // TODO try inverting the if-conditions to avoid else branches
 ContainerInfo::ContainerInfo(const fs::path& path) {
   // TODO this throws (catch above)
@@ -242,14 +243,15 @@ ContainerInfo::ContainerInfo(const fs::path& path) {
     });
   }
 
-  if (toml::array* arr = info["replaceTemplateParamIndex"].as_array()) {
-    replaceTemplateParamIndex.reserve(arr->size());
-    arr->for_each([&](auto&& el) {
-      if constexpr (toml::is_integer<decltype(el)>) {
-        replaceTemplateParamIndex.push_back(*el);
-      }
-    });
-  }
+  //  TODO keep or remove?
+//  if (toml::array* arr = info["replaceTemplateParamIndex"].as_array()) {
+//    replaceTemplateParamIndex.reserve(arr->size());
+//    arr->for_each([&](auto&& el) {
+//      if constexpr (toml::is_integer<decltype(el)>) {
+//        replaceTemplateParamIndex.push_back(*el);
+//      }
+//    });
+//  }
 
   if (!container["codegen"].is_table()) {
     // TODO throw

@@ -1,6 +1,17 @@
 #include "TopoSorter.h"
 
+#include "TypeGraph.h"
+
 namespace type_graph {
+
+Pass TopoSorter::createPass() {
+  auto fn = [](TypeGraph &typeGraph) {
+    TopoSorter sorter;
+    typeGraph.finalTypes = sorter.sort(typeGraph.rootTypes());
+  };
+
+  return Pass("TopoSorter", fn);
+}
 
 std::vector<std::reference_wrapper<Type>> TopoSorter::sort(std::vector<std::reference_wrapper<Type>> types) {
   for (auto &type : types) {

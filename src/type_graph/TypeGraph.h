@@ -11,7 +11,8 @@ namespace type_graph {
 class TypeGraph {
 public:
   // TODO try making return "const span"
-  std::vector<std::reference_wrapper<Type>> rootTypes() const {
+  // TODO provide iterator instead of direct vector access
+  std::vector<std::reference_wrapper<Type>>& rootTypes() {
     return rootTypes_;
   }
 
@@ -37,6 +38,9 @@ public:
   const std::vector<Class*> &classes() const {
     return classes_;
   }
+
+  // TODO dodgy:
+  std::vector<std::reference_wrapper<Type>> finalTypes;
 
 private:
   std::vector<std::reference_wrapper<Type>> rootTypes_;

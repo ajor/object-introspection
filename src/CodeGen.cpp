@@ -21,31 +21,24 @@ void CodeGen::generate(drgn_type *drgnType) {
   Type *rootType = drgnParser.parse(drgnType);
   typeGraph_.addRoot(*rootType);
 
-  // TODO free resources from visitor classes after running each one
-  // A pass manager would achieve this
-  // TODO try Flattener.flatten()
-  Flattener flattener;
-  flattener.flatten(typeGraph_.rootTypes());
-  TopoSorter topo_sort;
-  auto sorted_types = topo_sort.sort(typeGraph_.rootTypes());
-
-  NameGen nameGen;
-  nameGen.generateNames(sorted_types);
-
-  AlignmentCalc alignmentCalc;
-  alignmentCalc.calculateAlignments(sorted_types);
+  PassManager pm;
+  pm.addPass(Flattener::createPass());
+  pm.addPass(NameGen::createPass());
+  pm.addPass(AlignmentCalc::createPass());
+  pm.addPass(TopoSorter::createPass());
+  pm.run(typeGraph_);
 
   std::cout << "sorted types:\n";
-  for (auto &t : sorted_types) {
+  for (auto &t : typeGraph_.finalTypes) {
     std::cout << t.get().name() << std::endl;
   };
 
   std::cout << "class decls\n";
-  std::cout << ClassDecls(sorted_types) << std::endl;
+  std::cout << ClassDecls(typeGraph_.finalTypes) << std::endl;
   std::cout << "class defs\n";
-  std::cout << ClassDefs(sorted_types) << std::endl;
+  std::cout << ClassDefs(typeGraph_.finalTypes) << std::endl;
   std::cout << "get size funcs:\n";
-  std::cout << GetSizeFuncs(sorted_types) << std::endl;
+  std::cout << GetSizeFuncs(typeGraph_.finalTypes) << std::endl;
 }
 
 std::string decl(const Class &c) {

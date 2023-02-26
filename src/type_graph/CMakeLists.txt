@@ -2,6 +2,7 @@ add_library(type_graph
   AlignmentCalc.cpp
   DrgnParser.cpp
   NameGen.cpp
+  PassManager.cpp
   Printer.cpp
   TopoSorter.cpp
   Flattener.cpp

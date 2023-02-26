@@ -2,10 +2,21 @@
 
 #include <cassert>
 
+#include "TypeGraph.h"
+
 template <typename T>
 using ref = std::reference_wrapper<T>;
 
 namespace type_graph {
+
+Pass AlignmentCalc::createPass() {
+  auto fn = [](TypeGraph &typeGraph) {
+    AlignmentCalc alignmentCalc;
+    alignmentCalc.calculateAlignments(typeGraph.rootTypes());
+  };
+
+  return Pass("AlignmentCalc", fn);
+}
 
 void AlignmentCalc::calculateAlignments(const std::vector<ref<Type>> &types) {
   for (auto &type : types) {

@@ -3,6 +3,7 @@
 #include <unordered_set>
 #include <vector>
 
+#include "PassManager.h"
 #include "Types.h"
 #include "Visitor.h"
 
@@ -16,6 +17,8 @@ namespace type_graph {
  */
 class TopoSorter : public Visitor {
 public:
+  static Pass createPass();
+
   std::vector<std::reference_wrapper<Type>> sort(std::vector<std::reference_wrapper<Type>> types);
 
   void visit(Class &c) override;
