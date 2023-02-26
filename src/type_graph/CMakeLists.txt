@@ -3,7 +3,6 @@ add_library(type_graph
   DrgnParser.cpp
   NameGen.cpp
   Printer.cpp
-  RequiredTypeCollector.cpp
   TopoSorter.cpp
   Flattener.cpp
   Types.cpp

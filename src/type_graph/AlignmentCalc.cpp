@@ -2,16 +2,19 @@
 
 #include <cassert>
 
+template <typename T>
+using ref = std::reference_wrapper<T>;
+
 namespace type_graph {
 
-void AlignmentCalc::calculateAlignments(const std::vector<Type*> &types) {
-  for (auto *type : types) {
+void AlignmentCalc::calculateAlignments(const std::vector<ref<Type>> &types) {
+  for (auto &type : types) {
     calculateAlignment(type);
   }
 };
 
-void AlignmentCalc::calculateAlignment(Type *type) {
-  type->accept(*this);
+void AlignmentCalc::calculateAlignment(Type &type) {
+  type.accept(*this);
 }
 
 void AlignmentCalc::visit(Class &c) {
@@ -20,7 +23,7 @@ void AlignmentCalc::visit(Class &c) {
     if (member.align == 0) {
       // If the member does not have an explicit alignment, calculate it from
       // the member's type.
-      calculateAlignment(member.type);
+      calculateAlignment(*member.type);
       member.align = member.type->align();
     }
     alignment = std::max(alignment, member.align);

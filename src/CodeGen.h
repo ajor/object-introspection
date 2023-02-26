@@ -2,6 +2,7 @@
 #pragma once
 
 #include <filesystem>
+#include <functional>
 #include <string>
 
 #include "ContainerInfo.h"
@@ -20,9 +21,9 @@ class CodeGen {
 public:
   CodeGen(type_graph::TypeGraph &typeGraph) : typeGraph_(typeGraph) { }
   void generate(drgn_type *drgnType);
-  std::string ClassDecls(const std::vector<type_graph::Type*>& types);
-  std::string ClassDefs(const std::vector<type_graph::Type*>& types);
-  std::string GetSizeFuncs(const std::vector<type_graph::Type*>& types);
+  std::string ClassDecls(const std::vector<std::reference_wrapper<type_graph::Type>>& types);
+  std::string ClassDefs(const std::vector<std::reference_wrapper<type_graph::Type>>& types);
+  std::string GetSizeFuncs(const std::vector<std::reference_wrapper<type_graph::Type>>& types);
 
 // TODO shouldn't need to be a template (but shouldn't be a set!)
 template <typename T>

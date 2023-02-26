@@ -358,7 +358,7 @@ Array *DrgnParser::enumerateArray(struct drgn_type *type) {
   struct drgn_type *elementType = drgn_type_type(type).type;
   uint64_t len = drgn_type_length(type);
   auto t = enumerateType(elementType);
-  return make_type<Array>(type, "ARRAY_SMELLS", len, t);
+  return make_type<Array>(type, t, len);
 }
 
 // TODO deduplication of primitive types (also remember they're not only created here)

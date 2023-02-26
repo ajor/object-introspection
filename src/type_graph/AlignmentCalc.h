@@ -1,5 +1,6 @@
 #pragma once
 
+#include <functional>
 #include <vector>
 
 #include "Types.h"
@@ -14,7 +15,7 @@ namespace type_graph {
  */
 class AlignmentCalc final : public Visitor {
 public:
-  void calculateAlignments(const std::vector<Type*> &types);
+  void calculateAlignments(const std::vector<std::reference_wrapper<Type>> &types);
 
   void visit(Class &c) override;
   void visit(Container &c) override;
@@ -25,7 +26,7 @@ public:
   void visit(Array &a) override;
 
 private:
-  void calculateAlignment(Type *type);
+  void calculateAlignment(Type &type);
 };
 
 } // namespace type_graph

@@ -2,37 +2,37 @@
 
 namespace type_graph {
 
-std::vector<Type*> TopoSorter::sort(const std::vector<Type*> &types) {
-  for (auto type : types) {
+std::vector<std::reference_wrapper<Type>> TopoSorter::sort(std::vector<std::reference_wrapper<Type>> types) {
+  for (auto &type : types) {
     sort_type(type);
   }
   return sorted_types_;
 }
 
-void TopoSorter::sort_type(Type *type) {
-  if (visited_.count(type) != 0)
+void TopoSorter::sort_type(Type &type) {
+  if (visited_.count(&type) != 0)
     return;
 
-  visited_.insert(type);
-  type->accept(*this);
+  visited_.insert(&type);
+  type.accept(*this);
   sorted_types_.push_back(type);
 }
 
 void TopoSorter::visit(Class &c) {
   for (const auto &mem : c.members) {
-    sort_type(mem.type);
+    sort_type(*mem.type);
   }
   for (const auto &parent : c.parents) {
-    sort_type(parent.type);
+    sort_type(*parent.type);
   }
   for (const auto &template_param : c.templateParams) {
-    sort_type(template_param.type);
+    sort_type(*template_param.type);
   }
 }
 
 void TopoSorter::visit(Container &c) {
   for (const auto &template_param : c.templateParams) {
-    sort_type(template_param.type);
+    sort_type(*template_param.type);
   }
 }
 
@@ -51,7 +51,7 @@ void TopoSorter::visit(Pointer &p) {
 }
 
 void TopoSorter::visit(Array &a) {
-  sort_type(a.elementType());
+  sort_type(*a.elementType());
 }
 
 } // namespace type_graph

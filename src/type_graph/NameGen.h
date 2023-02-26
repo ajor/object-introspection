@@ -1,5 +1,6 @@
 #pragma once
 
+#include <functional>
 #include <unordered_set>
 #include <vector>
 
@@ -11,7 +12,7 @@ namespace type_graph {
 // TODO make all final
 class NameGen final : public Visitor {
 public:
-  void generateNames(const std::vector<Type*> &types);
+  void generateNames(const std::vector<std::reference_wrapper<Type>> &types);
 
   void visit(Class &c) override;
   void visit(Container &c) override;
@@ -22,7 +23,7 @@ public:
   void visit(Array &a) override;
 
 private:
-  void nameType(Type *type);
+  void nameType(Type &type);
   void removeTemplateParams(std::string &name);
 
   std::unordered_set<Type*> visited_;

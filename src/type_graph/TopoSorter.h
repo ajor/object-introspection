@@ -16,7 +16,7 @@ namespace type_graph {
  */
 class TopoSorter : public Visitor {
 public:
-  std::vector<Type*> sort(const std::vector<Type*> &types);
+  std::vector<std::reference_wrapper<Type>> sort(std::vector<std::reference_wrapper<Type>> types);
 
   void visit(Class &c) override;
   void visit(Container &c) override;
@@ -28,9 +28,9 @@ public:
 
 private:
   std::unordered_set<Type*> visited_;
-  std::vector<Type*> sorted_types_;
+  std::vector<std::reference_wrapper<Type>> sorted_types_;
 
-  void sort_type(Type *type);
+  void sort_type(Type &type);
 };
 
 } // namespace type_graph

@@ -6,13 +6,15 @@
 #include "type_graph/DrgnParser.h"
 #include "type_graph/Flattener.h"
 #include "type_graph/NameGen.h"
-#include "type_graph/RequiredTypeCollector.h"
 #include "type_graph/TopoSorter.h"
 #include "type_graph/TypeGraph.h"
 #include "type_graph/Types.h"
 
 // TODO don't do this:
 using namespace type_graph;
+
+template <typename T>
+using ref = std::reference_wrapper<T>;
 
 void CodeGen::generate(drgn_type *drgnType) {
   DrgnParser drgnParser(typeGraph_, containerInfos_);
@@ -21,13 +23,11 @@ void CodeGen::generate(drgn_type *drgnType) {
 
   // TODO free resources from visitor classes after running each one
   // A pass manager would achieve this
-  RequiredTypeCollector req_types;
-  auto required_types = req_types.collect({rootType});
   // TODO try Flattener.flatten()
   Flattener flattener;
   flattener.flatten(typeGraph_.rootTypes());
   TopoSorter topo_sort;
-  auto sorted_types = topo_sort.sort(required_types);
+  auto sorted_types = topo_sort.sort(typeGraph_.rootTypes());
 
   NameGen nameGen;
   nameGen.generateNames(sorted_types);
@@ -37,7 +37,7 @@ void CodeGen::generate(drgn_type *drgnType) {
 
   std::cout << "sorted types:\n";
   for (auto &t : sorted_types) {
-    std::cout << t->name() << std::endl;
+    std::cout << t.get().name() << std::endl;
   };
 
   std::cout << "class decls\n";
@@ -96,41 +96,41 @@ std::string CodeGen::getContainerSizeFunc(const Container &c) {
 //  return str;
 //}
 
-std::string CodeGen::ClassDecls(const std::vector<Type*>& types) {
+std::string CodeGen::ClassDecls(const std::vector<ref<Type>>& types) {
   std::string decls;
 
 //  for (const auto c : type_graph_.classes()) {
 //    decls += decl(*c);
 //  }
   for (const auto t : types) {
-    if (const auto *c = dynamic_cast<Class*>(t))
+    if (const auto *c = dynamic_cast<Class*>(&t.get()))
       decls += decl(*c);
   }
 
   return decls;
 }
 
-std::string CodeGen::ClassDefs(const std::vector<Type*>& types) {
+std::string CodeGen::ClassDefs(const std::vector<ref<Type>>& types) {
   std::string defs;
 
 //  for (const auto c : type_graph_.classes()) {
 //    defs += def(*c);
 //  }
   for (const auto t : types) {
-    if (const auto *c = dynamic_cast<Class*>(t))
+    if (const auto *c = dynamic_cast<Class*>(&t.get()))
       defs += def(*c);
   }
 
   return defs;
 }
 
-std::string CodeGen::GetSizeFuncs(const std::vector<Type*>& types) {
+std::string CodeGen::GetSizeFuncs(const std::vector<ref<Type>>& types) {
   std::string funcs;
 
   for (const auto t : types) {
-    if (const auto *c = dynamic_cast<Class*>(t))
+    if (const auto *c = dynamic_cast<Class*>(&t.get()))
       funcs += getClassSizeFunc(*c);
-    if (const auto *c = dynamic_cast<Container*>(t))
+    if (const auto *c = dynamic_cast<Container*>(&t.get()))
       funcs += getContainerSizeFunc(*c);
   }
 

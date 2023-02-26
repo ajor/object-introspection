@@ -15,7 +15,7 @@ TEST(NameGenTest, ContainerParams) {
   mycontainer->templateParams.push_back((myparam2.get()));
 
   NameGen nameGen;
-  nameGen.generateNames({mycontainer.get()});
+  nameGen.generateNames({*mycontainer});
 
   EXPECT_EQ(myparam1->name(), "MyParam_0");
   EXPECT_EQ(myparam2->name(), "MyParam_1");
@@ -29,7 +29,7 @@ TEST(NameGenTest, ContainerParamsDuplicates) {
   mycontainer->templateParams.push_back((myparam.get()));
 
   NameGen nameGen;
-  nameGen.generateNames({mycontainer.get()});
+  nameGen.generateNames({*mycontainer});
 
   EXPECT_EQ(myparam->name(), "MyParam_0");
   EXPECT_EQ(mycontainer->name(), "std::vector<MyParam_0, MyParam_0>");
@@ -46,7 +46,7 @@ TEST(NameGenTest, ContainerParamsDuplicatesDeep) {
   mycontainer2->templateParams.push_back((mycontainer1.get()));
 
   NameGen nameGen;
-  nameGen.generateNames({mycontainer2.get()});
+  nameGen.generateNames({*mycontainer2});
 
   EXPECT_EQ(myparam->name(), "MyParam_0");
   EXPECT_EQ(mycontainer1->name(), "std::vector<MyParam_0>");
@@ -67,7 +67,7 @@ TEST(NameGenTest, ContainerParamsDuplicatesAcrossContainers) {
   mycontainer2->templateParams.push_back((myparam3.get()));
 
   NameGen nameGen;
-  nameGen.generateNames({mycontainer1.get(), mycontainer2.get()});
+  nameGen.generateNames({*mycontainer1, *mycontainer2});
 
   EXPECT_EQ(myparam1->name(), "MyParam_0");
   EXPECT_EQ(myparam2->name(), "MyParam_1");

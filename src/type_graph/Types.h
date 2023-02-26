@@ -179,13 +179,13 @@ private:
 // TODO remove name
 class Array : public Type {
 public:
-  Array(const std::string &name, size_t len, Type *elementType)
-    : name_(name), len_(len), elementType_(elementType) { }
+  Array(Type *elementType, size_t len)
+    : elementType_(elementType), len_(len) { }
 
   DECLARE_ACCEPT
 
   virtual std::string name() const override {
-    return name_;
+    return "TODO NONE";
   }
 
   virtual size_t size() const override {
@@ -206,9 +206,8 @@ public:
   }
 
 private:
-  std::string name_;
-  size_t len_;
   Type *elementType_;
+  size_t len_;
 };
 
 class Primitive : public Type {

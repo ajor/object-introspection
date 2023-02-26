@@ -12,7 +12,7 @@ TEST(AlignmentCalcTest, PrimitiveMembers) {
   myclass->members.push_back(Member(myint64.get(), "n", 0));
 
   AlignmentCalc calc;
-  calc.calculateAlignments({myclass.get()});
+  calc.calculateAlignments({*myclass});
 
   EXPECT_EQ(myclass->align(), 8);
 }
@@ -29,7 +29,7 @@ TEST(AlignmentCalcTest, StructMembers) {
   myclass->members.push_back(Member(mystruct.get(), "s", 4));
 
   AlignmentCalc calc;
-  calc.calculateAlignments({myclass.get()});
+  calc.calculateAlignments({*myclass});
 
   EXPECT_EQ(myclass->align(), 4);
 }

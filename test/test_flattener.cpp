@@ -504,7 +504,7 @@ TEST(FlattenerTest, Array) {
   classA->parents.push_back(Parent(classB.get(), 0));
   classA->members.push_back(Member(myint.get(), "a", 4));
 
-  auto arrayA = std::make_unique<Array>("TODO remove this string", 5, classA.get());
+  auto arrayA = std::make_unique<Array>(classA.get(), 5);
 
   test({*arrayA}, R"(
 [0] Array: (length: 5)

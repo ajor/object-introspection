@@ -1,19 +1,22 @@
 #include "NameGen.h"
 
+template <typename T>
+using ref = std::reference_wrapper<T>;
+
 namespace type_graph {
 
-void NameGen::generateNames(const std::vector<Type*> &types) {
-  for (auto *type : types) {
+void NameGen::generateNames(const std::vector<ref<Type>> &types) {
+  for (auto &type : types) {
     nameType(type);
   }
 };
 
-void NameGen::nameType(Type *type) {
-  if (visited_.count(type) != 0)
+void NameGen::nameType(Type &type) {
+  if (visited_.count(&type) != 0)
     return;
 
-  visited_.insert(type);
-  type->accept(*this);
+  visited_.insert(&type);
+  type.accept(*this);
 }
 
 /*
@@ -29,7 +32,7 @@ void NameGen::removeTemplateParams(std::string &name) {
 
 void NameGen::visit(Class &c) {
   for (const auto &template_param : c.templateParams) {
-    nameType(template_param.type);
+    nameType(*template_param.type);
   }
 
   std::string name = c.name();
@@ -49,7 +52,7 @@ void NameGen::visit(Class &c) {
 
 void NameGen::visit(Container &c) {
   for (const auto &template_param : c.templateParams) {
-    nameType(template_param.type);
+    nameType(*template_param.type);
   }
 
   std::string name = c.name();
