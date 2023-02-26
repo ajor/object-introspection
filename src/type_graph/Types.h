@@ -8,14 +8,15 @@
 // TODO make ContainerTypeEnum a scoped enum and forward declare it instead of including
 #include "ContainerInfo.h"
 
+// TODO make all visitors and tests have classes in this order:
 #define OI_TYPE_LIST \
   X(Class) \
   X(Container) \
-  X(Enum) \
   X(Primitive) \
+  X(Enum) \
+  X(Array) \
   X(Typedef) \
-  X(Pointer) \
-  X(Array)
+  X(Pointer)
 
 namespace type_graph {
 
@@ -175,6 +176,7 @@ private:
   size_t size_;
 };
 
+// TODO remove name
 class Array : public Type {
 public:
   Array(const std::string &name, size_t len, Type *elementType)

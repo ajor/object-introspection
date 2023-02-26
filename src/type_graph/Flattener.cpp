@@ -32,55 +32,27 @@ void Flattener::visit(Type &type) {
 }
 
 void Flattener::visit(Class &c) {
-  // WARNING: This does not work for virtual inheritance
+  // Members of a base class will be contiguous, but it's possible for derived
+  // class members to be intersperced between embedded parent classes.
   //
-  // Given the following setup, with "Root" being the root type:
-  //   struct C {
-  //     int cMember;
+  // e.g. Givin the original C++ classes:
+  //   class Parent {
+  //     int x;
+  //     int y;
   //   };
-  //   struct BParent {
-  //     int bParentMember;
-  //   };
-  //   struct B : BParent {
-  //     int bMember;
-  //     C c;
-  //   };
-  //   struct AParent {
-  //     int aParentMember;
-  //   };
-  //   struct A : AParent {
-  //     int aMember;
-  //   };
-  //   struct Root : B {
-  //     A a;
-  //     int rootMember;
+  //   class Child : Parent {
+  //     int a;
+  //     int b;
   //   };
   //
-  // We will transform the type graph into:
-  //   struct C {
-  //     int cMember;
+  // The in memory (flattened) representation could be:
+  //   class Child {
+  //     int a;
+  //     int x;
+  //     int y;
+  //     int b;
   //   };
-  //   struct BParent {
-  //     int bParentMember;
-  //   };
-  //   struct B {
-  //     int bParentMember;
-  //     C c;
-  //   };
-  //   struct AParent {
-  //     int aParentMember;
-  //   }
-  //   struct A {
-  //     int aParentMember;
-  //     int aMember;
-  //   };
-  //   struct Root {
-  //     int bParentMember;
-  //     int bMember;
-  //     C c;
-  //     A a;
-  //     int rootMember;
-  //   };
+  //    TODO comment about virtual inheritance
 
   // TODO alignment of parent classes
 
@@ -89,10 +61,42 @@ void Flattener::visit(Class &c) {
     visit(*member.type);
   }
 
-  // Flatten parent classes into this class
-  std::vector<Member> flattenedMembers;
+  // Flatten parent types
   for (const auto &parent : c.parents) {
     visit(*parent.type);
+  }
+
+  // Pull member variables from flattened parents into this class
+  std::vector<Member> flattenedMembers;
+
+  std::size_t member_idx = 0;
+  std::size_t parent_idx = 0;
+  while (member_idx < c.members.size() && parent_idx < c.parents.size()) {
+    auto member_offset = c.members[member_idx].offset;
+    auto parent_offset = c.parents[parent_idx].offset;
+    if (member_offset < parent_offset) {
+      // Add our own member
+      const auto &member = c.members[member_idx++];
+      flattenedMembers.push_back(member);
+    }
+    else {
+      // Add parent's members
+      // If member_offset == parent_offset then the parent is empty. Also take this path.
+      const auto &parent = c.parents[parent_idx++];
+      // TODO account for typedefs
+      const Class &parentClass = dynamic_cast<Class&>(*parent.type);
+      for (const auto &member : parentClass.members) {
+        flattenedMembers.push_back(member);
+        flattenedMembers.back().offset += parent.offset;
+      }
+    }
+  }
+  while (member_idx < c.members.size()) {
+    const auto &member = c.members[member_idx++];
+    flattenedMembers.push_back(member);
+  }
+  while (parent_idx < c.parents.size()) {
+    const auto &parent = c.parents[parent_idx++];
     // TODO account for typedefs
     const Class &parentClass = dynamic_cast<Class&>(*parent.type);
     for (const auto &member : parentClass.members) {
@@ -100,10 +104,8 @@ void Flattener::visit(Class &c) {
       flattenedMembers.back().offset += parent.offset;
     }
   }
-  c.parents.clear();
 
-  flattenedMembers.insert(flattenedMembers.end(),
-      c.members.begin(), c.members.end());
+  c.parents.clear();
   c.members = std::move(flattenedMembers);
 }
 
