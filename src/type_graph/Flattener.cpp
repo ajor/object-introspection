@@ -85,9 +85,16 @@ void Flattener::visit(Class &c) {
       const auto &parent = c.parents[parent_idx++];
       // TODO account for typedefs
       const Class &parentClass = dynamic_cast<Class&>(*parent.type);
-      for (const auto &member : parentClass.members) {
+
+      for (size_t i=0; i<parentClass.members.size(); i++) {
+        const auto &member = parentClass.members[i];
         flattenedMembers.push_back(member);
         flattenedMembers.back().offset += parent.offset;
+        if (i == 0) {
+          flattenedMembers.back().align = std::max(
+              flattenedMembers.back().align,
+              parentClass.align());
+        }
       }
     }
   }

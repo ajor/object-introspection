@@ -70,6 +70,8 @@ std::size_t Primitive::size() const {
       return 16;
     case Kind::Bool:
       return 1;
+    case Kind::UIntPtr:
+      return sizeof(uintptr_t);
   }
 }
 

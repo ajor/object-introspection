@@ -39,8 +39,8 @@ public:
 };
 
 struct Member {
-  Member(Type *type, const std::string &name, uint64_t offset)
-    : type(type), name(name), offset(offset) { }
+  Member(Type *type, const std::string &name, uint64_t offset, uint64_t align=0)
+    : type(type), name(name), offset(offset), align(align) { }
 
   Type *type;
   std::string name; // TODO make optional?

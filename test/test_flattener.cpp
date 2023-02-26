@@ -186,18 +186,17 @@ TEST(FlattenerTest, MixedMembersAndParents) {
   // Original:
   //   class C { int c; };
   //   class B { int b; };
-  //   class A : B, C { int a1; int a2; int a3; };
+  //   class A : B, C { int a1; int a2; };
   //
   // Flattened:
   //   class A {
-  //     int a1;
   //     int b;
+  //     int a1;
   //     int a2;
   //     int c;
-  //     int a3;
   //   };
   auto myint = std::make_unique<Primitive>(Primitive::Kind::Int32);
-  auto classA = std::make_unique<Class>(Class::Kind::Class, "ClassA", 20);
+  auto classA = std::make_unique<Class>(Class::Kind::Class, "ClassA", 16);
   auto classB = std::make_unique<Class>(Class::Kind::Class, "ClassB", 4);
   auto classC = std::make_unique<Class>(Class::Kind::Class, "ClassC", 4);
 
@@ -205,23 +204,20 @@ TEST(FlattenerTest, MixedMembersAndParents) {
 
   classB->members.push_back(Member(myint.get(), "b", 0));
 
-  classA->members.push_back(Member(myint.get(), "a1", 0));
-  classA->parents.push_back(Parent(classB.get(), 4));
+  classA->parents.push_back(Parent(classB.get(), 0));
+  classA->members.push_back(Member(myint.get(), "a1", 4));
   classA->members.push_back(Member(myint.get(), "a2", 8));
   classA->parents.push_back(Parent(classC.get(), 12));
-  classA->members.push_back(Member(myint.get(), "a3", 16));
 
   test({*classA}, R"(
-[0] Class: ClassA (size: 20)
-      Member: a1 (offset: 0)
+[0] Class: ClassA (size: 16)
+      Member: b (offset: 0)
         Primitive: int32_t
-      Member: b (offset: 4)
+      Member: a1 (offset: 4)
         Primitive: int32_t
       Member: a2 (offset: 8)
         Primitive: int32_t
       Member: c (offset: 12)
-        Primitive: int32_t
-      Member: a3 (offset: 16)
         Primitive: int32_t
 )");
 }
@@ -616,5 +612,34 @@ TEST(FlattenerTest, PointerCycle) {
 [2]         Pointer
               [0]
     [1]
+)");
+}
+
+TEST(FlattenerTest, Alignment) {
+  // Original:
+  //   class alignas(16) C { int c; };
+  //   class B { alignas(8) int b; };
+  //   class A : B, C { int a; };
+  auto myint = std::make_unique<Primitive>(Primitive::Kind::Int32);
+  auto classA = std::make_unique<Class>(Class::Kind::Class, "ClassA", 12);
+  auto classB = std::make_unique<Class>(Class::Kind::Class, "ClassB", 4);
+  auto classC = std::make_unique<Class>(Class::Kind::Class, "ClassC", 4);
+  classC->setAlign(16);
+
+  classC->members.push_back(Member(myint.get(), "c", 0));
+  classB->members.push_back(Member(myint.get(), "b", 0, 8));
+
+  classA->parents.push_back(Parent(classB.get(), 0));
+  classA->parents.push_back(Parent(classC.get(), 4));
+  classA->members.push_back(Member(myint.get(), "a", 8));
+
+  test({*classA}, R"(
+[0] Class: ClassA (size: 12)
+      Member: b (offset: 0, align: 8)
+        Primitive: int32_t
+      Member: c (offset: 4, align: 16)
+        Primitive: int32_t
+      Member: a (offset: 8)
+        Primitive: int32_t
 )");
 }
