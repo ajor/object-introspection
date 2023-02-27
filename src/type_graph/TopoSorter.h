@@ -1,5 +1,6 @@
 #pragma once
 
+#include <queue>
 #include <unordered_set>
 #include <vector>
 
@@ -23,15 +24,16 @@ public:
 
   void visit(Class &c) override;
   void visit(Container &c) override;
-  void visit(Enum &e) override;
   void visit(Primitive &p) override;
+  void visit(Enum &e) override;
+  void visit(Array &a) override;
   void visit(Typedef &td) override;
   void visit(Pointer &p) override;
-  void visit(Array &a) override;
 
 private:
   std::unordered_set<Type*> visited_;
-  std::vector<std::reference_wrapper<Type>> sorted_types_;
+  std::vector<std::reference_wrapper<Type>> sortedTypes_;
+  std::queue<std::reference_wrapper<Type>> typesToSort_;
 
   void sort_type(Type &type);
 };

@@ -91,7 +91,6 @@ public:
     return kind_;
   }
 
-  // TODO don't recalculate this on every call - save it in the ctor
   virtual std::string name() const override {
     return name_;
   }

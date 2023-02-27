@@ -16,6 +16,10 @@ public:
     return rootTypes_;
   }
 
+  const std::vector<std::reference_wrapper<Type>>& rootTypes() const {
+    return rootTypes_;
+  }
+
   void addRoot(Type &type) {
     rootTypes_.push_back(type);
   }

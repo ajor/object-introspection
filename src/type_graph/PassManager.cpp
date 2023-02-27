@@ -18,14 +18,22 @@ void PassManager::addPass(Pass p) {
   passes_.push_back(std::move(p));
 }
 
-void PassManager::run(TypeGraph &typeGraph) {
+namespace {
+void print(const TypeGraph &typeGraph) {
+  Printer printer{std::cout};
+  for (const auto &type : typeGraph.rootTypes()) {
+    printer.print(type);
+  }
+}
+} // namespace
+
+void PassManager::run(TypeGraph &typeGraph, bool debug) {
+  print(typeGraph);
   for (auto &pass : passes_) {
     pass.run(typeGraph);
-    if (true) { // TODO debug mode
-      Printer printer{std::cout};
-      for (const auto &type : typeGraph.rootTypes()) {
-        printer.print(type);
-      }
+    if (debug) {
+      std::cout << "Running pass: " << pass.name() << std::endl;
+      print(typeGraph);
     }
   }
 }

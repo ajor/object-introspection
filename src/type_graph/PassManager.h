@@ -20,6 +20,7 @@ class Pass {
 public:
   Pass(std::string name, PassFn fn) : name_(std::move(name)), fn_(fn) { }
   void run(TypeGraph &typeGraph);
+  std::string &name() { return name_; };
 
 private:
   std::string name_;
@@ -34,7 +35,7 @@ private:
 class PassManager {
 public:
   void addPass(Pass p);
-  void run(TypeGraph &typeGraph);
+  void run(TypeGraph &typeGraph, bool debug=false);
 
 private:
   std::vector<Pass> passes_;

@@ -26,7 +26,7 @@ void CodeGen::generate(drgn_type *drgnType) {
   pm.addPass(NameGen::createPass());
   pm.addPass(AlignmentCalc::createPass());
   pm.addPass(TopoSorter::createPass());
-  pm.run(typeGraph_);
+  pm.run(typeGraph_, true); // TODO don't alway run with debug
 
   std::cout << "sorted types:\n";
   for (auto &t : typeGraph_.finalTypes) {

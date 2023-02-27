@@ -2,6 +2,8 @@
 
 #include "TypeGraph.h"
 
+// TODO flatten member functions
+
 namespace type_graph {
 
 Pass Flattener::createPass() {
@@ -26,6 +28,15 @@ void Flattener::visit(Type &type) {
 
   visited_.insert(&type);
   type.accept(*this);
+}
+
+// TODO this function is a massive hack. don't do it like this please
+Class &stripTypedefs(Type &type) {
+  Type *t = &type;
+  while (const Typedef *td = dynamic_cast<Typedef*>(t)) {
+    t = td->underlyingType();
+  }
+  return dynamic_cast<Class&>(*t);
 }
 
 void Flattener::visit(Class &c) {
@@ -80,8 +91,7 @@ void Flattener::visit(Class &c) {
       // Add parent's members
       // If member_offset == parent_offset then the parent is empty. Also take this path.
       const auto &parent = c.parents[parent_idx++];
-      // TODO account for typedefs
-      const Class &parentClass = dynamic_cast<Class&>(*parent.type);
+      const Class &parentClass = stripTypedefs(*parent.type);
 
       for (size_t i=0; i<parentClass.members.size(); i++) {
         const auto &member = parentClass.members[i];
@@ -101,8 +111,7 @@ void Flattener::visit(Class &c) {
   }
   while (parent_idx < c.parents.size()) {
     const auto &parent = c.parents[parent_idx++];
-    // TODO account for typedefs
-    const Class &parentClass = dynamic_cast<Class&>(*parent.type);
+    const Class &parentClass = stripTypedefs(*parent.type);
     for (const auto &member : parentClass.members) {
       flattenedMembers.push_back(member);
       flattenedMembers.back().offset += parent.offset;

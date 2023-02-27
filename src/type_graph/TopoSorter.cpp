@@ -17,7 +17,11 @@ std::vector<std::reference_wrapper<Type>> TopoSorter::sort(std::vector<std::refe
   for (auto &type : types) {
     sort_type(type);
   }
-  return sorted_types_;
+  while (!typesToSort_.empty()) {
+    sort_type(typesToSort_.front());
+    typesToSort_.pop();
+  }
+  return sortedTypes_;
 }
 
 void TopoSorter::sort_type(Type &type) {
@@ -26,7 +30,7 @@ void TopoSorter::sort_type(Type &type) {
 
   visited_.insert(&type);
   type.accept(*this);
-  sorted_types_.push_back(type);
+  sortedTypes_.push_back(type);
 }
 
 void TopoSorter::visit(Class &c) {
@@ -47,22 +51,22 @@ void TopoSorter::visit(Container &c) {
   }
 }
 
-void TopoSorter::visit(Enum &e) {
-}
-
 void TopoSorter::visit(Primitive &p) {
 }
 
-void TopoSorter::visit(Typedef &td) {
-  // TODO
-}
-
-void TopoSorter::visit(Pointer &p) {
-  // TODO what are references defined as?
+void TopoSorter::visit(Enum &e) {
 }
 
 void TopoSorter::visit(Array &a) {
   sort_type(*a.elementType());
+}
+
+void TopoSorter::visit(Typedef &td) {
+  sort_type(*td.underlyingType());
+}
+
+void TopoSorter::visit(Pointer &p) {
+  typesToSort_.push(*p.pointeeType());
 }
 
 } // namespace type_graph

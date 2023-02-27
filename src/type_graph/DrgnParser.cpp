@@ -53,7 +53,6 @@ Primitive::Kind primitiveFloatKind(struct drgn_type *type) {
 
 } // namespace
 
-// TODO pass over graph to deduplicate names?
 // TODO type stubs
 
 Type *DrgnParser::parse(struct drgn_type *root) {
@@ -256,17 +255,17 @@ void DrgnParser::enumerateContainerTemplateParams(struct drgn_type *type,
     const std::vector<size_t> &paramIndexes) {
   assert(params.empty());
   size_t numParams = drgn_type_num_template_parameters(type);
-  params.reserve(paramIndexes.size());
+  params.reserve(numParams);
+//  params.reserve(paramIndexes.size());
 
   struct drgn_type_template_parameter *tparams = drgn_type_template_parameters(type);
-  for (size_t i : paramIndexes) {
-    if (i >= numParams) {
-      throw std::runtime_error("TODO nice error message");
-    }
+//  for (size_t i : paramIndexes) {
+  for (size_t i = 0; i < numParams; i++) {
+//    if (i >= numParams) {
+//      throw std::runtime_error("TODO nice error message");
+//    }
     enumerateTemplateParam(tparams, i, params);
   }
-
-  // TODO sort?
 }
 
 void DrgnParser::enumerateClassTemplateParams(struct drgn_type *type,
@@ -279,8 +278,6 @@ void DrgnParser::enumerateClassTemplateParams(struct drgn_type *type,
   for (size_t i = 0; i < numParams; i++) {
     enumerateTemplateParam(tparams, i, params);
   }
-
-  // TODO sort?
 }
 
 void DrgnParser::enumerateClassFunctions(struct drgn_type *type, std::vector<Function> &functions) {
