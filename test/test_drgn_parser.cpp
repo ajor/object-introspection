@@ -15,10 +15,26 @@ using namespace type_graph;
 
 // TODO setup google logging for tests so it doesn't appear on terminal by default
 
-void test(std::string_view function, std::string_view expected) {
-  SymbolService symbols{TARGET_EXE_PATH};
+class DrgnParserTest : public ::testing::Test {
+protected:
+  static void SetUpTestSuite() {
+    symbols_ = new SymbolService{TARGET_EXE_PATH};
+  }
+
+  static void TearDownTestSuite() {
+    // TODO How do we free drgn memory?
+  }
+
+  void test(std::string_view function, std::string_view expected);
+
+  static SymbolService *symbols_;
+};
+
+SymbolService *DrgnParserTest::symbols_ = nullptr;
+
+void DrgnParserTest::test(std::string_view function, std::string_view expected) {
   irequest req{"entry", std::string{function}, "arg0"};
-  auto drgnRoot = symbols.getRootType(req);
+  auto drgnRoot = symbols_->getRootType(req);
 
   TypeGraph typeGraph;
   // TODO more container types, with various template parameter options
@@ -43,7 +59,7 @@ void test(std::string_view function, std::string_view expected) {
   EXPECT_EQ(expected, out.str());
 }
 
-TEST(DrgnParserTest, SimpleStruct) {
+TEST_F(DrgnParserTest, SimpleStruct) {
   test("oid_test_case_simple_struct", R"(
 [0] Pointer
 [1]   Struct: SimpleStruct (size: 16)
@@ -56,7 +72,7 @@ TEST(DrgnParserTest, SimpleStruct) {
 )");
 }
 
-TEST(DrgnParserTest, SimpleClass) {
+TEST_F(DrgnParserTest, SimpleClass) {
   test("oid_test_case_simple_class", R"(
 [0] Pointer
 [1]   Class: SimpleClass (size: 16)
@@ -69,7 +85,7 @@ TEST(DrgnParserTest, SimpleClass) {
 )");
 }
 
-TEST(DrgnParserTest, SimpleUnion) {
+TEST_F(DrgnParserTest, SimpleUnion) {
   test("oid_test_case_simple_union", R"(
 [0] Pointer
 [1]   Union: SimpleUnion (size: 8)
@@ -82,7 +98,7 @@ TEST(DrgnParserTest, SimpleUnion) {
 )");
 }
 
-TEST(DrgnParserTest, Inheritance) {
+TEST_F(DrgnParserTest, Inheritance) {
   test("oid_test_case_inheritance_access_public", R"(
 [0] Pointer
 [1]   Class: Public (size: 8)
@@ -95,7 +111,7 @@ TEST(DrgnParserTest, Inheritance) {
 )");
 }
 
-TEST(DrgnParserTest, InheritanceMultiple) {
+TEST_F(DrgnParserTest, InheritanceMultiple) {
   test("oid_test_case_inheritance_multiple_a", R"(
 [0] Pointer
 [1]   Struct: Derived_2 (size: 24)
@@ -124,7 +140,7 @@ TEST(DrgnParserTest, InheritanceMultiple) {
 )");
 }
 
-TEST(DrgnParserTest, Container) {
+TEST_F(DrgnParserTest, Container) {
   test("oid_test_case_std_vector_int_empty", R"(
 [0] Pointer
 [1]   Container: std::vector
@@ -134,25 +150,25 @@ TEST(DrgnParserTest, Container) {
 }
 // TODO test vector with custom allocator
 
-TEST(DrgnParserTest, Enum) {
+TEST_F(DrgnParserTest, Enum) {
   test("oid_test_case_enums_scoped", R"(
     Enum: ScopedEnum (size: 4)
 )");
 }
 
-TEST(DrgnParserTest, EnumInt8) {
+TEST_F(DrgnParserTest, EnumInt8) {
   test("oid_test_case_enums_scoped_int8", R"(
     Enum: ScopedEnumInt8 (size: 1)
 )");
 }
 
-TEST(DrgnParserTest, UnscopedEnum) {
+TEST_F(DrgnParserTest, UnscopedEnum) {
   test("oid_test_case_enums_unscoped", R"(
     Enum: UNSCOPED_ENUM (size: 4)
 )");
 }
 
-TEST(DrgnParserTest, Typedef) {
+TEST_F(DrgnParserTest, Typedef) {
   test("oid_test_case_typedefs_c_style", R"(
 [0] Typedef: UInt64
 [1]   Typedef: uint64_t
@@ -161,7 +177,7 @@ TEST(DrgnParserTest, Typedef) {
 )");
 }
 
-TEST(DrgnParserTest, Using) {
+TEST_F(DrgnParserTest, Using) {
   test("oid_test_case_typedefs_using", R"(
 [0] Pointer
 [1]   Typedef: IntVector
@@ -171,7 +187,7 @@ TEST(DrgnParserTest, Using) {
 )");
 }
 
-TEST(DrgnParserTest, ArrayMember) {
+TEST_F(DrgnParserTest, ArrayMember) {
   test("oid_test_case_arrays_member_int10", R"(
 [0] Pointer
 [1]   Struct: Foo10 (size: 40)
@@ -181,7 +197,7 @@ TEST(DrgnParserTest, ArrayMember) {
 )");
 }
 
-TEST(DrgnParserTest, ArrayRef) {
+TEST_F(DrgnParserTest, ArrayRef) {
   test("oid_test_case_arrays_ref_int10", R"(
 [0] Pointer
 [1]   Array: (length: 10)
@@ -189,14 +205,14 @@ TEST(DrgnParserTest, ArrayRef) {
 )");
 }
 
-TEST(DrgnParserTest, ArrayDirect) {
+TEST_F(DrgnParserTest, ArrayDirect) {
   test("oid_test_case_arrays_direct_int10", R"(
 [0] Pointer
       Primitive: int32_t
 )");
 }
 
-TEST(DrgnParserTest, Pointer) {
+TEST_F(DrgnParserTest, Pointer) {
   GTEST_SKIP() << "Need to setup chase-follow-pointers setting";
   test("oid_test_case_pointers_struct_vector_ptr", R"(
 [0] Pointer
@@ -209,7 +225,7 @@ TEST(DrgnParserTest, Pointer) {
 )");
 }
 
-TEST(DrgnParserTest, PointerNoFollow) {
+TEST_F(DrgnParserTest, PointerNoFollow) {
   test("oid_test_case_pointers_struct_vector_ptr", R"(
 [0] Pointer
 [1]   Struct: VectorPtr (size: 8)
@@ -218,13 +234,13 @@ TEST(DrgnParserTest, PointerNoFollow) {
 )");
 }
 
-TEST(DrgnParserTest, PointerIncomplete) {
+TEST_F(DrgnParserTest, PointerIncomplete) {
   test("oid_test_case_pointers_incomplete_raw", R"(
     Primitive: uintptr_t
 )");
 }
 
-TEST(DrgnParserTest, Cycle) { // TODO switch this integration test to use "int" instead uint64_t", to remove typedefs
+TEST_F(DrgnParserTest, Cycle) { // TODO switch this integration test to use "int" instead uint64_t", to remove typedefs
   GTEST_SKIP() << "Cycle test needs updating";
   test("oid_test_case_cycles_raw_ptr", R"(
 [0] Pointer
@@ -237,7 +253,7 @@ TEST(DrgnParserTest, Cycle) { // TODO switch this integration test to use "int" 
 )");
 }
 
-TEST(DrgnParserTest, ClassTemplateInt) {
+TEST_F(DrgnParserTest, ClassTemplateInt) {
   test("oid_test_case_templates_int", R"(
 [0] Pointer
 [1]   Class: TemplatedClass1<int> (size: 4)
@@ -248,7 +264,7 @@ TEST(DrgnParserTest, ClassTemplateInt) {
 )");
 }
 
-TEST(DrgnParserTest, ClassTemplateVector) {
+TEST_F(DrgnParserTest, ClassTemplateVector) {
   test("oid_test_case_templates_vector", R"(
 [0] Pointer
 [1]   Class: TemplatedClass1<std::vector<int, std::allocator<int> > > (size: 24)
@@ -263,7 +279,7 @@ TEST(DrgnParserTest, ClassTemplateVector) {
 )");
 }
 
-TEST(DrgnParserTest, ClassTemplateTwo) {
+TEST_F(DrgnParserTest, ClassTemplateTwo) {
   test("oid_test_case_templates_two", R"(
 [0] Pointer
 [1]   Class: TemplatedClass2<ns_templates::Foo, int> (size: 12)
@@ -287,7 +303,7 @@ TEST(DrgnParserTest, ClassTemplateTwo) {
 }
 
 // TODO
-//TEST(DrgnParserTest, ClassTemplateValue) {
+//TEST_F(DrgnParserTest, ClassTemplateValue) {
 //  test("oid_test_case_templates_value", R"(
 //[0] Pointer
 //[1]   Class: TemplatedClassVal<3> (size: 12)
@@ -300,7 +316,7 @@ TEST(DrgnParserTest, ClassTemplateTwo) {
 //}
 
 // TODO
-//TEST(DrgnParserTest, ClassFunctions) {
+//TEST_F(DrgnParserTest, ClassFunctions) {
 //  test("TestClassFunctions", R"(
 //[0] Pointer
 //[1]   Class: ClassFunctions (size: 4)
@@ -311,7 +327,7 @@ TEST(DrgnParserTest, ClassTemplateTwo) {
 //)");
 //}
 
-TEST(DrgnParserTest, Alignment) {
+TEST_F(DrgnParserTest, Alignment) {
   GTEST_SKIP() << "Alignment not reported by drgn yet";
   test("oid_test_case_alignment_struct", R"(
 [0] Pointer
