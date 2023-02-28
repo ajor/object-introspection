@@ -2,25 +2,32 @@
 
 #include "TypeGraph.h"
 
+template <typename T>
+using ref = std::reference_wrapper<T>;
+
 namespace type_graph {
 
 Pass TopoSorter::createPass() {
   auto fn = [](TypeGraph &typeGraph) {
     TopoSorter sorter;
-    typeGraph.finalTypes = sorter.sort(typeGraph.rootTypes());
+    sorter.sort(typeGraph.rootTypes());
+    typeGraph.finalTypes = sorter.sortedTypes();
   };
 
   return Pass("TopoSorter", fn);
 }
 
-std::vector<std::reference_wrapper<Type>> TopoSorter::sort(std::vector<std::reference_wrapper<Type>> types) {
-  for (auto &type : types) {
-    sort_type(type);
+void TopoSorter::sort(const std::vector<ref<Type>> &types) {
+  for (const auto &type : types) {
+    typesToSort_.push(type);
   }
   while (!typesToSort_.empty()) {
     sort_type(typesToSort_.front());
     typesToSort_.pop();
   }
+}
+
+const std::vector<ref<Type>> &TopoSorter::sortedTypes() const {
   return sortedTypes_;
 }
 
@@ -66,6 +73,8 @@ void TopoSorter::visit(Typedef &td) {
 }
 
 void TopoSorter::visit(Pointer &p) {
+  // Pointers do not create a dependency, but we do still care about the types
+  // they point to, so delay them until the end.
   typesToSort_.push(*p.pointeeType());
 }
 

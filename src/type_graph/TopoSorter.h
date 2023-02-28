@@ -20,7 +20,8 @@ class TopoSorter : public Visitor {
 public:
   static Pass createPass();
 
-  std::vector<std::reference_wrapper<Type>> sort(std::vector<std::reference_wrapper<Type>> types);
+  void sort(const std::vector<std::reference_wrapper<Type>> &types);
+  const std::vector<std::reference_wrapper<Type>> &sortedTypes() const;
 
   void visit(Class &c) override;
   void visit(Container &c) override;
