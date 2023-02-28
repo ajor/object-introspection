@@ -95,6 +95,35 @@ TEST(DrgnParserTest, Inheritance) {
 )");
 }
 
+TEST(DrgnParserTest, InheritanceMultiple) {
+  test("oid_test_case_inheritance_multiple_a", R"(
+[0] Pointer
+[1]   Struct: Derived_2 (size: 24)
+        Parent (offset: 0)
+[2]       Struct: Base_1 (size: 4)
+            Member: a (offset: 0)
+              Primitive: int32_t
+        Parent (offset: 4)
+[3]       Struct: Derived_1 (size: 12)
+            Parent (offset: 0)
+[4]           Struct: Base_2 (size: 4)
+                Member: b (offset: 0)
+                  Primitive: int32_t
+            Parent (offset: 4)
+[5]           Struct: Base_3 (size: 4)
+                Member: c (offset: 0)
+                  Primitive: int32_t
+            Member: d (offset: 8)
+              Primitive: int32_t
+        Parent (offset: 16)
+[6]       Struct: Base_4 (size: 4)
+            Member: e (offset: 0)
+              Primitive: int32_t
+        Member: f (offset: 20)
+          Primitive: int32_t
+)");
+}
+
 TEST(DrgnParserTest, Container) {
   test("oid_test_case_std_vector_int_empty", R"(
 [0] Pointer

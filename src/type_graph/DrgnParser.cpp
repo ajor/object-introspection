@@ -178,7 +178,7 @@ void DrgnParser::enumerateClassParents(struct drgn_type *type, std::vector<Paren
     }
 
     auto ptype = enumerateType(parent_qual_type.type);
-    uint64_t poffset = 0; // TODO
+    uint64_t poffset = drgn_parents[i].bit_offset / 8;
     Parent p(ptype, poffset);
     parents.push_back(p);
   }
