@@ -56,6 +56,7 @@ add_executable(test_type_graph
   test_name_gen.cpp
   test_topo_sorter.cpp
 )
+add_dependencies(test_type_graph integration_test_target)
 target_compile_definitions(test_type_graph PRIVATE
   TARGET_EXE_PATH="${CMAKE_CURRENT_BINARY_DIR}/integration/integration_test_target"
 )
