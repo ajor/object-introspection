@@ -241,7 +241,7 @@ class OIDebugger {
   OICompiler::Config compilerConfig{};
   OICodeGen::Config generatorConfig{};
   TreeBuilder::Config treeBuilderConfig{};
-  std::optional<std::string> generateCode(const irequest&);
+  std::optional<std::string> generateCode(const irequest &, bool);
 
   std::fstream segmentConfigFile;
   fs::path segConfigFilePath;

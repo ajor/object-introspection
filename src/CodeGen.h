@@ -20,10 +20,7 @@ class TypeGraph;
 class CodeGen {
 public:
   CodeGen(type_graph::TypeGraph &typeGraph) : typeGraph_(typeGraph) { }
-  void generate(drgn_type *drgnType);
-  std::string ClassDecls(const std::vector<std::reference_wrapper<type_graph::Type>>& types);
-  std::string ClassDefs(const std::vector<std::reference_wrapper<type_graph::Type>>& types);
-  std::string GetSizeFuncs(const std::vector<std::reference_wrapper<type_graph::Type>>& types);
+  std::string generate(drgn_type *drgnType);
 
 // TODO shouldn't need to be a template (but shouldn't be a set!)
 template <typename T>
@@ -34,6 +31,10 @@ void loadConfig(const T &containerConfigPaths) {
 }
 
 private:
+  std::string includes();
+  std::string classDecls();
+  std::string classDefs();
+  std::string getSizeFuncs();
   void registerContainer(const fs::path &path);
   std::string getContainerSizeFunc(const type_graph::Container &c);
 

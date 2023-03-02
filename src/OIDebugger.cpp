@@ -2240,7 +2240,7 @@ bool OIDebugger::compileCode() {
       VLOG(2) << "Compiling probe for '" << req.arg
               << "' into: " << *objectPath;
 
-      auto code = generateCode(req);
+      auto code = generateCode(req, generatorConfig.features.contains(Feature::TypeGraph));
       if (!code.has_value()) {
         LOG(ERROR) << "Failed to generate code";
         return false;
@@ -2900,10 +2900,17 @@ bool OIDebugger::processTargetData() {
   return true;
 }
 
-std::optional<std::string> OIDebugger::generateCode(const irequest& req) {
+std::optional<std::string> OIDebugger::generateCode(const irequest &req, bool useTypeGraph) {
   auto root = symbols->getRootType(req);
   if (!root.has_value()) {
     return std::nullopt;
+  }
+
+  if (useTypeGraph) {
+    type_graph::TypeGraph typeGraph;
+    CodeGen codegen2(typeGraph);
+    codegen2.loadConfig(generatorConfig.containerConfigPaths);
+    return codegen2.generate(root->type.type);
   }
 
   std::string code =
@@ -2914,11 +2921,6 @@ std::optional<std::string> OIDebugger::generateCode(const irequest& req) {
   if (!codegen) {
     return nullopt;
   }
-
-  type_graph::TypeGraph typeGraph;
-  CodeGen codegen2(typeGraph);
-  codegen2.loadConfig(generatorConfig.containerConfigPaths);
-  codegen2.generate(root->type.type);
 
   RootInfo rootInfo = *root;
   codegen->setRootType(rootInfo.type);
