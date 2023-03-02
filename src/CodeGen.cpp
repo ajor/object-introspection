@@ -2,6 +2,7 @@
 
 #include <iostream> // TODO remove
 
+#include "FuncGen.h"
 #include "type_graph/AlignmentCalc.h"
 #include "type_graph/DrgnParser.h"
 #include "type_graph/Flattener.h"
@@ -67,6 +68,10 @@ std::string CodeGen::generate(drgn_type *drgnType) {
     )";
   }
 
+  FuncGen::DefineEncodeData(code);
+  FuncGen::DefineEncodeDataSize(code);
+  FuncGen::DefineStoreData(code);
+  FuncGen::DefineAddData(code);
   code += includes();
   code += classDecls();
   code += classDefs();
