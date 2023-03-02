@@ -3,6 +3,7 @@
 
 #include <gtest/gtest.h>
 
+#include "ContainerInfo.h"
 #include "type_graph/Flattener.h"
 #include "type_graph/Printer.h"
 #include "type_graph/Types.h"
@@ -460,10 +461,12 @@ TEST(FlattenerTest, ContainerParam) {
   // Flattened:
   //   class A { int b; int a; };
   //   std::vector<A, int>
+  ContainerInfo vectorInfo;
+  vectorInfo.typeName = "std::vector";
   auto myint = std::make_unique<Primitive>(Primitive::Kind::Int32);
   auto classA = std::make_unique<Class>(Class::Kind::Class, "ClassA", 8);
   auto classB = std::make_unique<Class>(Class::Kind::Class, "ClassB", 4);
-  auto container = std::make_unique<Container>(SEQ_TYPE);
+  auto container = std::make_unique<Container>(vectorInfo);
 
   classB->members.push_back(Member(myint.get(), "b", 0));
 

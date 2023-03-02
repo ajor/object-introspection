@@ -5,9 +5,6 @@
 #include <string>
 #include <vector>
 
-// TODO make ContainerTypeEnum a scoped enum and forward declare it instead of including
-#include "ContainerInfo.h"
-
 // TODO make all visitors and tests have classes in this order:
 #define OI_TYPE_LIST \
   X(Class) \
@@ -18,6 +15,8 @@
   X(Typedef) \
   X(Pointer) \
   X(Dummy)
+
+struct ContainerInfo;
 
 namespace type_graph {
 
@@ -126,7 +125,7 @@ private:
 
 class Container : public Type {
 public:
-  Container(ContainerTypeEnum kind) : kind_(kind) { }
+  Container(const ContainerInfo &containerInfo) : containerInfo_(containerInfo) { }
 
   DECLARE_ACCEPT
 
@@ -147,7 +146,7 @@ public:
   }
 
   std::vector<TemplateParam> templateParams;
-  ContainerTypeEnum kind_;
+  const ContainerInfo &containerInfo_;
 
 private:
   std::string name_ = "std::vector"; // TODO

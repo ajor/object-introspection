@@ -34,11 +34,45 @@ std::string CodeGen::generate(drgn_type *drgnType) {
     std::cout << t.get().name() << std::endl;
   };
 
-  std::string code;
+  std::string code =
+#include "OITraceCode.cpp"
+      ;
+
+  code += "// storage macro definitions -----\n";
+  if (true /* TODO: config.useDataSegment*/) {
+    code += R"(
+      #define SAVE_SIZE(val)
+      #define SAVE_DATA(val)    StoreData(val, returnArg)
+
+      #define JLOG(str)                           \
+        do {                                      \
+          if (__builtin_expect(logFile, 0)) {     \
+            write(logFile, str, sizeof(str) - 1); \
+          }                                       \
+        } while (false)
+
+      #define JLOGPTR(ptr)                    \
+        do {                                  \
+          if (__builtin_expect(logFile, 0)) { \
+            __jlogptr((uintptr_t)ptr);        \
+          }                                   \
+        } while (false)
+    )";
+  } else {
+    code += R"(
+      #define SAVE_SIZE(val)    AddData(val, returnArg)
+      #define SAVE_DATA(val)
+      #define JLOG(str)
+      #define JLOGPTR(ptr)
+    )";
+  }
+
   code += includes();
   code += classDecls();
   code += classDefs();
   code += getSizeFuncs();
+
+  std::cout << code;
   return code;
 }
 
@@ -57,19 +91,36 @@ std::string def(const Class &c) {
 }
 
 std::string getClassSizeFunc(const Class &c) {
-  std::string str = "void getSize(const " + c.name() + " &t, size_t &size) {\n";
+  std::string str = "void getSizeType(const " + c.name() + " &t, size_t &returnArg) {\n";
   for (const auto &member : c.members) {
-    str += "  getSize(t." + member.name + ", result);\n";
+    str += "  getSizeType(t." + member.name + ", returnArg);\n";
   }
   str += "}\n";
   return str;
 }
 
+std::string getContainerParams(const Container &c, bool typenamePrefix) {
+  if (c.templateParams.empty())
+    return "";
+
+  std::string params = "<";
+  for (size_t i=0; i<c.templateParams.size(); i++) {
+    if (typenamePrefix)
+      params += "typename ";
+    params += "T" + std::to_string(i) + ",";
+  }
+  params.back() = '>';
+  return params;
+}
+
 std::string CodeGen::getContainerSizeFunc(const Container &c) {
-  std::string str = "void getSize(const " + c.name() + " &t, size_t &size) {\n";
-  // TODO pick the right container
+  std::string str;
+  if (!c.templateParams.empty())
+    str += "template " + getContainerParams(c, true) + "\n";
+  str += "void getSizeType(const " + c.name() + getContainerParams(c, false) + " &container,";
+  str += "size_t &returnArg) {";
   // TODO sort out templating + boilerplate
-  str += containerInfos_[0].funcBody;
+  str += c.containerInfo_.funcBody;
   str += "}\n";
   return str;
 }
@@ -77,10 +128,9 @@ std::string CodeGen::getContainerSizeFunc(const Container &c) {
 std::string CodeGen::includes() {
   std::string str;
 
-  for (const auto t : typeGraph_.finalTypes()) {
+  for (const auto t : typeGraph_.finalTypes) {
     if (const auto *c = dynamic_cast<Container*>(&t.get())) {
-      // TODO pick the right container
-      str += "#include <" + containerInfos_[0].header + ">\n";
+      str += "#include <" + c->containerInfo_.header + ">\n";
     }
   }
 
@@ -93,7 +143,7 @@ std::string CodeGen::classDecls() {
 //  for (const auto c : type_graph_.classes()) {
 //    decls += decl(*c);
 //  }
-  for (const auto t : typeGraph_.finalTypes()) {
+  for (const auto t : typeGraph_.finalTypes) {
     if (const auto *c = dynamic_cast<Class*>(&t.get()))
       decls += decl(*c);
   }
@@ -107,7 +157,7 @@ std::string CodeGen::classDefs() {
 //  for (const auto c : type_graph_.classes()) {
 //    defs += def(*c);
 //  }
-  for (const auto t : typeGraph_.finalTypes()) {
+  for (const auto t : typeGraph_.finalTypes) {
     if (const auto *c = dynamic_cast<Class*>(&t.get()))
       defs += def(*c);
   }
@@ -118,7 +168,7 @@ std::string CodeGen::classDefs() {
 std::string CodeGen::getSizeFuncs() {
   std::string funcs;
 
-  for (const auto t : typeGraph_.finalTypes()) {
+  for (const auto t : typeGraph_.finalTypes) {
     if (const auto *c = dynamic_cast<Class*>(&t.get()))
       funcs += getClassSizeFunc(*c);
     if (const auto *c = dynamic_cast<Container*>(&t.get()))

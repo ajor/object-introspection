@@ -247,13 +247,11 @@ ContainerInfo::ContainerInfo(const fs::path& path) {
 
   const auto &codegen = container["codegen"];
 
-  // decl is not used
-
   if (std::optional<std::string> str =
-          codegen["func"].value<std::string>()) {
+          codegen["measure"].value<std::string>()) {
     funcBody = std::move(*str);
   } else {
     // TODO throw
-    LOG(ERROR) << "`codegen.func` is a required field";
+    LOG(ERROR) << "`codegen.measure` is a required field";
   }
 }

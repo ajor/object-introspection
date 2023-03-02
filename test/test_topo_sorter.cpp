@@ -1,5 +1,6 @@
 #include <gtest/gtest.h>
 
+#include "ContainerInfo.h"
 #include "type_graph/TopoSorter.h"
 #include "type_graph/Types.h"
 
@@ -80,8 +81,10 @@ TEST(TopoSorterTest, TemplateParams) {
 }
 
 TEST(TopoSorterTest, Containers) {
+  ContainerInfo vectorInfo;
+  vectorInfo.typeName = "std::vector";
   auto myparam = std::make_unique<Class>(Class::Kind::Struct, "MyParam", 13);
-  auto mycontainer = std::make_unique<Container>(SEQ_TYPE);
+  auto mycontainer = std::make_unique<Container>(vectorInfo);
   mycontainer->templateParams.push_back((myparam.get()));
 
   test({*mycontainer}, {*myparam, *mycontainer});

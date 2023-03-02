@@ -111,13 +111,13 @@ Container *DrgnParser::enumerateContainer(struct drgn_type *type) {
   }
 
   std::string name{nameStr}; // TODO needs derefence??
-  for (const auto &container : containers_) {
-    if (!std::regex_search(nameStr, container.matcher)) {
+  for (const auto &containerInfo : containers_) {
+    if (!std::regex_search(nameStr, containerInfo.matcher)) {
       continue;
     }
 
-    auto *c = make_type<Container>(type, container.ctype);
-    enumerateContainerTemplateParams(type, c->templateParams, container.stubTemplateParams);
+    auto *c = make_type<Container>(type, containerInfo);
+    enumerateContainerTemplateParams(type, c->templateParams, containerInfo.stubTemplateParams);
     return c;
   }
   return nullptr;
