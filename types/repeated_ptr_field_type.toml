@@ -1,12 +1,12 @@
 [info]
 typeName = "google::protobuf::RepeatedPtrField<"
-numTemplateParams = 1
 ctype = "REPEATED_FIELD_TYPE"
 header = "google/protobuf/repeated_field.h"
 ns = ["google::protobuf::RepeatedPtrField"]
+
+# Old:
+numTemplateParams = 1
 replaceTemplateParamIndex = []
-# allocatorIndex = 0
-# underlyingContainerIndex = 0
 
 [codegen]
 decl = """

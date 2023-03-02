@@ -1,12 +1,12 @@
 [info]
 typeName = "folly::Try<"
-numTemplateParams = 1
 ctype = "TRY_TYPE"
 header = "folly/Try.h"
 ns = ["folly::Try"]
+
+# Old:
+numTemplateParams = 1
 replaceTemplateParamIndex = []
-# allocatorIndex = 0
-# underlyingContainerIndex = 0
 
 [codegen]
 decl = """

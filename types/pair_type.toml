@@ -1,12 +1,12 @@
 [info]
 typeName = "std::pair<"
-numTemplateParams = 2
 ctype = "PAIR_TYPE"
 header = "utility"
 ns = ["namespace std"]
+
+# Old:
+numTemplateParams = 2
 replaceTemplateParamIndex = []
-# allocatorIndex = 0
-# underlyingContainerIndex = 0
 
 [codegen]
 decl = """

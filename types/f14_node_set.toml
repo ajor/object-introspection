@@ -1,12 +1,14 @@
 [info]
 typeName = "folly::F14NodeSet<"
-numTemplateParams = 1
+stub_template_params = [1,2,3]
 ctype = "F14_SET"
 header = "folly/container/detail/F14SetFallback.h"
 ns = ["folly::F14NodeSet"]
+
+# Old:
+numTemplateParams = 1
 replaceTemplateParamIndex = [1, 2]
 allocatorIndex = 3
-# underlyingContainerIndex = 0
 
 [codegen]
 decl = """

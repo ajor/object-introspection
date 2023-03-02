@@ -1,11 +1,12 @@
 [info]
 typeName = "std::priority_queue<"
-# numTemplateParams = 1
 ctype = "CONTAINER_ADAPTER_TYPE"
 header = "queue"
 ns = ["namespace std"]
+
+# Old:
+## TODO new must handle container adapters
 replaceTemplateParamIndex = []
-# allocatorIndex = 0
 underlyingContainerIndex = 1
 
 [codegen]

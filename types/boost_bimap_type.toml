@@ -1,12 +1,12 @@
 [info]
 typeName = "boost::bimap"
-numTemplateParams = 2
 ctype = "BOOST_BIMAP_TYPE"
 header = "boost/bimap.hpp"
 ns = ["boost::bimap"]
-replaceTemplateParamIndex = []
-# allocatorIndex = 0
-# underlyingContainerIndex = 0
+
+# Old:
+## TODO this value looks odd:
+numTemplateParams = 2
 
 [codegen]
 decl = """

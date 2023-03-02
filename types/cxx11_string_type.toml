@@ -1,12 +1,13 @@
 [info]
 typeName = "std::__cxx11::basic_string<"
-numTemplateParams = 1
+stub_template_params = [1,2] # TODO tests
 ctype = "STRING_TYPE"
 header = "string"
 ns = ["namespace std"]
+
+# Old:
+numTemplateParams = 1
 replaceTemplateParamIndex = []
-# allocatorIndex = 0
-# underlyingContainerIndex = 0
 
 [codegen]
 decl = """

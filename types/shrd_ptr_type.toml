@@ -1,12 +1,12 @@
 [info]
 typeName = "std::shared_ptr"
-numTemplateParams = 1
 ctype = "SHRD_PTR_TYPE"
 header = "memory"
 ns = ["namespace std"]
+
+# Old:
+numTemplateParams = 1
 replaceTemplateParamIndex = []
-# allocatorIndex = 0
-# underlyingContainerIndex = 0
 
 [codegen]
 decl = """

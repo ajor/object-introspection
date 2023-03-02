@@ -1,12 +1,13 @@
 [info]
 typeName = "folly::basic_fbstring<"
-numTemplateParams = 1
 ctype = "FB_STRING_TYPE"
 header = "folly/FBString.h"
 ns = ["folly::basic_fbstring", "folly::fbstring_core"]
+
+# Old:
+## TODO some more processing needed
+numTemplateParams = 1
 replaceTemplateParamIndex = []
-# allocatorIndex = 0
-# underlyingContainerIndex = 0
 
 [codegen]
 decl = """

@@ -1,12 +1,13 @@
 [info]
 typeName = "std::unique_ptr"
-numTemplateParams = 1
 ctype = "UNIQ_PTR_TYPE"
 header = "memory"
 ns = ["namespace std"]
+
+# Old:
+## TODO what about Deleter (idx 1)?
+numTemplateParams = 1
 replaceTemplateParamIndex = []
-# allocatorIndex = 0
-# underlyingContainerIndex = 0
 
 [codegen]
 decl = """

@@ -1,12 +1,14 @@
 [info]
 typeName = "std::set<"
-numTemplateParams = 1
+stub_template_params = [1,2]
 ctype = "SET_TYPE"
 header = "set"
 ns = ["namespace std"]
+
+# Old:
+numTemplateParams = 1
 replaceTemplateParamIndex = [1]
 allocatorIndex = 2
-# underlyingContainerIndex = 0
 
 [codegen]
 decl = """

@@ -1,12 +1,13 @@
 [info]
 typeName = "folly::F14VectorMap<"
-numTemplateParams = 2
+stub_template_params = [2,3,4]
 ctype = "F14_MAP"
 header = "folly/container/detail/F14MapFallback.h"
 ns = ["folly::F14VectorMap"]
+
+# Old:
+numTemplateParams = 2
 replaceTemplateParamIndex = []
-# allocatorIndex = 0
-# underlyingContainerIndex = 0
 
 [codegen]
 decl = """

@@ -1,10 +1,11 @@
 [info]
 typeName = "std::optional<"
-template_params = [0]
-numTemplateParams = 1
 ctype = "OPTIONAL_TYPE"
 header = "optional"
 ns = ["namespace std"]
+
+# Old:
+numTemplateParams = 1
 
 [codegen]
 decl = """

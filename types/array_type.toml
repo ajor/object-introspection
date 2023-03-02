@@ -1,12 +1,12 @@
 [info]
 typeName = "std::array<"
-numTemplateParams = 1
 ctype = "ARRAY_TYPE"
 header = "array"
 ns = ["namespace std"]
-replaceTemplateParamIndex = []
-# allocatorIndex = 0
-# underlyingContainerIndex = 0
+
+## TODO keep but don't measure the value param (param idx 1)
+# Old:
+numTemplateParams = 1
 
 [codegen]
 decl = """

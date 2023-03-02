@@ -1,12 +1,12 @@
 [info]
 typeName = "std::reference_wrapper<"
-numTemplateParams = 1
 ctype = "REF_WRAPPER_TYPE"
 header = "functional"
 ns = ["namespace std"]
+
+# Old:
+numTemplateParams = 1
 replaceTemplateParamIndex = []
-# allocatorIndex = 0
-# underlyingContainerIndex = 0
 
 [codegen]
 decl = """

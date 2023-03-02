@@ -1,9 +1,12 @@
 [info]
 typeName = "std::multimap"
-numTemplateParams = 2
+stub_template_params = [2,3]
 ctype = "MULTI_MAP_TYPE"
 header = "map"
 ns = ["namespace std"]
+
+# Old:
+numTemplateParams = 2
 replaceTemplateParamIndex = [2]
 allocatorIndex = 3
 
