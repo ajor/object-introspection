@@ -192,12 +192,16 @@ ContainerInfo::ContainerInfo(const fs::path& path) {
     // TODO throw
     LOG(ERROR) << "`info.typeName` is a required field";
   }
+  // TODO change TOML name to "type_name"
+  // TODO just change definitions to remove this:
+  if (typeName.back() == '<')
+    typeName.pop_back();
 
   if (std::optional<std::string> str =
           info["matcher"].value<std::string>()) {
     matcher = std::regex(*str, std::regex_constants::grep);
   } else {
-    matcher = std::regex("^" + typeName, std::regex_constants::grep);
+    matcher = std::regex("^" + typeName + "<", std::regex_constants::grep);
   }
 
   if (std::optional<std::string> str = info["ctype"].value<std::string>()) {

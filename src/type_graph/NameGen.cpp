@@ -55,6 +55,8 @@ void NameGen::visit(Class &c) {
     name.push_back('_');
   }
 
+  // TODO deduplicate member names (can happen after flattening)
+
   // Append an incrementing number to ensure we don't get duplicates
   name += std::to_string(n++);
 
@@ -80,6 +82,18 @@ void NameGen::visit(Container &c) {
   name.push_back('>');
 
   c.setName(name);
+}
+
+void NameGen::visit(Array &a) {
+  nameType(*a.elementType());
+}
+
+void NameGen::visit(Typedef &td) {
+  nameType(*td.underlyingType());
+}
+
+void NameGen::visit(Pointer &p) {
+  nameType(*p.pointeeType());
 }
 
 } // namespace type_graph

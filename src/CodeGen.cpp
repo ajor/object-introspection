@@ -39,6 +39,7 @@ std::string CodeGen::generate(drgn_type *drgnType) {
 #include "OITraceCode.cpp"
       ;
 
+  // TODO don't have this string here:
   code += "// storage macro definitions -----\n";
   if (true /* TODO: config.useDataSegment*/) {
     code += R"(
@@ -68,14 +69,41 @@ std::string CodeGen::generate(drgn_type *drgnType) {
     )";
   }
 
+  code += includes();
+
+  // TODO comment about namespaces (copy from OICodeGen)
+  code += "namespace OIInternal {\nnamespace {\n";
   FuncGen::DefineEncodeData(code);
   FuncGen::DefineEncodeDataSize(code);
   FuncGen::DefineStoreData(code);
   FuncGen::DefineAddData(code);
-  code += includes();
+  // TODO don't have this string here:
+  code += R"(
+    template<typename T>
+    void getSizeType(const T* s_ptr, size_t& returnArg)
+    {
+      JLOG("ptr val @");
+      JLOGPTR(s_ptr);
+      StoreData((uintptr_t)(s_ptr), returnArg);
+      if (s_ptr && pointers.add((uintptr_t)s_ptr)) {
+          getSizeType(*(s_ptr), returnArg);
+      }
+    }
+
+    void getSizeType(const void *s_ptr, size_t& returnArg)
+    {
+      JLOG("void ptr @");
+      JLOGPTR(s_ptr);
+      StoreData((uintptr_t)(s_ptr), returnArg);
+    }
+  )";
   code += classDecls();
   code += classDefs();
   code += getSizeFuncs();
+  code += "\nusing __ROOT_TYPE__ = " + rootType->name() + ";\n";
+  code += "} // namespace\n} // namespace OIInternal\n";
+
+  FuncGen::DefineTopLevelGetSizeRef(code, "");
 
   std::cout << code;
   return code;
@@ -122,7 +150,7 @@ std::string CodeGen::getContainerSizeFunc(const Container &c) {
   std::string str;
   if (!c.templateParams.empty())
     str += "template " + getContainerParams(c, true) + "\n";
-  str += "void getSizeType(const " + c.name() + getContainerParams(c, false) + " &container,";
+  str += "void getSizeType(const " + c.containerName() + getContainerParams(c, false) + " &container,";
   str += "size_t &returnArg) {";
   // TODO sort out templating + boilerplate
   str += c.containerInfo_.funcBody;

@@ -5,6 +5,8 @@
 #include <string>
 #include <vector>
 
+#include "ContainerInfo.h"
+
 // TODO make all visitors and tests have classes in this order:
 #define OI_TYPE_LIST \
   X(Class) \
@@ -125,9 +127,13 @@ private:
 
 class Container : public Type {
 public:
-  Container(const ContainerInfo &containerInfo) : containerInfo_(containerInfo) { }
+  Container(const ContainerInfo &containerInfo) : containerInfo_(containerInfo), name_(containerInfo.typeName) { }
 
   DECLARE_ACCEPT
+
+  const std::string &containerName() const {
+    return containerInfo_.typeName;
+  }
 
   virtual std::string name() const override {
     return name_;
@@ -149,7 +155,7 @@ public:
   const ContainerInfo &containerInfo_;
 
 private:
-  std::string name_ = "std::vector"; // TODO
+  std::string name_;
 };
 
 class Enum : public Type {
@@ -175,7 +181,6 @@ private:
   size_t size_;
 };
 
-// TODO remove name
 class Array : public Type {
 public:
   Array(Type *elementType, size_t len)
@@ -184,7 +189,7 @@ public:
   DECLARE_ACCEPT
 
   virtual std::string name() const override {
-    return "TODO NONE";
+    return elementType_->name() + "[" + std::to_string(len_) + "]";
   }
 
   virtual size_t size() const override {
@@ -279,7 +284,7 @@ public:
   DECLARE_ACCEPT
 
   virtual std::string name() const override {
-    return ""; // TODO
+    return pointeeType_->name() + "*";
   }
 
   virtual size_t size() const override {
@@ -306,7 +311,8 @@ public:
   DECLARE_ACCEPT
 
   virtual std::string name() const override {
-    return ""; // TODO
+    // TODO change name:
+    return "DummySizedOperator<" + std::to_string(size_) + "," + std::to_string(align_) + ">";
   }
 
   virtual size_t size() const override {

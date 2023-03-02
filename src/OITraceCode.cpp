@@ -154,4 +154,13 @@ template <>
 struct DummySizedOperator<0> {
 };
 
+template <typename T, size_t N, size_t align>
+struct alignas(align) DummyAllocator {
+  using value_type = T;
+  T* allocate(std::size_t n) { return nullptr; }
+  void deallocate(T* p, std::size_t n) noexcept { }
+  char c[N];
+};
+// TODO DummyAllocator<0> ?
+
 )"

@@ -39,7 +39,7 @@ void DrgnParserTest::test(std::string_view function, std::string_view expected) 
   TypeGraph typeGraph;
   // TODO more container types, with various template parameter options
   ContainerInfo std_vector;
-  std_vector.typeName = "std::vector<";
+  std_vector.typeName = "std::vector";
   std_vector.matcher = "^std::vector<";
   std_vector.ctype = SEQ_TYPE;
   std_vector.stubTemplateParams = {1};

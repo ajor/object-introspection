@@ -80,3 +80,60 @@ TEST(NameGenTest, ContainerParamsDuplicatesAcrossContainers) {
   EXPECT_EQ(mycontainer1->name(), "std::vector<MyParam_0, MyParam_1>");
   EXPECT_EQ(mycontainer2->name(), "std::vector<MyParam_1, MyParam_2>");
 }
+
+TEST(NameGenTest, Array) {
+  auto myparam1 = std::make_unique<Class>(Class::Kind::Struct, "MyParam", 13);
+  auto myparam2 = std::make_unique<Class>(Class::Kind::Struct, "MyParam", 13);
+
+  auto mycontainer = std::make_unique<Container>(vectorInfo());
+  mycontainer->templateParams.push_back((myparam1.get()));
+  mycontainer->templateParams.push_back((myparam2.get()));
+
+  auto myarray = std::make_unique<Array>(mycontainer.get(), 5);
+
+  NameGen nameGen;
+  nameGen.generateNames({*myarray});
+
+  EXPECT_EQ(myparam1->name(), "MyParam_0");
+  EXPECT_EQ(myparam2->name(), "MyParam_1");
+  EXPECT_EQ(mycontainer->name(), "std::vector<MyParam_0, MyParam_1>");
+  EXPECT_EQ(myarray->name(), "std::vector<MyParam_0, MyParam_1>[5]");
+}
+
+TEST(NameGenTest, Typedef) {
+  auto myparam1 = std::make_unique<Class>(Class::Kind::Struct, "MyParam", 13);
+  auto myparam2 = std::make_unique<Class>(Class::Kind::Struct, "MyParam", 13);
+
+  auto mycontainer = std::make_unique<Container>(vectorInfo());
+  mycontainer->templateParams.push_back((myparam1.get()));
+  mycontainer->templateParams.push_back((myparam2.get()));
+
+  auto mytypedef = std::make_unique<Typedef>("MyTypedef", mycontainer.get());
+
+  NameGen nameGen;
+  nameGen.generateNames({*mytypedef});
+
+  EXPECT_EQ(myparam1->name(), "MyParam_0");
+  EXPECT_EQ(myparam2->name(), "MyParam_1");
+  EXPECT_EQ(mycontainer->name(), "std::vector<MyParam_0, MyParam_1>");
+  EXPECT_EQ(mytypedef->name(), "MyTypedef");
+}
+
+TEST(NameGenTest, Pointer) {
+  auto myparam1 = std::make_unique<Class>(Class::Kind::Struct, "MyParam", 13);
+  auto myparam2 = std::make_unique<Class>(Class::Kind::Struct, "MyParam", 13);
+
+  auto mycontainer = std::make_unique<Container>(vectorInfo());
+  mycontainer->templateParams.push_back((myparam1.get()));
+  mycontainer->templateParams.push_back((myparam2.get()));
+
+  auto mypointer = std::make_unique<Pointer>(mycontainer.get());
+
+  NameGen nameGen;
+  nameGen.generateNames({*mypointer});
+
+  EXPECT_EQ(myparam1->name(), "MyParam_0");
+  EXPECT_EQ(myparam2->name(), "MyParam_1");
+  EXPECT_EQ(mycontainer->name(), "std::vector<MyParam_0, MyParam_1>");
+  EXPECT_EQ(mypointer->name(), "std::vector<MyParam_0, MyParam_1>*");
+}

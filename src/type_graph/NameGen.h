@@ -19,6 +19,9 @@ public:
 
   void visit(Class &c) override;
   void visit(Container &c) override;
+  void visit(Array &a) override;
+  void visit(Typedef &td) override;
+  void visit(Pointer &p) override;
 
 private:
   void nameType(Type &type);

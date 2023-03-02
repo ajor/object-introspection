@@ -24,9 +24,9 @@ public:
 
   void visit(Class &c) override;
   void visit(Container &c) override;
+  void visit(Array &a) override;
   void visit(Typedef &td) override;
   void visit(Pointer &p) override;
-  void visit(Array &a) override;
 
 private:
   std::unordered_set<Type*> visited_;
