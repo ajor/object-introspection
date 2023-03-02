@@ -32,9 +32,12 @@ private:
   void enumerateTemplateParam(drgn_type_template_parameter *tparams,
                               size_t i,
                               std::vector<TemplateParam> &params);
+  void stubTemplateParam(drgn_type_template_parameter *tparams,
+                         size_t i,
+                         std::vector<TemplateParam> &params);
   void enumerateContainerTemplateParams(struct drgn_type *type,
                                         std::vector<TemplateParam> &params,
-                                        const std::vector<size_t> &paramIndexes);
+                                        const std::vector<size_t> &stubParams);
   void enumerateClassTemplateParams(struct drgn_type *type,
                                     std::vector<TemplateParam> &params);
   void enumerateClassParents(struct drgn_type *type, std::vector<Parent> &parents);

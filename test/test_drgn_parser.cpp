@@ -42,7 +42,7 @@ void DrgnParserTest::test(std::string_view function, std::string_view expected) 
   std_vector.typeName = "std::vector<";
   std_vector.matcher = "^std::vector<";
   std_vector.ctype = SEQ_TYPE;
-  std_vector.templateParams = {0};
+  std_vector.stubTemplateParams = {1};
 
   std::vector<ContainerInfo> containers;
   containers.emplace_back(std::move(std_vector));
@@ -146,6 +146,8 @@ TEST_F(DrgnParserTest, Container) {
 [1]   Container: std::vector
         Param
           Primitive: int32_t
+        Param
+          Dummy (size: 1)
 )");
 }
 // TODO test vector with custom allocator
@@ -184,6 +186,8 @@ TEST_F(DrgnParserTest, Using) {
 [2]     Container: std::vector
           Param
             Primitive: int32_t
+          Param
+            Dummy (size: 1)
 )");
 }
 
@@ -222,6 +226,8 @@ TEST_F(DrgnParserTest, Pointer) {
 [3]         Container: std::vector
               Param
                 Primitive: int32_t
+              Param
+                Dummy (size: 1)
 )");
 }
 
@@ -272,6 +278,8 @@ TEST_F(DrgnParserTest, ClassTemplateVector) {
 [2]       Container: std::vector
             Param
               Primitive: int32_t
+            Param
+              Dummy (size: 1)
         Member: val (offset: 0)
           [2]
         Function: ~TemplatedClass1 (virtuality: 0)

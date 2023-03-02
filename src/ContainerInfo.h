@@ -45,7 +45,7 @@ struct ContainerInfo {
                 std::vector<size_t> replaceTemplateParamIndex_,
                 std::optional<size_t> allocatorIndex_,
                 std::optional<size_t> underlyingContainerIndex_,
-                std::vector<size_t> templateParams_,
+                std::vector<size_t> stubTemplateParams_,
                 ContainerInfo::Codegen codegen_)
       : typeName(std::move(typeName_)),
         matcher(std::move(matcher_)),
@@ -56,7 +56,7 @@ struct ContainerInfo {
         replaceTemplateParamIndex(std::move(replaceTemplateParamIndex_)),
         allocatorIndex(allocatorIndex_),
         underlyingContainerIndex(underlyingContainerIndex_),
-        templateParams(std::move(templateParams_)),
+        stubTemplateParams(std::move(stubTemplateParams_)),
         codegen(std::move(codegen_)) {
   }
 
@@ -75,7 +75,7 @@ struct ContainerInfo {
   // adapter
   std::optional<size_t> underlyingContainerIndex{};
   std::string funcBody;
-  std::vector<size_t> templateParams{};
+  std::vector<size_t> stubTemplateParams{};
 
   Codegen codegen;
 

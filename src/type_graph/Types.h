@@ -16,7 +16,8 @@
   X(Enum) \
   X(Array) \
   X(Typedef) \
-  X(Pointer)
+  X(Pointer) \
+  X(Dummy)
 
 namespace type_graph {
 

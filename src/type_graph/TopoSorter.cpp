@@ -58,12 +58,6 @@ void TopoSorter::visit(Container &c) {
   }
 }
 
-void TopoSorter::visit(Primitive &p) {
-}
-
-void TopoSorter::visit(Enum &e) {
-}
-
 void TopoSorter::visit(Array &a) {
   sort_type(*a.elementType());
 }

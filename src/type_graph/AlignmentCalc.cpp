@@ -46,22 +46,4 @@ void AlignmentCalc::visit(Class &c) {
   c.setAlign(alignment);
 }
 
-void AlignmentCalc::visit(Container &c) {
-}
-
-void AlignmentCalc::visit(Enum &e) {
-}
-
-void AlignmentCalc::visit(Primitive &p) {
-}
-
-void AlignmentCalc::visit(Typedef &td) {
-}
-
-void AlignmentCalc::visit(Pointer &p) {
-}
-
-void AlignmentCalc::visit(Array &a) {
-}
-
 } // namespace type_graph

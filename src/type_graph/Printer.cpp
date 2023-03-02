@@ -49,14 +49,22 @@ void Printer::visit(Container &c) {
   }
 }
 
+void Printer::visit(Primitive &p) {
+  prefix();
+  out_ << "Primitive: " << p.name() << std::endl;
+}
+
 void Printer::visit(Enum &e) {
   prefix();
   out_ << "Enum: " << e.name() << " (size: " << e.size() << ")" << std::endl;
 }
 
-void Printer::visit(Primitive &p) {
-  prefix();
-  out_ << "Primitive: " << p.name() << std::endl;
+void Printer::visit(Array &a) {
+  if (prefix(&a))
+    return;
+
+  out_ << "Array: (length: " << a.len() << ")" << std::endl;
+  print(*a.elementType());
 }
 
 void Printer::visit(Typedef &td) {
@@ -75,12 +83,9 @@ void Printer::visit(Pointer &p) {
   print(*p.pointeeType());
 }
 
-void Printer::visit(Array &a) {
-  if (prefix(&a))
-    return;
-
-  out_ << "Array: (length: " << a.len() << ")" << std::endl;
-  print(*a.elementType());
+void Printer::visit(Dummy &d) {
+  prefix();
+  out_ << "Dummy (size: " << d.size() << align_str(d.align()) << ")" << std::endl;
 }
 
 bool Printer::prefix(Type *type) {

@@ -18,11 +18,12 @@ public:
 
   void visit(Class &c) override;
   void visit(Container &c) override;
-  void visit(Enum &e) override;
   void visit(Primitive &p) override;
+  void visit(Enum &e) override;
+  void visit(Array &a) override;
   void visit(Typedef &td) override;
   void visit(Pointer &p) override;
-  void visit(Array &a) override;
+  void visit(Dummy &d) override;
 
 private:
   bool prefix(Type *type=nullptr);

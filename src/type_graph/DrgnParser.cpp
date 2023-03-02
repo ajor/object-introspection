@@ -117,7 +117,7 @@ Container *DrgnParser::enumerateContainer(struct drgn_type *type) {
     }
 
     auto *c = make_type<Container>(type, container.ctype);
-    enumerateContainerTemplateParams(type, c->templateParams, container.templateParams);
+    enumerateContainerTemplateParams(type, c->templateParams, container.stubTemplateParams);
     return c;
   }
   return nullptr;
@@ -249,22 +249,38 @@ void DrgnParser::enumerateTemplateParam(drgn_type_template_parameter *tparams,
   params.emplace_back(ttype);
 }
 
-// TODO also replace template params
+void DrgnParser::stubTemplateParam(drgn_type_template_parameter *tparams,
+                                   size_t i,
+                                   std::vector<TemplateParam> &params) {
+  struct drgn_qualified_type tparamQualType;
+  struct drgn_error *err = drgn_template_parameter_type(&tparams[i], &tparamQualType);
+  if (err)
+    abort(); // TODO
+
+  struct drgn_type *tparamType = tparamQualType.type;
+  auto size = drgn_type_size(tparamType);
+  auto align = 0; // TODO
+
+  auto *dummy = make_type<Dummy>(nullptr, size, align);
+  params.emplace_back(dummy);
+}
+
 void DrgnParser::enumerateContainerTemplateParams(struct drgn_type *type,
     std::vector<TemplateParam> &params,
-    const std::vector<size_t> &paramIndexes) {
+    const std::vector<size_t> &stubParams) {
   assert(params.empty());
   size_t numParams = drgn_type_num_template_parameters(type);
-  params.reserve(numParams);
-//  params.reserve(paramIndexes.size());
+  params.reserve(numParams - stubParams.size());
 
   struct drgn_type_template_parameter *tparams = drgn_type_template_parameters(type);
-//  for (size_t i : paramIndexes) {
   for (size_t i = 0; i < numParams; i++) {
-//    if (i >= numParams) {
-//      throw std::runtime_error("TODO nice error message");
-//    }
-    enumerateTemplateParam(tparams, i, params);
+    if (std::find(stubParams.begin(), stubParams.end(), i) != stubParams.end()) {
+      // Stub this template parameter
+      stubTemplateParam(tparams, i, params);
+    }
+    else {
+      enumerateTemplateParam(tparams, i, params);
+    }
   }
 }
 

@@ -82,19 +82,4 @@ void NameGen::visit(Container &c) {
   c.setName(name);
 }
 
-void NameGen::visit(Enum &e) {
-}
-
-void NameGen::visit(Primitive &p) {
-}
-
-void NameGen::visit(Typedef &td) {
-}
-
-void NameGen::visit(Pointer &p) {
-}
-
-void NameGen::visit(Array &a) {
-}
-
 } // namespace type_graph

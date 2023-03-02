@@ -130,12 +130,6 @@ void Flattener::visit(Container &c) {
   }
 }
 
-void Flattener::visit(Enum &e) {
-}
-
-void Flattener::visit(Primitive &p) {
-}
-
 void Flattener::visit(Typedef &td) {
   // TODO flatten typedefs
   visit(*td.underlyingType());

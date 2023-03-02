@@ -200,9 +200,6 @@ ContainerInfo::ContainerInfo(const fs::path& path) {
     matcher = std::regex("^" + typeName, std::regex_constants::grep);
   }
 
-  //  TODO remove:
-//  numTemplateParams = info["numTemplateParams"].value<size_t>();
-
   if (std::optional<std::string> str = info["ctype"].value<std::string>()) {
     ctype = containerTypeEnumFromStr(*str);
     if (ctype == UNKNOWN_TYPE) {
@@ -230,28 +227,18 @@ ContainerInfo::ContainerInfo(const fs::path& path) {
     });
   }
 
-  if (toml::array* arr = info["template_params"].as_array()) {
-    templateParams.reserve(arr->size());
+  if (toml::array* arr = info["stub_template_params"].as_array()) {
+    stubTemplateParams.reserve(arr->size());
     arr->for_each([&](auto&& el) {
       if constexpr (toml::is_integer<decltype(el)>) {
-        replaceTemplateParamIndex.push_back(*el);
+        stubTemplateParams.push_back(*el);
       }
       else {
         // TODO custom error types
-        throw std::runtime_error("template_params should only contain integers");
+        throw std::runtime_error("stub_template_params should only contain integers");
       }
     });
   }
-
-  //  TODO keep or remove?
-//  if (toml::array* arr = info["replaceTemplateParamIndex"].as_array()) {
-//    replaceTemplateParamIndex.reserve(arr->size());
-//    arr->for_each([&](auto&& el) {
-//      if constexpr (toml::is_integer<decltype(el)>) {
-//        replaceTemplateParamIndex.push_back(*el);
-//      }
-//    });
-//  }
 
   if (!container["codegen"].is_table()) {
     // TODO throw
