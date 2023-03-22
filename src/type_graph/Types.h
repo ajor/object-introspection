@@ -312,7 +312,8 @@ public:
 
   virtual std::string name() const override {
     // TODO change name:
-    return "DummySizedOperator<" + std::to_string(size_) + "," + std::to_string(align_) + ">";
+    return "std::allocator<int>";
+//    return "DummyAllocator<int, " + std::to_string(size_) + "," + std::to_string(align_) + ">";
   }
 
   virtual size_t size() const override {

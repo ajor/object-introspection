@@ -3,6 +3,7 @@
 #include <iostream> // TODO remove
 
 #include "FuncGen.h"
+#include "SymbolService.h"
 #include "type_graph/AlignmentCalc.h"
 #include "type_graph/DrgnParser.h"
 #include "type_graph/Flattener.h"
@@ -77,10 +78,35 @@ std::string CodeGen::generate(drgn_type *drgnType) {
   FuncGen::DefineEncodeDataSize(code);
   FuncGen::DefineStoreData(code);
   FuncGen::DefineAddData(code);
+  code += classDecls();
+  code += classDefs();
+
+  code += R"(
+    template <typename T>
+    void getSizeType(const T &t, size_t& returnArg);
+
+    template<typename T>
+    void getSizeType(/*const*/ T* s_ptr, size_t& returnArg);
+
+    void getSizeType(const void *s_ptr, size_t& returnArg);
+  )";
+
+  code += getSizeFuncDecls();
   // TODO don't have this string here:
+  // TODO use macros, not StoreData directly
+  code += R"(
+    template <typename T>
+    void getSizeType(const T &t, size_t& returnArg) {
+      JLOG("obj @");
+      JLOGPTR(&t);
+      SAVE_SIZE(sizeof(T));
+    }
+  )";
+  // TODO const and non-const versions
+  // OR maybe just remove const everywhere
   code += R"(
     template<typename T>
-    void getSizeType(const T* s_ptr, size_t& returnArg)
+    void getSizeType(/*const*/ T* s_ptr, size_t& returnArg)
     {
       JLOG("ptr val @");
       JLOGPTR(s_ptr);
@@ -97,13 +123,13 @@ std::string CodeGen::generate(drgn_type *drgnType) {
       StoreData((uintptr_t)(s_ptr), returnArg);
     }
   )";
-  code += classDecls();
-  code += classDefs();
-  code += getSizeFuncs();
+
+  code += getSizeFuncDefs();
+
   code += "\nusing __ROOT_TYPE__ = " + rootType->name() + ";\n";
   code += "} // namespace\n} // namespace OIInternal\n";
 
-  FuncGen::DefineTopLevelGetSizeRef(code, "");
+  FuncGen::DefineTopLevelGetSizeRef(code, SymbolService::getTypeName(drgnType));
 
   std::cout << code;
   return code;
@@ -123,7 +149,13 @@ std::string def(const Class &c) {
   return str;
 }
 
-std::string getClassSizeFunc(const Class &c) {
+std::string getClassSizeFuncDecl(const Class &c) {
+  // TODO don't duplicate code from getClassSizeFuncDef
+  std::string str = "void getSizeType(const " + c.name() + " &t, size_t &returnArg);\n";
+  return str;
+}
+
+std::string getClassSizeFuncDef(const Class &c) {
   std::string str = "void getSizeType(const " + c.name() + " &t, size_t &returnArg) {\n";
   for (const auto &member : c.members) {
     str += "  getSizeType(t." + member.name + ", returnArg);\n";
@@ -146,12 +178,22 @@ std::string getContainerParams(const Container &c, bool typenamePrefix) {
   return params;
 }
 
-std::string CodeGen::getContainerSizeFunc(const Container &c) {
+std::string CodeGen::getContainerSizeFuncDecl(const Container &c) {
+  // TODO don't duplicate logic with getContainerSizeFuncDef
   std::string str;
   if (!c.templateParams.empty())
     str += "template " + getContainerParams(c, true) + "\n";
   str += "void getSizeType(const " + c.containerName() + getContainerParams(c, false) + " &container,";
-  str += "size_t &returnArg) {";
+  str += "size_t &returnArg);\n";
+  return str;
+}
+
+std::string CodeGen::getContainerSizeFuncDef(const Container &c) {
+  std::string str;
+  if (!c.templateParams.empty())
+    str += "template " + getContainerParams(c, true) + "\n";
+  str += "void getSizeType(const " + c.containerName() + getContainerParams(c, false) + " &container,";
+  str += "size_t &returnArg) {\n";
   // TODO sort out templating + boilerplate
   str += c.containerInfo_.funcBody;
   str += "}\n";
@@ -198,14 +240,27 @@ std::string CodeGen::classDefs() {
   return defs;
 }
 
-std::string CodeGen::getSizeFuncs() {
+std::string CodeGen::getSizeFuncDecls() {
   std::string funcs;
 
   for (const auto t : typeGraph_.finalTypes) {
     if (const auto *c = dynamic_cast<Class*>(&t.get()))
-      funcs += getClassSizeFunc(*c);
+      funcs += getClassSizeFuncDecl(*c);
     if (const auto *c = dynamic_cast<Container*>(&t.get()))
-      funcs += getContainerSizeFunc(*c);
+      funcs += getContainerSizeFuncDecl(*c);
+  }
+
+  return funcs;
+}
+
+std::string CodeGen::getSizeFuncDefs() {
+  std::string funcs;
+
+  for (const auto t : typeGraph_.finalTypes) {
+    if (const auto *c = dynamic_cast<Class*>(&t.get()))
+      funcs += getClassSizeFuncDef(*c);
+    if (const auto *c = dynamic_cast<Container*>(&t.get()))
+      funcs += getContainerSizeFuncDef(*c);
   }
 
   return funcs;

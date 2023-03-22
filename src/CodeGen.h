@@ -34,9 +34,11 @@ private:
   std::string includes();
   std::string classDecls();
   std::string classDefs();
-  std::string getSizeFuncs();
+  std::string getSizeFuncDecls();
+  std::string getSizeFuncDefs();
   void registerContainer(const fs::path &path);
-  std::string getContainerSizeFunc(const type_graph::Container &c);
+  std::string getContainerSizeFuncDecl(const type_graph::Container &c);
+  std::string getContainerSizeFuncDef(const type_graph::Container &c);
 
   type_graph::TypeGraph &typeGraph_;
   std::vector<ContainerInfo> containerInfos_;

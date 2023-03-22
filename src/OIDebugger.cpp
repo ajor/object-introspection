@@ -2906,13 +2906,6 @@ std::optional<std::string> OIDebugger::generateCode(const irequest &req, bool us
     return std::nullopt;
   }
 
-  if (useTypeGraph) {
-    type_graph::TypeGraph typeGraph;
-    CodeGen codegen2(typeGraph);
-    codegen2.loadConfig(generatorConfig.containerConfigPaths);
-    return codegen2.generate(root->type.type);
-  }
-
   std::string code =
 #include "OITraceCode.cpp"
       ;
@@ -2930,14 +2923,21 @@ std::optional<std::string> OIDebugger::generateCode(const irequest &req, bool us
     return std::nullopt;
   }
 
-  if (auto sourcePath = cache.getPath(req, OICache::Entity::Source)) {
-    std::ofstream(*sourcePath) << code;
-  }
-
   typeInfos.emplace(
       req,
       std::make_tuple(RootInfo{rootInfo.varName, codegen->getRootType()},
                       codegen->getTypeHierarchy(), codegen->getPaddingInfo()));
+
+  if (useTypeGraph) {
+    type_graph::TypeGraph typeGraph;
+    CodeGen codegen2(typeGraph);
+    codegen2.loadConfig(generatorConfig.containerConfigPaths);
+    code = codegen2.generate(root->type.type);
+  }
+
+  if (auto sourcePath = cache.getPath(req, OICache::Entity::Source)) {
+    std::ofstream(*sourcePath) << code;
+  }
 
   if (!customCodeFile.empty()) {
     auto ifs = std::ifstream(customCodeFile);
