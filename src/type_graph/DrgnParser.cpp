@@ -1,5 +1,4 @@
 #include "DrgnParser.h"
-#include "ContainerInfo.h"
 
 extern "C" {
 #include <drgn.h>
@@ -102,37 +101,21 @@ Type *DrgnParser::enumerateType(struct drgn_type *type) {
   return t;
 }
 
-Container *DrgnParser::enumerateContainer(struct drgn_type *type) {
+Type *DrgnParser::enumerateClass(struct drgn_type *type) {
   char *nameStr = nullptr;
   size_t length = 0;
   auto *err = drgn_type_fully_qualified_name(type, &nameStr, &length);
   if (err != nullptr || nameStr == nullptr) {
-    return nullptr;
+    abort(); // TODO handle this error - treat this as an anonymous type?
   }
+  std::string name{nameStr};
 
-  std::string name{nameStr}; // TODO needs derefence??
-  for (const auto &containerInfo : containers_) {
-    if (!std::regex_search(nameStr, containerInfo.matcher)) {
-      continue;
-    }
-
-    auto *c = make_type<Container>(type, containerInfo);
-    enumerateContainerTemplateParams(type, c->templateParams, containerInfo.stubTemplateParams);
-    return c;
-  }
-  return nullptr;
-}
-
-Type *DrgnParser::enumerateClass(struct drgn_type *type) {
-  auto *container = enumerateContainer(type);
-  if (container)
-    return container;
-
-  std::string type_name;
-  const char *type_tag = drgn_type_tag(type);
-  if (type_tag)
-    type_name = std::string(type_tag);
-  // else this is an anonymous type
+  //  TODO remove old, unqualified name code:
+//  std::string type_name;
+//  const char *type_tag = drgn_type_tag(type);
+//  if (type_tag)
+//    type_name = std::string(type_tag);
+//  // else this is an anonymous type
 
   auto size = get_drgn_type_size(type);
 
@@ -151,7 +134,7 @@ Type *DrgnParser::enumerateClass(struct drgn_type *type) {
       abort(); // TODO
   }
 
-  auto c = make_type<Class>(type, kind, type_name, size);
+  auto c = make_type<Class>(type, kind, name, size);
 
   //classes_.push_back(c);
 
@@ -247,41 +230,6 @@ void DrgnParser::enumerateTemplateParam(drgn_type_template_parameter *tparams,
 
   auto ttype = enumerateType(tparamType);
   params.emplace_back(ttype);
-}
-
-void DrgnParser::stubTemplateParam(drgn_type_template_parameter *tparams,
-                                   size_t i,
-                                   std::vector<TemplateParam> &params) {
-  struct drgn_qualified_type tparamQualType;
-  struct drgn_error *err = drgn_template_parameter_type(&tparams[i], &tparamQualType);
-  if (err)
-    abort(); // TODO
-
-  struct drgn_type *tparamType = tparamQualType.type;
-  auto size = drgn_type_size(tparamType);
-  auto align = 0; // TODO
-
-  auto *dummy = make_type<Dummy>(nullptr, size, align);
-  params.emplace_back(dummy);
-}
-
-void DrgnParser::enumerateContainerTemplateParams(struct drgn_type *type,
-    std::vector<TemplateParam> &params,
-    const std::vector<size_t> &stubParams) {
-  assert(params.empty());
-  size_t numParams = drgn_type_num_template_parameters(type);
-  params.reserve(numParams - stubParams.size());
-
-  struct drgn_type_template_parameter *tparams = drgn_type_template_parameters(type);
-  for (size_t i = 0; i < numParams; i++) {
-    if (std::find(stubParams.begin(), stubParams.end(), i) != stubParams.end()) {
-      // Stub this template parameter
-      stubTemplateParam(tparams, i, params);
-    }
-    else {
-      enumerateTemplateParam(tparams, i, params);
-    }
-  }
 }
 
 void DrgnParser::enumerateClassTemplateParams(struct drgn_type *type,

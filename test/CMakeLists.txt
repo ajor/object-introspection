@@ -55,6 +55,7 @@ add_executable(test_type_graph
   test_flattener.cpp
   test_name_gen.cpp
   test_topo_sorter.cpp
+  test_type_identifier.cpp
 )
 add_dependencies(test_type_graph integration_test_target)
 target_compile_definitions(test_type_graph PRIVATE

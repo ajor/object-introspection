@@ -55,6 +55,7 @@ void NameGen::visit(Class &c) {
     name.push_back('_');
   }
 
+  // TODO deduplicate types of members
   // TODO deduplicate member names (can happen after flattening)
 
   // Append an incrementing number to ensure we don't get duplicates

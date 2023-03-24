@@ -15,13 +15,11 @@ namespace type_graph {
 // TODO coding style change: "struct drgn_type" -> "drgn_type"
 class DrgnParser {
 public:
-  DrgnParser(TypeGraph &typeGraph, const std::vector<ContainerInfo> &containers)
-    : typeGraph_(typeGraph), containers_(containers) { }
+  DrgnParser(TypeGraph &typeGraph) : typeGraph_(typeGraph) { }
   Type *parse(struct drgn_type *root);
 
 private:
   Type      *enumerateType(struct drgn_type *type);
-  Container *enumerateContainer(struct drgn_type *type);
   Type      *enumerateClass(struct drgn_type *type);
   Enum      *enumerateEnum(struct drgn_type *type);
   Typedef   *enumerateTypedef(struct drgn_type *type);
@@ -32,12 +30,6 @@ private:
   void enumerateTemplateParam(drgn_type_template_parameter *tparams,
                               size_t i,
                               std::vector<TemplateParam> &params);
-  void stubTemplateParam(drgn_type_template_parameter *tparams,
-                         size_t i,
-                         std::vector<TemplateParam> &params);
-  void enumerateContainerTemplateParams(struct drgn_type *type,
-                                        std::vector<TemplateParam> &params,
-                                        const std::vector<size_t> &stubParams);
   void enumerateClassTemplateParams(struct drgn_type *type,
                                     std::vector<TemplateParam> &params);
   void enumerateClassParents(struct drgn_type *type, std::vector<Parent> &parents);
@@ -60,7 +52,6 @@ private:
   bool chasePointer() const;
 
   TypeGraph &typeGraph_;
-  const std::vector<ContainerInfo> &containers_;
   int depth_;
 };
 

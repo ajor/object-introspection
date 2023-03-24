@@ -311,8 +311,8 @@ public:
   DECLARE_ACCEPT
 
   virtual std::string name() const override {
-    // TODO change name:
     return "std::allocator<int>";
+    // TODO dummy allocator with a given size and alignment
 //    return "DummyAllocator<int, " + std::to_string(size_) + "," + std::to_string(align_) + ">";
   }
 

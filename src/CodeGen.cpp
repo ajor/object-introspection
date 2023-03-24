@@ -4,12 +4,14 @@
 
 #include "FuncGen.h"
 #include "SymbolService.h"
+// TODO put passes into their own directory/namespace
 #include "type_graph/AlignmentCalc.h"
 #include "type_graph/DrgnParser.h"
 #include "type_graph/Flattener.h"
 #include "type_graph/NameGen.h"
 #include "type_graph/TopoSorter.h"
 #include "type_graph/TypeGraph.h"
+#include "type_graph/TypeIdentifier.h"
 #include "type_graph/Types.h"
 
 // TODO don't do this:
@@ -20,11 +22,12 @@ using ref = std::reference_wrapper<T>;
 
 std::string CodeGen::generate(drgn_type *drgnType) {
   // TODO wrap in try-catch
-  DrgnParser drgnParser(typeGraph_, containerInfos_);
+  DrgnParser drgnParser(typeGraph_);
   Type *rootType = drgnParser.parse(drgnType);
   typeGraph_.addRoot(*rootType);
 
   PassManager pm;
+  pm.addPass(TypeIdentifier::createPass(containerInfos_));
   pm.addPass(Flattener::createPass());
   pm.addPass(NameGen::createPass());
   pm.addPass(AlignmentCalc::createPass());

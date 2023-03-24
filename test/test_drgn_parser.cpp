@@ -9,7 +9,6 @@
 #include "SymbolService.h"
 // TODO needed?:
 #include "OIParser.h"
-#include "ContainerInfo.h"
 
 using namespace type_graph;
 
@@ -37,17 +36,8 @@ void DrgnParserTest::test(std::string_view function, std::string_view expected) 
   auto drgnRoot = symbols_->getRootType(req);
 
   TypeGraph typeGraph;
-  // TODO more container types, with various template parameter options
-  ContainerInfo std_vector;
-  std_vector.typeName = "std::vector";
-  std_vector.matcher = "^std::vector<";
-  std_vector.ctype = SEQ_TYPE;
-  std_vector.stubTemplateParams = {1};
 
-  std::vector<ContainerInfo> containers;
-  containers.emplace_back(std::move(std_vector));
-
-  DrgnParser drgnParser(typeGraph, containers);
+  DrgnParser drgnParser(typeGraph);
   Type *type = drgnParser.parse(drgnRoot->type.type);
 
   std::stringstream out;
