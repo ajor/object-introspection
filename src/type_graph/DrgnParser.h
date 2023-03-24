@@ -15,11 +15,13 @@ namespace type_graph {
 // TODO coding style change: "struct drgn_type" -> "drgn_type"
 class DrgnParser {
 public:
-  DrgnParser(TypeGraph &typeGraph) : typeGraph_(typeGraph) { }
+  DrgnParser(TypeGraph &typeGraph, const std::vector<ContainerInfo> &containers)
+    : typeGraph_(typeGraph), containers_(containers) { }
   Type *parse(struct drgn_type *root);
 
 private:
   Type      *enumerateType(struct drgn_type *type);
+  Container *enumerateContainer(struct drgn_type *type);
   Type      *enumerateClass(struct drgn_type *type);
   Enum      *enumerateEnum(struct drgn_type *type);
   Typedef   *enumerateTypedef(struct drgn_type *type);
@@ -52,6 +54,7 @@ private:
   bool chasePointer() const;
 
   TypeGraph &typeGraph_;
+  const std::vector<ContainerInfo> &containers_;
   int depth_;
 };
 

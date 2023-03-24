@@ -16,7 +16,8 @@
   X(Array) \
   X(Typedef) \
   X(Pointer) \
-  X(Dummy)
+  X(Dummy) \
+  X(DummyAllocator)
 
 struct ContainerInfo;
 
@@ -311,9 +312,8 @@ public:
   DECLARE_ACCEPT
 
   virtual std::string name() const override {
-    return "std::allocator<int>";
-    // TODO dummy allocator with a given size and alignment
-//    return "DummyAllocator<int, " + std::to_string(size_) + "," + std::to_string(align_) + ">";
+    // TODO make this a non-allocator dummy
+    return "TODO: implement Dummy";
   }
 
   virtual size_t size() const override {
@@ -325,6 +325,32 @@ public:
   }
 
 private:
+  size_t size_;
+  uint64_t align_;
+};
+
+class DummyAllocator : public Type {
+public:
+  explicit DummyAllocator(const Type &type, size_t size, uint64_t align)
+    : type_(type), size_(size), align_(align) { }
+
+  DECLARE_ACCEPT
+
+  virtual std::string name() const override {
+    return "std::allocator<" + type_.name() + ">";
+//    return "DummyAllocator<" + type_.name() + ", " + std::to_string(size_) + "," + std::to_string(align_) + ">";
+  }
+
+  virtual size_t size() const override {
+    return size_;
+  }
+
+  virtual uint64_t align() const override {
+    return align_;
+  }
+
+private:
+  const Type &type_;
   size_t size_;
   uint64_t align_;
 };

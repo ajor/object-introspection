@@ -22,7 +22,7 @@ using ref = std::reference_wrapper<T>;
 
 std::string CodeGen::generate(drgn_type *drgnType) {
   // TODO wrap in try-catch
-  DrgnParser drgnParser(typeGraph_);
+  DrgnParser drgnParser(typeGraph_, containerInfos_);
   Type *rootType = drgnParser.parse(drgnType);
   typeGraph_.addRoot(*rootType);
 
@@ -192,6 +192,13 @@ std::string CodeGen::getContainerSizeFuncDecl(const Container &c) {
 }
 
 std::string CodeGen::getContainerSizeFuncDef(const Container &c) {
+  // TODO this set is a nasty hack:
+  static std::unordered_set<ContainerTypeEnum> usedContainers{};
+  if (usedContainers.find(c.containerInfo_.ctype) != usedContainers.end()) {
+    return "";
+  }
+  usedContainers.insert(c.containerInfo_.ctype);
+
   std::string str;
   if (!c.templateParams.empty())
     str += "template " + getContainerParams(c, true) + "\n";

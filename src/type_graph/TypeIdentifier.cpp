@@ -25,25 +25,6 @@ void TypeIdentifier::visit(Type &type) {
 }
 
 void TypeIdentifier::visit(Class &c) {
-  for (const auto &containerInfo : containers_) {
-    if (!std::regex_search(c.name(), containerInfo.matcher)) {
-      continue;
-    }
-
-    auto *c = make_type<Container>(containerInfo);
-
-    const auto &stubParams = containerInfo.stubTemplateParams;
-    for (size_t i = 0; i < c->templateParams.size(); i++) {
-      if (std::find(stubParams.begin(), stubParams.end(), i) != stubParams.end()) {
-        const auto &param = c->templateParams[i];
-        auto *dummy = make_type<Dummy>(param.type->size(), param.type->align());
-        c->templateParams[i] = dummy;
-      }
-    }
-
-    // TODO replace current node with "c"
-  }
-
   for (const auto &param : c.templateParams) {
     visit(*param.type);
   }
@@ -58,6 +39,27 @@ void TypeIdentifier::visit(Class &c) {
 void TypeIdentifier::visit(Container &c) {
   // TODO will containers exist at this point?
   // maybe don't need this function
+
+//  auto *c = make_type<Container>(containerInfo);
+
+  const auto &stubParams = c.containerInfo_.stubTemplateParams;
+  for (size_t i = 0; i < c.templateParams.size(); i++) {
+    if (std::find(stubParams.begin(), stubParams.end(), i) != stubParams.end()) {
+      // TODO determine if this is an allocator or another parameter to be stubbed
+      // assuming allocator for now...
+      const auto &param = c.templateParams[i];
+      auto allocator = dynamic_cast<Class*>(param.type); // TODO please don't do this...
+      const auto &typeToAllocate = *allocator->templateParams.at(0).type;
+      auto *dummy = make_type<DummyAllocator>(typeToAllocate, param.type->size(), param.type->align());
+      c.templateParams[i] = dummy;
+    }
+  }
+
+  // TODO replace current node with "c" (if we want to transform classes into containers here)
+
+  for (const auto &param : c.templateParams) {
+    visit(*param.type);
+  }
 }
 
 void TypeIdentifier::visit(Array &a) {

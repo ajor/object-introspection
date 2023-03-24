@@ -1,4 +1,5 @@
 #include "DrgnParser.h"
+#include "ContainerInfo.h"
 
 extern "C" {
 #include <drgn.h>
@@ -101,21 +102,37 @@ Type *DrgnParser::enumerateType(struct drgn_type *type) {
   return t;
 }
 
-Type *DrgnParser::enumerateClass(struct drgn_type *type) {
+Container *DrgnParser::enumerateContainer(struct drgn_type *type) {
   char *nameStr = nullptr;
   size_t length = 0;
   auto *err = drgn_type_fully_qualified_name(type, &nameStr, &length);
   if (err != nullptr || nameStr == nullptr) {
-    abort(); // TODO handle this error - treat this as an anonymous type?
+    return nullptr;
   }
-  std::string name{nameStr};
 
-  //  TODO remove old, unqualified name code:
-//  std::string type_name;
-//  const char *type_tag = drgn_type_tag(type);
-//  if (type_tag)
-//    type_name = std::string(type_tag);
-//  // else this is an anonymous type
+  std::string name{nameStr};
+  for (const auto &containerInfo : containers_) {
+    if (!std::regex_search(nameStr, containerInfo.matcher)) {
+      continue;
+    }
+
+    auto *c = make_type<Container>(type, containerInfo);
+    enumerateClassTemplateParams(type, c->templateParams);
+    return c;
+  }
+  return nullptr;
+}
+
+Type *DrgnParser::enumerateClass(struct drgn_type *type) {
+  auto *container = enumerateContainer(type);
+  if (container)
+    return container;
+
+  std::string name;
+  const char *type_tag = drgn_type_tag(type);
+  if (type_tag)
+    name = std::string(type_tag);
+  // else this is an anonymous type
 
   auto size = get_drgn_type_size(type);
 
