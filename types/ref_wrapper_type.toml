@@ -11,7 +11,7 @@ replaceTemplateParamIndex = []
 [codegen]
 decl = """
 template<typename T>
-void getSizeType(const %1%<T> &s_ptr, size_t& returnArg);
+void getSizeType(const %1%<T> &ref, size_t& returnArg);
 """
 
 func = """

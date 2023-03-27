@@ -11,17 +11,17 @@ replaceTemplateParamIndex = []
 [codegen]
 decl = """
 template<typename T>
-void getSizeType(const %1%<T> &s_ptr, size_t& returnArg);
+void getSizeType(const %1%<T> &container, size_t& returnArg);
 """
 
 func = """
 template<typename T>
-void getSizeType(const %1%<T> &s_ptr, size_t& returnArg)
+void getSizeType(const %1%<T> &container, size_t& returnArg)
 {
     SAVE_SIZE(sizeof(%1%<T>));
-    if (s_ptr.hasValue()) {
-        SAVE_DATA((uintptr_t)(&(s_ptr.value())));
-        getSizeType(s_ptr.value(), returnArg);
+    if (container.hasValue()) {
+        SAVE_DATA((uintptr_t)(&(container.value())));
+        getSizeType(container.value(), returnArg);
     } else {
         SAVE_DATA(0);
     }

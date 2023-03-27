@@ -33,17 +33,3 @@ void getSizeType(const %1%<T> &container, size_t& returnArg)
     }
 }
 """
-measure = """
-  SAVE_SIZE(sizeof(%1%<T>));
-
-  SAVE_DATA((uintptr_t)&container);
-  SAVE_DATA((uintptr_t)container.capacity());
-  SAVE_DATA((uintptr_t)container.size());
-
-  SAVE_SIZE((container.capacity() - container.size()) * sizeof(T));
-
-  // The double ampersand is needed otherwise this loop doesn't work with vector<bool>
-  for (auto&& it: container) {
-    getSizeType(it, returnArg);
-  }
-"""
