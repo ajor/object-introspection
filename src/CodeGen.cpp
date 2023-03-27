@@ -2,6 +2,8 @@
 
 #include <iostream> // TODO remove
 
+#include <boost/format.hpp>
+
 #include "FuncGen.h"
 #include "SymbolService.h"
 // TODO put passes into their own directory/namespace
@@ -199,15 +201,18 @@ std::string CodeGen::getContainerSizeFuncDef(const Container &c) {
   }
   usedContainers.insert(c.containerInfo_.ctype);
 
-  std::string str;
-  if (!c.templateParams.empty())
-    str += "template " + getContainerParams(c, true) + "\n";
-  str += "void getSizeType(const " + c.containerName() + getContainerParams(c, false) + " &container,";
-  str += "size_t &returnArg) {\n";
-  // TODO sort out templating + boilerplate
-  str += c.containerInfo_.funcBody;
-  str += "}\n";
-  return str;
+  auto fmt = boost::format(c.containerInfo_.funcBody) % c.containerInfo_.typeName;
+  return fmt.str();
+
+//  std::string str;
+//  if (!c.templateParams.empty())
+//    str += "template " + getContainerParams(c, true) + "\n";
+//  str += "void getSizeType(const " + c.containerName() + getContainerParams(c, false) + " &container,";
+//  str += "size_t &returnArg) {\n";
+//  // TODO sort out templating + boilerplate
+//  str += c.containerInfo_.funcBody;
+//  str += "}\n";
+//  return str;
 }
 
 std::string CodeGen::includes() {

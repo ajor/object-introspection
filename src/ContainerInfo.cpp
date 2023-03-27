@@ -251,11 +251,28 @@ ContainerInfo::ContainerInfo(const fs::path& path) {
 
   const auto &codegen = container["codegen"];
 
+  // TODO "funcBody" is an inaccurate name
   if (std::optional<std::string> str =
-          codegen["measure"].value<std::string>()) {
+          codegen["func"].value<std::string>()) {
     funcBody = std::move(*str);
   } else {
     // TODO throw
-    LOG(ERROR) << "`codegen.measure` is a required field";
+    LOG(ERROR) << "`codegen.func` is a required field";
   }
+
+  // Extract the function body from the TOML.
+  //
+  // Input:
+  //   template<typename T>
+  //   void getSizeType(const %1%<T> &container, size_t& returnArg)
+  //   {
+  //     [FUNCTION BODY]
+  //   }
+  //
+  // Output:
+  //   [FUNCTION BODY]
+//  auto openBrace = funcBody.find('{');
+//  auto closeBrace = funcBody.rfind('}');
+//  funcBody.erase(funcBody.begin()+closeBrace, funcBody.end());
+//  funcBody.erase(funcBody.begin(), funcBody.begin()+openBrace+1);
 }
