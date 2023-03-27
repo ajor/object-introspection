@@ -42,8 +42,14 @@ void NameGen::removeTemplateParams(std::string &name) {
 }
 
 void NameGen::visit(Class &c) {
-  for (const auto &template_param : c.templateParams) {
-    nameType(*template_param.type);
+  for (const auto &param : c.templateParams) {
+    nameType(*param.type);
+  }
+  for (const auto &parent : c.parents) {
+    nameType(*parent.type);
+  }
+  for (const auto &member : c.members) {
+    nameType(*member.type);
   }
 
   std::string name = c.name();
