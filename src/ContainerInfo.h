@@ -74,6 +74,7 @@ struct ContainerInfo {
   // Index of underlying container in template parameters for a container
   // adapter
   std::optional<size_t> underlyingContainerIndex{};
+  std::string funcDecl;
   std::string funcBody;
   std::vector<size_t> stubTemplateParams{};
 

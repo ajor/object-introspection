@@ -69,6 +69,15 @@ void TypeIdentifier::visit(Container &c) {
         auto &typeToAllocate = *allocator->templateParams.at(0).type;
         auto *dummy = make_type<DummyAllocator>(typeToAllocate, param.type->size(), param.type->align());
         c.templateParams[i] = dummy;
+
+        // TODO allocators are tricky... just remove them entirely for now
+        // The problem is a std::map<int, int> requires an allocator of type
+        // std::allocator<std::pair<const int, int>>, but we do not record
+        // constness of types.
+        if (i != c.templateParams.size()-1) {
+          throw std::runtime_error("Unsupported allocator parameter");
+        }
+        c.templateParams.erase(c.templateParams.begin()+i, c.templateParams.end());
       }
       else {
         auto *dummy = make_type<Dummy>(param.type->size(), param.type->align());

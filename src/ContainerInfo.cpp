@@ -259,6 +259,13 @@ ContainerInfo::ContainerInfo(const fs::path& path) {
     // TODO throw
     LOG(ERROR) << "`codegen.func` is a required field";
   }
+  if (std::optional<std::string> str =
+          codegen["decl"].value<std::string>()) {
+    funcDecl = std::move(*str);
+  } else {
+    // TODO throw
+    LOG(ERROR) << "`codegen.decl` is a required field";
+  }
 
   // Extract the function body from the TOML.
   //

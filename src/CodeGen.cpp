@@ -184,13 +184,16 @@ std::string getContainerParams(const Container &c, bool typenamePrefix) {
 }
 
 std::string CodeGen::getContainerSizeFuncDecl(const Container &c) {
+  auto fmt = boost::format(c.containerInfo_.funcDecl) % c.containerInfo_.typeName;
+  return fmt.str();
+
   // TODO don't duplicate logic with getContainerSizeFuncDef
-  std::string str;
-  if (!c.templateParams.empty())
-    str += "template " + getContainerParams(c, true) + "\n";
-  str += "void getSizeType(const " + c.containerName() + getContainerParams(c, false) + " &container,";
-  str += "size_t &returnArg);\n";
-  return str;
+//  std::string str;
+//  if (!c.templateParams.empty())
+//    str += "template " + getContainerParams(c, true) + "\n";
+//  str += "void getSizeType(const " + c.containerName() + getContainerParams(c, false) + " &container,";
+//  str += "size_t &returnArg);\n";
+//  return str;
 }
 
 std::string CodeGen::getContainerSizeFuncDef(const Container &c) {
