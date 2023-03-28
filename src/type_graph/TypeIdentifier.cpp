@@ -66,7 +66,7 @@ void TypeIdentifier::visit(Container &c) {
       const auto &param = c.templateParams[i];
       if (isAllocator(param.type)) {
         auto *allocator = dynamic_cast<Class*>(param.type); // TODO please don't do this...
-        const auto &typeToAllocate = *allocator->templateParams.at(0).type;
+        auto &typeToAllocate = *allocator->templateParams.at(0).type;
         auto *dummy = make_type<DummyAllocator>(typeToAllocate, param.type->size(), param.type->align());
         c.templateParams[i] = dummy;
       }

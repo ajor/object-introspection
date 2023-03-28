@@ -18,11 +18,11 @@ Pass NameGen::createPass() {
 
 void NameGen::generateNames(const std::vector<ref<Type>> &types) {
   for (auto &type : types) {
-    nameType(type);
+    visit(type);
   }
 };
 
-void NameGen::nameType(Type &type) {
+void NameGen::visit(Type &type) {
   if (visited_.count(&type) != 0)
     return;
 
@@ -43,13 +43,13 @@ void NameGen::removeTemplateParams(std::string &name) {
 
 void NameGen::visit(Class &c) {
   for (const auto &param : c.templateParams) {
-    nameType(*param.type);
+    visit(*param.type);
   }
   for (const auto &parent : c.parents) {
-    nameType(*parent.type);
+    visit(*parent.type);
   }
   for (const auto &member : c.members) {
-    nameType(*member.type);
+    visit(*member.type);
   }
 
   std::string name = c.name();
@@ -72,7 +72,7 @@ void NameGen::visit(Class &c) {
 
 void NameGen::visit(Container &c) {
   for (const auto &template_param : c.templateParams) {
-    nameType(*template_param.type);
+    visit(*template_param.type);
   }
 
   std::string name = c.name();
@@ -91,15 +91,19 @@ void NameGen::visit(Container &c) {
 }
 
 void NameGen::visit(Array &a) {
-  nameType(*a.elementType());
+  visit(*a.elementType());
 }
 
 void NameGen::visit(Typedef &td) {
-  nameType(*td.underlyingType());
+  visit(*td.underlyingType());
 }
 
 void NameGen::visit(Pointer &p) {
-  nameType(*p.pointeeType());
+  visit(*p.pointeeType());
+}
+
+void NameGen::visit(DummyAllocator &d) {
+  visit(d.allocType());
 }
 
 } // namespace type_graph

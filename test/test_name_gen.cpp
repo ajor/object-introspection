@@ -182,3 +182,22 @@ TEST(NameGenTest, Pointer) {
   EXPECT_EQ(mycontainer->name(), "std::vector<MyParam_0, MyParam_1>");
   EXPECT_EQ(mypointer->name(), "std::vector<MyParam_0, MyParam_1>*");
 }
+
+TEST(NameGenTest, DummyAllocator) {
+  auto myparam1 = std::make_unique<Class>(Class::Kind::Struct, "MyParam", 13);
+  auto myparam2 = std::make_unique<Class>(Class::Kind::Struct, "MyParam", 13);
+
+  auto mycontainer = std::make_unique<Container>(vectorInfo());
+  mycontainer->templateParams.push_back(myparam1.get());
+  mycontainer->templateParams.push_back(myparam2.get());
+
+  auto myalloc = std::make_unique<DummyAllocator>(*mycontainer.get(), 0, 0);
+
+  NameGen nameGen;
+  nameGen.generateNames({*myalloc});
+
+  EXPECT_EQ(myparam1->name(), "MyParam_0");
+  EXPECT_EQ(myparam2->name(), "MyParam_1");
+  EXPECT_EQ(mycontainer->name(), "std::vector<MyParam_0, MyParam_1>");
+  EXPECT_EQ(myalloc->name(), "std::allocator<std::vector<MyParam_0, MyParam_1>>");
+}

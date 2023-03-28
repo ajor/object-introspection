@@ -22,9 +22,10 @@ public:
   void visit(Array &a) override;
   void visit(Typedef &td) override;
   void visit(Pointer &p) override;
+  void visit(DummyAllocator &d) override;
 
 private:
-  void nameType(Type &type);
+  void visit(Type &type);
   void removeTemplateParams(std::string &name);
 
   std::unordered_set<Type*> visited_;

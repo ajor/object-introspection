@@ -331,7 +331,7 @@ private:
 
 class DummyAllocator : public Type {
 public:
-  explicit DummyAllocator(const Type &type, size_t size, uint64_t align)
+  explicit DummyAllocator(Type &type, size_t size, uint64_t align)
     : type_(type), size_(size), align_(align) { }
 
   DECLARE_ACCEPT
@@ -350,8 +350,12 @@ public:
     return align_;
   }
 
+  Type &allocType() const {
+    return type_;
+  }
+
 private:
-  const Type &type_;
+  Type &type_;
   size_t size_;
   uint64_t align_;
 };
