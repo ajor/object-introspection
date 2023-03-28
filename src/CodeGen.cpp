@@ -29,8 +29,8 @@ std::string CodeGen::generate(drgn_type *drgnType) {
   typeGraph_.addRoot(*rootType);
 
   PassManager pm;
-  pm.addPass(TypeIdentifier::createPass(containerInfos_));
   pm.addPass(Flattener::createPass());
+  pm.addPass(TypeIdentifier::createPass(containerInfos_));
   pm.addPass(NameGen::createPass());
   pm.addPass(AlignmentCalc::createPass());
   pm.addPass(TopoSorter::createPass());

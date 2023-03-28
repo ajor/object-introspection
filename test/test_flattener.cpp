@@ -1,6 +1,3 @@
-// TODO
-// empty parents
-
 #include <gtest/gtest.h>
 
 #include "ContainerInfo.h"
@@ -9,29 +6,6 @@
 #include "type_graph/Types.h"
 
 using namespace type_graph;
-
-// TODO delete after converting all tests to use Printer
-void EXPECT_EQ_CLASS(const Class &actual, const Class &expected) {
-//  EXPECT_EQ(actual.kind_, expected.kind_); TODO
-  EXPECT_EQ(actual.name(), expected.name());
-  EXPECT_EQ(actual.size(), expected.size());
-  ASSERT_EQ(actual.members.size(), expected.members.size());
-  for (std::size_t i=0; i<actual.members.size(); i++) {
-    EXPECT_EQ(actual.members[i].type, expected.members[i].type);
-    EXPECT_EQ(actual.members[i].name, expected.members[i].name);
-    EXPECT_EQ(actual.members[i].offset, expected.members[i].offset);
-  }
-  ASSERT_EQ(actual.parents.size(), expected.parents.size());
-  for (std::size_t i=0; i<actual.parents.size(); i++) {
-    EXPECT_EQ(actual.parents[i].type, expected.parents[i].type);
-    EXPECT_EQ(actual.parents[i].offset, expected.parents[i].offset);
-  }
-  ASSERT_EQ(actual.templateParams.size(), expected.templateParams.size());
-  for (std::size_t i=0; i<actual.templateParams.size(); i++) {
-    EXPECT_EQ(actual.templateParams[i].type, expected.templateParams[i].type);
-    // TODO check template values
-  }
-}
 
 void test(std::vector<std::reference_wrapper<Type>> types, std::string_view expected) {
   Flattener flattener;
@@ -644,5 +618,29 @@ TEST(FlattenerTest, Alignment) {
         Primitive: int32_t
       Member: a (offset: 8)
         Primitive: int32_t
+)");
+}
+
+TEST(FlattenerTest, Functions) {
+  // Original:
+  //   class C { void funcC(); };
+  //   class B : C { void funcB(); };
+  //   class A : B { void funcA(); };
+  auto classA = std::make_unique<Class>(Class::Kind::Class, "ClassA", 0);
+  auto classB = std::make_unique<Class>(Class::Kind::Class, "ClassB", 0);
+  auto classC = std::make_unique<Class>(Class::Kind::Class, "ClassC", 0);
+
+  classA->parents.push_back(Parent(classB.get(), 0));
+  classB->parents.push_back(Parent(classC.get(), 0));
+
+  classA->functions.push_back(Function{"funcA"});
+  classB->functions.push_back(Function{"funcB"});
+  classC->functions.push_back(Function{"funcC"});
+
+  test({*classA}, R"(
+[0] Class: ClassA (size: 0)
+      Function: funcA (virtuality: 0)
+      Function: funcB (virtuality: 0)
+      Function: funcC (virtuality: 0)
 )");
 }

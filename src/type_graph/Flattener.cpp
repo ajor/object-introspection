@@ -2,8 +2,6 @@
 
 #include "TypeGraph.h"
 
-// TODO flatten member functions
-
 namespace type_graph {
 
 Pass Flattener::createPass() {
@@ -63,6 +61,8 @@ void Flattener::visit(Class &c) {
   //    TODO comment about virtual inheritance
 
   // TODO alignment of parent classes
+  //
+  // TODO flatten template parameters??? ### TEST THIS ###
 
   // Flatten types referenced by member variables
   for (const auto &member : c.members) {
@@ -72,6 +72,14 @@ void Flattener::visit(Class &c) {
   // Flatten parent types
   for (const auto &parent : c.parents) {
     visit(*parent.type);
+  }
+
+  // Pull in functions from flattened parents
+  for (const auto &parent : c.parents) {
+    const Class &parentClass = stripTypedefs(*parent.type);
+    c.functions.insert(c.functions.end(),
+                       parentClass.functions.begin(),
+                       parentClass.functions.end());
   }
 
   // Pull member variables from flattened parents into this class
