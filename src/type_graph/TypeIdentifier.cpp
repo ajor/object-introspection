@@ -24,18 +24,6 @@ void TypeIdentifier::visit(Type &type) {
   type.accept(*this);
 }
 
-void TypeIdentifier::visit(Class &c) {
-  for (const auto &param : c.templateParams) {
-    visit(*param.type);
-  }
-  for (const auto &parent : c.parents) {
-    visit(*parent.type); // TODO should this pass happen after flattening?
-  }
-  for (const auto &member : c.members) {
-    visit(*member.type);
-  }
-}
-
 namespace {
 bool isAllocator(Type *t) {
   auto *c = dynamic_cast<Class*>(t);
@@ -91,18 +79,6 @@ void TypeIdentifier::visit(Container &c) {
   for (const auto &param : c.templateParams) {
     visit(*param.type);
   }
-}
-
-void TypeIdentifier::visit(Array &a) {
-  visit(*a.elementType());
-}
-
-void TypeIdentifier::visit(Typedef &td) {
-  visit(*td.underlyingType());
-}
-
-void TypeIdentifier::visit(Pointer &p) {
-  visit(*p.pointeeType());
 }
 
 } // namespace type_graph

@@ -16,25 +16,20 @@ namespace type_graph {
  * Topologically sorts a list of types so that dependencies appear before
  * dependent types.
  */
-class TopoSorter : public Visitor {
+class TopoSorter : public RecursiveVisitor {
 public:
   static Pass createPass();
 
   void sort(const std::vector<std::reference_wrapper<Type>> &types);
   const std::vector<std::reference_wrapper<Type>> &sortedTypes() const;
 
-  void visit(Class &c) override;
-  void visit(Container &c) override;
-  void visit(Array &a) override;
-  void visit(Typedef &td) override;
+  void visit(Type &type) override;
   void visit(Pointer &p) override;
 
 private:
   std::unordered_set<Type*> visited_;
   std::vector<std::reference_wrapper<Type>> sortedTypes_;
   std::queue<std::reference_wrapper<Type>> typesToSort_;
-
-  void sort_type(Type &type);
 };
 
 } // namespace type_graph

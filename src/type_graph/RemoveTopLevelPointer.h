@@ -15,7 +15,7 @@ namespace type_graph {
  * If the top type node is a pointer, remove it from the graph and instead have
  * the pointee type as the top-level node.
  */
-class RemoveTopLevelPointer : public Visitor {
+class RemoveTopLevelPointer : public LazyVisitor {
 public:
   static Pass createPass();
 

@@ -90,20 +90,4 @@ void NameGen::visit(Container &c) {
   c.setName(name);
 }
 
-void NameGen::visit(Array &a) {
-  visit(*a.elementType());
-}
-
-void NameGen::visit(Typedef &td) {
-  visit(*td.underlyingType());
-}
-
-void NameGen::visit(Pointer &p) {
-  visit(*p.pointeeType());
-}
-
-void NameGen::visit(DummyAllocator &d) {
-  visit(d.allocType());
-}
-
 } // namespace type_graph

@@ -33,3 +33,19 @@ TEST(AlignmentCalcTest, StructMembers) {
 
   EXPECT_EQ(myclass->align(), 4);
 }
+
+TEST(AlignmentCalcTest, StructInContainer) {
+  auto myclass = std::make_unique<Class>(Class::Kind::Class, "MyClass", 16);
+  auto myint8 = std::make_unique<Primitive>(Primitive::Kind::Int8);
+  auto myint64 = std::make_unique<Primitive>(Primitive::Kind::Int64);
+  myclass->members.push_back(Member(myint8.get(), "n", 0));
+  myclass->members.push_back(Member(myint64.get(), "n", 0));
+
+  auto mycontainer = std::make_unique<Container>(ContainerInfo{});
+  mycontainer->templateParams.push_back(myclass.get());
+
+  AlignmentCalc calc;
+  calc.calculateAlignments({*mycontainer});
+
+  EXPECT_EQ(myclass->align(), 8);
+}

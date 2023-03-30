@@ -88,6 +88,11 @@ void Printer::visit(Dummy &d) {
   out_ << "Dummy (size: " << d.size() << align_str(d.align()) << ")" << std::endl;
 }
 
+void Printer::visit(DummyAllocator &d) {
+  prefix();
+  out_ << "DummyAllocatorTODO (size: " << d.size() << align_str(d.align()) << ")" << std::endl;
+}
+
 bool Printer::prefix(Type *type) {
   if (type) {
     if (auto it=node_nums.find(type); it!=node_nums.end()) {

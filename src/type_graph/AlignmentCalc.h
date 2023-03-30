@@ -14,7 +14,7 @@ namespace type_graph {
  *
  * TODO comment about class (and all other passes too)
  */
-class AlignmentCalc final : public Visitor {
+class AlignmentCalc final : public LazyVisitor {
 public:
   static Pass createPass();
 

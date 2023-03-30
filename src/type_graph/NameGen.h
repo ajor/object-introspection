@@ -11,7 +11,7 @@
 namespace type_graph {
 
 // TODO make all final
-class NameGen final : public Visitor {
+class NameGen final : public RecursiveVisitor {
 public:
   static Pass createPass();
 
@@ -19,13 +19,9 @@ public:
 
   void visit(Class &c) override;
   void visit(Container &c) override;
-  void visit(Array &a) override;
-  void visit(Typedef &td) override;
-  void visit(Pointer &p) override;
-  void visit(DummyAllocator &d) override;
 
 private:
-  void visit(Type &type);
+  void visit(Type &type) override;
   void removeTemplateParams(std::string &name);
 
   std::unordered_set<Type*> visited_;

@@ -138,17 +138,4 @@ void Flattener::visit(Container &c) {
   }
 }
 
-void Flattener::visit(Array &a) {
-  visit(*a.elementType());
-}
-
-void Flattener::visit(Typedef &td) {
-  // TODO flatten typedefs
-  visit(*td.underlyingType());
-}
-
-void Flattener::visit(Pointer &p) {
-  visit(*p.pointeeType());
-}
-
 } // namespace type_graph

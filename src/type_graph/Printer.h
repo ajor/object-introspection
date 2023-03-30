@@ -24,6 +24,7 @@ public:
   void visit(Typedef &td) override;
   void visit(Pointer &p) override;
   void visit(Dummy &d) override;
+  void visit(DummyAllocator &d) override;
 
 private:
   bool prefix(Type *type=nullptr);

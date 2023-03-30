@@ -15,20 +15,16 @@ namespace type_graph {
  *
  * TODO description
  */
-class TypeIdentifier : public Visitor {
+class TypeIdentifier : public RecursiveVisitor {
 public:
   static Pass createPass(const std::vector<ContainerInfo> &containers);
 
   TypeIdentifier(TypeGraph &typeGraph,
       const std::vector<ContainerInfo> &containers)
     : typeGraph_(typeGraph), containers_(containers) { }
-  void visit(Type &type);
 
-  void visit(Class &c) override;
+  void visit(Type &type) override;
   void visit(Container &c) override;
-  void visit(Array &a) override;
-  void visit(Typedef &td) override;
-  void visit(Pointer &p) override;
 
 private:
   std::unordered_set<Type*> visited_;

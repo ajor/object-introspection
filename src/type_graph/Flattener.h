@@ -15,18 +15,15 @@ namespace type_graph {
  * Flattens classes by removing parents and adding their members directly into
  * derived classes.
  */
-class Flattener : public Visitor {
+class Flattener : public RecursiveVisitor {
 public:
   static Pass createPass();
 
   void flatten(std::vector<std::reference_wrapper<Type>> &types); // TODO make sure all passes take references, not vectors by value
-  void visit(Type &type);
 
+  void visit(Type &type) override;
   void visit(Class &c) override;
   void visit(Container &c) override;
-  void visit(Array &a) override;
-  void visit(Typedef &td) override;
-  void visit(Pointer &p) override;
 
 private:
   std::unordered_set<Type*> visited_;
