@@ -20,11 +20,12 @@ Pass AlignmentCalc::createPass() {
 
 void AlignmentCalc::calculateAlignments(const std::vector<ref<Type>> &types) {
   for (auto &type : types) {
-    calculateAlignment(type);
+    visit(type);
   }
 };
 
-void AlignmentCalc::calculateAlignment(Type &type) {
+// TODO check what happens with cycles (probably broken)
+void AlignmentCalc::visit(Type &type) {
   type.accept(*this);
 }
 
@@ -34,7 +35,7 @@ void AlignmentCalc::visit(Class &c) {
     if (member.align == 0) {
       // If the member does not have an explicit alignment, calculate it from
       // the member's type.
-      calculateAlignment(*member.type);
+      visit(*member.type);
       member.align = member.type->align();
     }
     alignment = std::max(alignment, member.align);

@@ -14,16 +14,14 @@ namespace type_graph {
  *
  * TODO comment about class (and all other passes too)
  */
-class AlignmentCalc final : public LazyVisitor {
+class AlignmentCalc final : public RecursiveVisitor {
 public:
   static Pass createPass();
 
   void calculateAlignments(const std::vector<std::reference_wrapper<Type>> &types);
 
+  void visit(Type &type) override;
   void visit(Class &c) override;
-
-private:
-  void calculateAlignment(Type &type);
 };
 
 } // namespace type_graph
