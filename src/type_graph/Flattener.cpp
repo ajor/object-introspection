@@ -14,7 +14,7 @@ Pass Flattener::createPass() {
   return Pass("Flattener", fn);
 }
 
-void Flattener::flatten(std::vector<std::reference_wrapper<Type>> types) {
+void Flattener::flatten(std::vector<std::reference_wrapper<Type>> &types) {
   for (auto &type : types) {
     visit(type);
   }

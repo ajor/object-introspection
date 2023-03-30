@@ -7,6 +7,7 @@
 
 using namespace type_graph;
 
+namespace {
 void test(std::vector<std::reference_wrapper<Type>> types, std::string_view expected) {
   Flattener flattener;
   flattener.flatten(types);
@@ -22,6 +23,7 @@ void test(std::vector<std::reference_wrapper<Type>> types, std::string_view expe
   expected.remove_prefix(1); // Remove initial '\n'
   EXPECT_EQ(expected, out.str());
 }
+} // namespace
 
 TEST(FlattenerTest, NoParents) {
   // Original and flattened:

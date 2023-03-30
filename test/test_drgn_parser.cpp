@@ -47,7 +47,7 @@ void DrgnParserTest::test(std::string_view function, std::string_view expected) 
   std::vector<ContainerInfo> containers;
   containers.emplace_back(std::move(std_vector));
 
-  DrgnParser drgnParser(typeGraph, containers);
+  DrgnParser drgnParser(typeGraph, containers, true); // TODO test chaseRawPointers
   Type *type = drgnParser.parse(drgnRoot->type.type);
 
   std::stringstream out;

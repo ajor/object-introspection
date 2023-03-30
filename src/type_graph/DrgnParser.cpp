@@ -360,9 +360,10 @@ Primitive *DrgnParser::enumeratePrimitive(struct drgn_type *type) {
 }
 
 bool DrgnParser::chasePointer() const {
-  // Chase top-level pointers
-  return depth_ == 1;
-  // TODO obey chase-raw-pointers command line argument
+  // Always chase top-level pointers
+  if (depth_ == 1)
+    return true;
+  return chaseRawPointers_;
 }
 
 } // namespace type_graph

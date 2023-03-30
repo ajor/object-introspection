@@ -15,8 +15,8 @@ namespace type_graph {
 // TODO coding style change: "struct drgn_type" -> "drgn_type"
 class DrgnParser {
 public:
-  DrgnParser(TypeGraph &typeGraph, const std::vector<ContainerInfo> &containers)
-    : typeGraph_(typeGraph), containers_(containers) { }
+  DrgnParser(TypeGraph &typeGraph, const std::vector<ContainerInfo> &containers, bool chaseRawPointers)
+    : typeGraph_(typeGraph), containers_(containers), chaseRawPointers_(chaseRawPointers) { }
   Type *parse(struct drgn_type *root);
 
 private:
@@ -56,6 +56,7 @@ private:
   TypeGraph &typeGraph_;
   const std::vector<ContainerInfo> &containers_;
   int depth_;
+  bool chaseRawPointers_;
 };
 
 } // namespace type_graph

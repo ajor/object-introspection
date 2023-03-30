@@ -2930,7 +2930,7 @@ std::optional<std::string> OIDebugger::generateCode(const irequest &req, bool us
 
   if (useTypeGraph) {
     type_graph::TypeGraph typeGraph;
-    CodeGen codegen2(typeGraph);
+    CodeGen codegen2(typeGraph, generatorConfig);
     codegen2.loadConfig(generatorConfig.containerConfigPaths);
     code = codegen2.generate(root->type.type);
   }

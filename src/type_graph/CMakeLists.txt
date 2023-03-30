@@ -6,6 +6,7 @@ add_library(type_graph
   Printer.cpp
   TopoSorter.cpp
   Flattener.cpp
+  RemoveTopLevelPointer.cpp
   TypeIdentifier.cpp
   Types.cpp
 )

@@ -7,6 +7,8 @@
 
 #include "ContainerInfo.h"
 
+#include "OICodeGen.h" // For OICodeGen::Config
+
 namespace fs = std::filesystem;
 
 struct drgn_type;
@@ -19,7 +21,7 @@ class TypeGraph;
 
 class CodeGen {
 public:
-  CodeGen(type_graph::TypeGraph &typeGraph) : typeGraph_(typeGraph) { }
+  CodeGen(type_graph::TypeGraph &typeGraph, OICodeGen::Config &config) : typeGraph_(typeGraph), config_(config) { }
   std::string generate(drgn_type *drgnType);
 
 // TODO shouldn't need to be a template (but shouldn't be a set!)
@@ -41,5 +43,6 @@ private:
   std::string getContainerSizeFuncDef(const type_graph::Container &c);
 
   type_graph::TypeGraph &typeGraph_;
+  OICodeGen::Config config_;
   std::vector<ContainerInfo> containerInfos_;
 };

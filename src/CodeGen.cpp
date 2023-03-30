@@ -11,6 +11,7 @@
 #include "type_graph/DrgnParser.h"
 #include "type_graph/Flattener.h"
 #include "type_graph/NameGen.h"
+#include "type_graph/RemoveTopLevelPointer.h"
 #include "type_graph/TopoSorter.h"
 #include "type_graph/TypeGraph.h"
 #include "type_graph/TypeIdentifier.h"
@@ -24,15 +25,20 @@ using ref = std::reference_wrapper<T>;
 
 std::string CodeGen::generate(drgn_type *drgnType) {
   // TODO wrap in try-catch
-  DrgnParser drgnParser(typeGraph_, containerInfos_);
-  Type *rootType = drgnParser.parse(drgnType);
-  typeGraph_.addRoot(*rootType);
+  // This scope is unrealted to the above comment - it is to avoid parsedRoot being available elsewhere
+  // because typeGraph.rootTypes() should be used instead, in case the root types have been modified
+  {
+    DrgnParser drgnParser(typeGraph_, containerInfos_, config_.chaseRawPointers);
+    Type *parsedRoot = drgnParser.parse(drgnType);
+    typeGraph_.addRoot(*parsedRoot);
+  }
 
   PassManager pm;
   pm.addPass(Flattener::createPass());
   pm.addPass(TypeIdentifier::createPass(containerInfos_));
   pm.addPass(NameGen::createPass());
   pm.addPass(AlignmentCalc::createPass());
+  pm.addPass(RemoveTopLevelPointer::createPass());
   pm.addPass(TopoSorter::createPass());
   pm.run(typeGraph_, true); // TODO don't alway run with debug
 
@@ -131,7 +137,9 @@ std::string CodeGen::generate(drgn_type *drgnType) {
 
   code += getSizeFuncDefs();
 
-  code += "\nusing __ROOT_TYPE__ = " + rootType->name() + ";\n";
+  assert(typeGraph_.rootTypes().size() == 1);
+  Type &rootType = typeGraph_.rootTypes()[0];
+  code += "\nusing __ROOT_TYPE__ = " + rootType.name() + ";\n";
   code += "} // namespace\n} // namespace OIInternal\n";
 
   FuncGen::DefineTopLevelGetSizeRef(code, SymbolService::getTypeName(drgnType));

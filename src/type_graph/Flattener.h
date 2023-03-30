@@ -19,7 +19,7 @@ class Flattener : public Visitor {
 public:
   static Pass createPass();
 
-  void flatten(std::vector<std::reference_wrapper<Type>> types);
+  void flatten(std::vector<std::reference_wrapper<Type>> &types); // TODO make sure all passes take references, not vectors by value
   void visit(Type &type);
 
   void visit(Class &c) override;
