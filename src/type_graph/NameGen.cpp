@@ -52,6 +52,12 @@ void NameGen::visit(Class &c) {
     visit(*member.type);
   }
 
+  // Deduplicate member names. Duplicates may be present after flattening.
+  for (size_t i=0; i<c.members.size(); i++) {
+    c.members[i].name += "_" + std::to_string(i);
+  }
+
+  // Build a name for this class based on the types of its template paramters
   std::string name = c.name();
   removeTemplateParams(name);
 
@@ -61,11 +67,17 @@ void NameGen::visit(Class &c) {
     name.push_back('_');
   }
 
-  // TODO deduplicate types of members
-  // TODO deduplicate member names (can happen after flattening)
-
   // Append an incrementing number to ensure we don't get duplicates
   name += std::to_string(n++);
+
+  // Replace illegal characters in the computed name
+  for (size_t i=0; i<name.size(); i++) {
+    if (name[i] == ':' ||
+        name[i] == '<' ||
+        name[i] == '>') {
+      name[i] = '_';
+    }
+  }
 
   c.setName(name);
 }

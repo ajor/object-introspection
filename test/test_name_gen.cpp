@@ -27,6 +27,21 @@ TEST(NameGenTest, ClassParams) {
   EXPECT_EQ(myclass->name(), "MyClass_MyParam_0_MyParam_1_2");
 }
 
+TEST(NameGenTest, ClassContainerParam) {
+  auto myint = std::make_unique<Primitive>(Primitive::Kind::Int32);
+  auto myparam = std::make_unique<Container>(vectorInfo());
+  myparam->templateParams.push_back(myint.get());
+
+  auto myclass = std::make_unique<Class>(Class::Kind::Struct, "MyClass", 13);
+  myclass->templateParams.push_back(myparam.get());
+
+  NameGen nameGen;
+  nameGen.generateNames({*myclass});
+
+  EXPECT_EQ(myparam->name(), "std::vector<int32_t>");
+  EXPECT_EQ(myclass->name(), "MyClass_std__vector_int32_t__0");
+}
+
 TEST(NameGenTest, ClassParents) {
   auto myparent1 = std::make_unique<Class>(Class::Kind::Struct, "MyParent", 13);
   auto myparent2 = std::make_unique<Class>(Class::Kind::Struct, "MyParent", 13);
@@ -54,6 +69,25 @@ TEST(NameGenTest, ClassMembers) {
 
   EXPECT_EQ(mymember1->name(), "MyMember_0");
   EXPECT_EQ(mymember2->name(), "MyMember_1");
+  EXPECT_EQ(myclass->name(), "MyClass_2");
+}
+
+TEST(NameGenTest, ClassMembersDuplicateName) {
+  auto mymember1 = std::make_unique<Class>(Class::Kind::Struct, "MyMember", 13);
+  auto mymember2 = std::make_unique<Class>(Class::Kind::Struct, "MyMember", 13);
+  auto myclass = std::make_unique<Class>(Class::Kind::Struct, "MyClass", 13);
+
+  // A class may end up with members sharing a name after flattening
+  myclass->members.push_back(Member{mymember1.get(), "mem", 0});
+  myclass->members.push_back(Member{mymember2.get(), "mem", 0});
+
+  NameGen nameGen;
+  nameGen.generateNames({*myclass});
+
+  EXPECT_EQ(mymember1->name(), "MyMember_0");
+  EXPECT_EQ(mymember2->name(), "MyMember_1");
+  EXPECT_EQ(myclass->members[0].name, "mem_0");
+  EXPECT_EQ(myclass->members[1].name, "mem_1");
   EXPECT_EQ(myclass->name(), "MyClass_2");
 }
 
