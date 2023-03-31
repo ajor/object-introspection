@@ -36,7 +36,7 @@ std::string Primitive::name() const {
     case Kind::Float80:
       abort();
     case Kind::Float128:
-      abort();
+      return "long double";
     case Kind::Bool:
       return "bool";
     case Kind::UIntPtr:
