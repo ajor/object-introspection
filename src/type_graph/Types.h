@@ -238,6 +238,8 @@ public:
     Bool,
 
     UIntPtr, // Really an alias, but usful to have as it's own primitive
+
+    Void,
   };
 
   explicit Primitive(Kind kind) : kind_(kind) { }

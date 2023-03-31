@@ -41,6 +41,8 @@ std::string Primitive::name() const {
       return "bool";
     case Kind::UIntPtr:
       return "uintptr_t";
+    case Kind::Void:
+      return "void";
   }
 }
 
@@ -74,6 +76,8 @@ std::size_t Primitive::size() const {
       return 1;
     case Kind::UIntPtr:
       return sizeof(uintptr_t);
+    case Kind::Void:
+      return 0;
   }
 }
 

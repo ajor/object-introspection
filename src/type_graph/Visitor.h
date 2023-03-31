@@ -41,7 +41,6 @@ class RecursiveVisitor : public Visitor {
 public:
   virtual ~RecursiveVisitor() = default;
   virtual void visit(Type &) = 0;
-
   virtual void visit(Class &c) {
     for (auto &param : c.templateParams) {
       visit(*param.type);
@@ -53,30 +52,23 @@ public:
       visit(*mem.type);
     }
   }
-
   virtual void visit(Container &c) {
     for (auto &param : c.templateParams) {
       visit(*param.type);
     }
   }
-
   virtual void visit(Primitive &) { }
   virtual void visit(Enum &) { }
-
   virtual void visit(Array &a) {
     visit(*a.elementType());
   }
-
   virtual void visit(Typedef &td) {
     visit(*td.underlyingType());
   }
-
   virtual void visit(Pointer &p) {
     visit(*p.pointeeType());
   }
-
   virtual void visit(Dummy &) { }
-
   virtual void visit(DummyAllocator &d) {
     visit(d.allocType());
   }

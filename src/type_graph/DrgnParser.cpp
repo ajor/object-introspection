@@ -89,13 +89,11 @@ Type *DrgnParser::enumerateType(struct drgn_type *type) {
     case DRGN_TYPE_INT:
     case DRGN_TYPE_BOOL:
     case DRGN_TYPE_FLOAT:
+    case DRGN_TYPE_VOID:
       t = enumeratePrimitive(type);
       break;
-    case DRGN_TYPE_VOID:
-    case DRGN_TYPE_FUNCTION:
-      // Do nothing
-      break;
-      // TODO ensure that missing cases are a compile error
+    default:
+      abort(); // TODO
   }
   depth_--;
 
@@ -394,6 +392,9 @@ Primitive *DrgnParser::enumeratePrimitive(struct drgn_type *type) {
       break;
     case DRGN_TYPE_BOOL:
       kind = Primitive::Kind::Bool;
+      break;
+    case DRGN_TYPE_VOID:
+      kind = Primitive::Kind::Void;
       break;
     default:
       abort(); // TODO
