@@ -119,7 +119,12 @@ void Printer::print_param(const TemplateParam &param) {
   depth_++;
   prefix();
   out_ << "Param" << std::endl;
-  print(*param.type);
+  if (param.value) {
+    print_value(*param.value);
+  }
+  else {
+    print(*param.type);
+  }
   depth_--;
 }
 
@@ -143,6 +148,13 @@ void Printer::print_function(const Function &function) {
   depth_++;
   prefix();
   out_ << "Function: " << function.name << " (virtuality: " << function.virtuality << ")" << std::endl;
+  depth_--;
+}
+
+void Printer::print_value(const std::string &value) {
+  depth_++;
+  prefix();
+  out_ << "Value: " << value << std::endl;
   depth_--;
 }
 

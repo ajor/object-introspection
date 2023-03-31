@@ -238,15 +238,57 @@ void DrgnParser::enumerateClassMembers(struct drgn_type *type, std::vector<Membe
 void DrgnParser::enumerateTemplateParam(drgn_type_template_parameter *tparams,
                                         size_t i,
                                         std::vector<TemplateParam> &params) {
+  const drgn_object* obj = nullptr;
+  if (auto* err = drgn_template_parameter_object(&tparams[i], &obj);
+      err != nullptr) {
+//    LOG(ERROR) << "Error when looking up template parameter " << err->code
+//               << " " << err->message;
+    drgn_error_destroy(err);
+    abort(); // TODO throw
+  }
+
   struct drgn_qualified_type tparamQualType;
-  struct drgn_error *err = drgn_template_parameter_type(&tparams[i], &tparamQualType);
-  if (err)
-    abort(); // TODO
+  if (obj == nullptr) {
+    // This template parameter is a typename
+    struct drgn_error *err = drgn_template_parameter_type(&tparams[i], &tparamQualType);
+    if (err) // TODO destroy drgn errors everywhere
+      abort(); // TODO
 
-  struct drgn_type *tparamType = tparamQualType.type;
+    struct drgn_type *tparamType = tparamQualType.type;
 
-  auto ttype = enumerateType(tparamType);
-  params.emplace_back(ttype);
+    auto ttype = enumerateType(tparamType);
+    params.emplace_back(ttype);
+  } else {
+    // This template parameter is a value
+    //    TODO why do we need the type of a value?
+//    tparamQualType.type = obj->type;
+//    tparamQualType.qualifiers = obj->qualifiers;
+    std::string value;
+    if (obj->encoding == DRGN_OBJECT_ENCODING_BUFFER) {
+      uint64_t size = drgn_object_size(obj);
+      char* buf = nullptr;
+      if (size <= sizeof(obj->value.ibuf)) {
+        buf = (char*)&(obj->value.ibuf);
+      } else {
+        buf = obj->value.bufp;
+      }
+
+      if (buf != nullptr) {
+        value = std::string(buf);
+      }
+    } else if (obj->encoding == DRGN_OBJECT_ENCODING_SIGNED) {
+      value = std::to_string(obj->value.svalue);
+    } else if (obj->encoding == DRGN_OBJECT_ENCODING_UNSIGNED) {
+      value = std::to_string(obj->value.uvalue);
+    } else if (obj->encoding == DRGN_OBJECT_ENCODING_FLOAT) {
+      value = std::to_string(obj->value.fvalue);
+    } else {
+//      LOG(ERROR) << "Unsupported OBJ encoding for getting template parameter";
+      abort(); // TODO
+    }
+
+    params.emplace_back(make_type<Primitive>(nullptr, Primitive::Kind::UInt8), value);
+  }
 }
 
 void DrgnParser::enumerateClassTemplateParams(struct drgn_type *type,

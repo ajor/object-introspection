@@ -80,7 +80,12 @@ void NameGen::visit(Container &c) {
 
   name.push_back('<');
   for (const auto &param : c.templateParams) {
-    name += param.type->name();
+    if (param.value) {
+      name += *param.value;
+    }
+    else {
+      name += param.type->name();
+    }
     name += ", ";
   }
   name.pop_back();

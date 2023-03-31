@@ -53,10 +53,10 @@ void TypeIdentifier::visit(Container &c) {
     if (std::find(stubParams.begin(), stubParams.end(), i) != stubParams.end()) {
       const auto &param = c.templateParams[i];
       if (isAllocator(param.type)) {
-        auto *allocator = dynamic_cast<Class*>(param.type); // TODO please don't do this...
-        auto &typeToAllocate = *allocator->templateParams.at(0).type;
-        auto *dummy = make_type<DummyAllocator>(typeToAllocate, param.type->size(), param.type->align());
-        c.templateParams[i] = dummy;
+//        auto *allocator = dynamic_cast<Class*>(param.type); // TODO please don't do this...
+//        auto &typeToAllocate = *allocator->templateParams.at(0).type;
+//        auto *dummy = make_type<DummyAllocator>(typeToAllocate, param.type->size(), param.type->align());
+//        c.templateParams[i] = dummy;
 
         // TODO allocators are tricky... just remove them entirely for now
         // The problem is a std::map<int, int> requires an allocator of type

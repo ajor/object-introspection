@@ -310,18 +310,17 @@ TEST_F(DrgnParserTest, ClassTemplateTwo) {
 )");
 }
 
-// TODO
-//TEST_F(DrgnParserTest, ClassTemplateValue) {
-//  test("oid_test_case_templates_value", R"(
-//[0] Pointer
-//[1]   Class: TemplatedClassVal<3> (size: 12)
-//        Param
-//          Value: 3
-//        Member: arr (offset: 0)
-//[2]       Array: (length: 3)
-//            Primitive: int32_t
-//)");
-//}
+TEST_F(DrgnParserTest, ClassTemplateValue) {
+  test("oid_test_case_templates_value", R"(
+[0] Pointer
+[1]   Struct: TemplatedClassVal<3> (size: 12)
+        Param
+          Value: 3
+        Member: arr (offset: 0)
+[2]       Array: (length: 3)
+            Primitive: int32_t
+)");
+}
 
 // TODO
 //TEST_F(DrgnParserTest, ClassFunctions) {

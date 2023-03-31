@@ -32,6 +32,7 @@ private:
   void print_parent(const Parent &parent);
   void print_member(const Member &member);
   void print_function(const Function &function);
+  void print_value(const std::string &value);
   static std::string align_str(uint64_t align);
 
   std::ostream &out_;

@@ -75,10 +75,10 @@ struct Parent {
 struct TemplateParam {
   // TODO make ctors explicit?
   TemplateParam(Type *type) : type(type) { }
-  TemplateParam(Type *type, int value) : type(type), value(value) { }
+  TemplateParam(Type *type, std::string value) : type(type), value(std::move(value)) { }
 
   Type *type;
-  std::optional<int> value; // TODO non-int values
+  std::optional<std::string> value; // TODO any reason not to store all values as strings?
 };
 
 class Class : public Type {
