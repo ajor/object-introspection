@@ -24,7 +24,10 @@ struct ContainerInfo;
 namespace type_graph {
 
 class Visitor;
-#define DECLARE_ACCEPT void accept(Visitor &v) override;
+class CodeGenVisitor;
+#define DECLARE_ACCEPT \
+  void accept(Visitor &v) override; \
+  void accept(CodeGenVisitor &v) const override;
 
 // TODO delete copy and move ctors
 
@@ -34,6 +37,7 @@ class Type {
 public:
   virtual ~Type() = default;
   virtual void accept(Visitor &v) = 0;
+  virtual void accept(CodeGenVisitor &v) const = 0;
 
   // TODO don't always return a copy for name()
   virtual std::string name() const = 0;

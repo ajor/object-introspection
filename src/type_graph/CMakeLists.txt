@@ -1,12 +1,14 @@
 add_library(type_graph
   AlignmentCalc.cpp
   DrgnParser.cpp
+  Flattener.cpp
+  GenDecls.cpp
+  GenDefs.cpp
   NameGen.cpp
   PassManager.cpp
   Printer.cpp
-  TopoSorter.cpp
-  Flattener.cpp
   RemoveTopLevelPointer.cpp
+  TopoSorter.cpp
   TypeIdentifier.cpp
   Types.cpp
 )

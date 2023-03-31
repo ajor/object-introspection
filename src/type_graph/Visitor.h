@@ -82,4 +82,23 @@ public:
   }
 };
 
+/*
+ * CodeGenVisitor
+ *
+ * Visitor base class for walking a type graph without modifying it.
+ */
+class CodeGenVisitor {
+public:
+  virtual ~CodeGenVisitor() = default;
+
+  // TODO work out how to get rid of this "2"
+  void visit2(const Type &type) {
+    type.accept(*this);
+  }
+
+#define X(OI_TYPE_NAME) virtual void visit(const OI_TYPE_NAME &) { }
+OI_TYPE_LIST
+#undef X
+};
+
 } // namespace type_graph

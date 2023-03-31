@@ -10,6 +10,8 @@
 #include "type_graph/AlignmentCalc.h"
 #include "type_graph/DrgnParser.h"
 #include "type_graph/Flattener.h"
+#include "type_graph/GenDecls.h"
+#include "type_graph/GenDefs.h"
 #include "type_graph/NameGen.h"
 #include "type_graph/RemoveTopLevelPointer.h"
 #include "type_graph/TopoSorter.h"
@@ -89,8 +91,9 @@ std::string CodeGen::generate(drgn_type *drgnType) {
   FuncGen::DefineEncodeDataSize(code);
   FuncGen::DefineStoreData(code);
   FuncGen::DefineAddData(code);
-  code += classDecls();
-  code += classDefs();
+  GenDecls::run(typeGraph_, code);
+  GenDefs::run(typeGraph_, code);
+
 
   code += R"(
     template <typename T>
@@ -146,20 +149,6 @@ std::string CodeGen::generate(drgn_type *drgnType) {
 
   std::cout << code;
   return code;
-}
-
-std::string decl(const Class &c) {
-  return "struct " + c.name() + ";\n";
-}
-
-std::string def(const Class &c) {
-  // TODO use Class.kind_
-  std::string str = "struct " + c.name() + " {\n";
-  for (const auto &mem : c.members) {
-    str += "  " + mem.type->name() + " " + mem.name + ";\n";
-  }
-  str += "};\n";
-  return str;
 }
 
 std::string getClassSizeFuncDecl(const Class &c) {
@@ -236,34 +225,6 @@ std::string CodeGen::includes() {
   }
 
   return str;
-}
-
-std::string CodeGen::classDecls() {
-  std::string decls;
-
-//  for (const auto c : type_graph_.classes()) {
-//    decls += decl(*c);
-//  }
-  for (const auto t : typeGraph_.finalTypes) {
-    if (const auto *c = dynamic_cast<Class*>(&t.get()))
-      decls += decl(*c);
-  }
-
-  return decls;
-}
-
-std::string CodeGen::classDefs() {
-  std::string defs;
-
-//  for (const auto c : type_graph_.classes()) {
-//    defs += def(*c);
-//  }
-  for (const auto t : typeGraph_.finalTypes) {
-    if (const auto *c = dynamic_cast<Class*>(&t.get()))
-      defs += def(*c);
-  }
-
-  return defs;
 }
 
 std::string CodeGen::getSizeFuncDecls() {

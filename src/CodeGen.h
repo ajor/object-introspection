@@ -35,7 +35,6 @@ void loadConfig(const T &containerConfigPaths) {
 private:
   std::string includes();
   std::string classDecls();
-  std::string classDefs();
   std::string getSizeFuncDecls();
   std::string getSizeFuncDefs();
   void registerContainer(const fs::path &path);
