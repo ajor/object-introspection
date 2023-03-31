@@ -3,6 +3,7 @@ typeName = "std::queue<"
 ctype = "CONTAINER_ADAPTER_TYPE"
 header = "queue"
 ns = ["namespace std"]
+underlying_container_index = 1
 
 # Old:
 ## TODO new must handle container adapters

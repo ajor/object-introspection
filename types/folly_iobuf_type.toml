@@ -7,7 +7,6 @@ header = "folly/io/IOBuf.h"
 ns = ["folly::IOBuf"]
 replaceTemplateParamIndex = []
 # allocatorIndex = 0
-# underlyingContainerIndex = 0
 
 [codegen]
 decl = """

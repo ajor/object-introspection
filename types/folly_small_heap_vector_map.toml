@@ -6,7 +6,6 @@ header = "folly/container/heap_vector_types.h"
 ns = ["folly::small_heap_vector_map"]
 replaceTemplateParamIndex = []
 # allocatorIndex = 0
-# underlyingContainerIndex = 0
 
 [codegen]
 decl = """

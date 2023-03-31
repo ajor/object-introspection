@@ -6,7 +6,6 @@ header = "folly/sorted_vector_types.h"
 ns = ["namespace std", "folly::sorted_vector_map"]
 replaceTemplateParamIndex = []
 # allocatorIndex = 0
-# underlyingContainerIndex = 0
 
 [codegen]
 decl = """

@@ -96,6 +96,7 @@ std::string CodeGen::generate(drgn_type *drgnType) {
   FuncGen::DefineEncodeDataSize(code);
   FuncGen::DefineStoreData(code);
   FuncGen::DefineAddData(code);
+  FuncGen::DeclareGetContainer(code);
   GenDecls::run(typeGraph_, code);
   GenDefs::run(typeGraph_, code);
 

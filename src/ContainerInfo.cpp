@@ -244,6 +244,8 @@ ContainerInfo::ContainerInfo(const fs::path& path) {
     });
   }
 
+  underlyingContainerIndex = info["underlying_container_index"].value<size_t>();
+
   if (!container["codegen"].is_table()) {
     // TODO throw
     LOG(ERROR) << "a container info file requires a `codegen` table";

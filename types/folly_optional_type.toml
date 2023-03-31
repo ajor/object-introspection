@@ -6,7 +6,6 @@ header = "folly/Optional.h"
 ns = ["folly::Optional"]
 replaceTemplateParamIndex = []
 # allocatorIndex = 0
-# underlyingContainerIndex = 0
 
 [codegen]
 decl = """
