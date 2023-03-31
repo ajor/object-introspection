@@ -195,7 +195,8 @@ public:
   DECLARE_ACCEPT
 
   virtual std::string name() const override {
-    return elementType_->name() + "[" + std::to_string(len_) + "]";
+    return "OIArray<" + elementType_->name() + ", " + std::to_string(len_) + ">";
+//    return elementType_->name() + "[" + std::to_string(len_) + "]";
   }
 
   virtual size_t size() const override {

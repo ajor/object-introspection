@@ -73,6 +73,11 @@ std::string CodeGen::generate(drgn_type *drgnType) {
             __jlogptr((uintptr_t)ptr);        \
           }                                   \
         } while (false)
+
+      template<typename T, int N>
+      struct OIArray {
+        T vals[N];
+      };
     )";
   } else {
     code += R"(
@@ -103,6 +108,9 @@ std::string CodeGen::generate(drgn_type *drgnType) {
     void getSizeType(/*const*/ T* s_ptr, size_t& returnArg);
 
     void getSizeType(const void *s_ptr, size_t& returnArg);
+
+    template <typename T, int N>
+    void getSizeType(const OIArray<T,N>& container, size_t& returnArg);
   )";
 
   code += getSizeFuncDecls();
@@ -135,6 +143,19 @@ std::string CodeGen::generate(drgn_type *drgnType) {
       JLOG("void ptr @");
       JLOGPTR(s_ptr);
       StoreData((uintptr_t)(s_ptr), returnArg);
+    }
+
+    template <typename T, int N>
+    void getSizeType(const OIArray<T,N>& container, size_t& returnArg)
+    {
+      SAVE_DATA((uintptr_t)N);
+      SAVE_SIZE(sizeof(container));
+
+      for (size_t i=0; i<N; i++) {
+          // undo the static size that has already been added per-element
+          SAVE_SIZE(-sizeof(container.vals[i]));
+          getSizeType(container.vals[i], returnArg);
+      }
     }
   )";
 
