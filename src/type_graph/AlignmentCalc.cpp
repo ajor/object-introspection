@@ -24,8 +24,11 @@ void AlignmentCalc::calculateAlignments(const std::vector<ref<Type>> &types) {
   }
 };
 
-// TODO check what happens with cycles (probably broken)
 void AlignmentCalc::visit(Type &type) {
+  if (visited_.count(&type) != 0)
+    return;
+
+  visited_.insert(&type);
   type.accept(*this);
 }
 

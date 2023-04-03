@@ -1,6 +1,7 @@
 #pragma once
 
 #include <functional>
+#include <unordered_set>
 #include <vector>
 
 #include "PassManager.h"
@@ -22,6 +23,9 @@ public:
 
   void visit(Type &type) override;
   void visit(Class &c) override;
+
+private:
+  std::unordered_set<Type*> visited_;
 };
 
 } // namespace type_graph
