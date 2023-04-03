@@ -25,14 +25,14 @@ protected:
     // TODO How do we free drgn memory?
   }
 
-  void test(std::string_view function, std::string_view expected);
+  void test(std::string_view function, std::string_view expected, bool chaseRawPointers=true);
 
   static SymbolService *symbols_;
 };
 
 SymbolService *DrgnParserTest::symbols_ = nullptr;
 
-void DrgnParserTest::test(std::string_view function, std::string_view expected) {
+void DrgnParserTest::test(std::string_view function, std::string_view expected, bool chaseRawPointers) {
   irequest req{"entry", std::string{function}, "arg0"};
   auto drgnRoot = symbols_->getRootType(req);
 
@@ -47,7 +47,7 @@ void DrgnParserTest::test(std::string_view function, std::string_view expected) 
   std::vector<ContainerInfo> containers;
   containers.emplace_back(std::move(std_vector));
 
-  DrgnParser drgnParser(typeGraph, containers, true); // TODO test chaseRawPointers
+  DrgnParser drgnParser(typeGraph, containers, chaseRawPointers);
   Type *type = drgnParser.parse(drgnRoot->type.type);
 
   std::stringstream out;
@@ -217,7 +217,6 @@ TEST_F(DrgnParserTest, ArrayDirect) {
 }
 
 TEST_F(DrgnParserTest, Pointer) {
-  GTEST_SKIP() << "Need to setup chase-follow-pointers setting";
   test("oid_test_case_pointers_struct_vector_ptr", R"(
 [0] Pointer
 [1]   Struct: VectorPtr (size: 8)
@@ -237,7 +236,7 @@ TEST_F(DrgnParserTest, PointerNoFollow) {
 [1]   Struct: VectorPtr (size: 8)
         Member: vec (offset: 0)
           Primitive: uintptr_t
-)");
+)", false);
 }
 
 TEST_F(DrgnParserTest, PointerIncomplete) {
@@ -246,13 +245,12 @@ TEST_F(DrgnParserTest, PointerIncomplete) {
 )");
 }
 
-TEST_F(DrgnParserTest, Cycle) { // TODO switch this integration test to use "int" instead uint64_t", to remove typedefs
-  GTEST_SKIP() << "Cycle test needs updating";
+TEST_F(DrgnParserTest, Cycle) {
   test("oid_test_case_cycles_raw_ptr", R"(
 [0] Pointer
 [1]   Struct: RawNode (size: 16)
         Member: value (offset: 0)
-          Primitive: int64_t
+          Primitive: int32_t
         Member: next (offset: 8)
 [2]       Pointer
             [1]

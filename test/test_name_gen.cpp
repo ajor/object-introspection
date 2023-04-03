@@ -176,7 +176,7 @@ TEST(NameGenTest, Array) {
   EXPECT_EQ(myparam1->name(), "MyParam_0");
   EXPECT_EQ(myparam2->name(), "MyParam_1");
   EXPECT_EQ(mycontainer->name(), "std::vector<MyParam_0, MyParam_1>");
-  EXPECT_EQ(myarray->name(), "std::vector<MyParam_0, MyParam_1>[5]");
+  EXPECT_EQ(myarray->name(), "OIArray<std::vector<MyParam_0, MyParam_1>, 5>");
 }
 
 TEST(NameGenTest, Typedef) {
