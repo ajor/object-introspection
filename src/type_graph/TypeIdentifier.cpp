@@ -68,7 +68,11 @@ void TypeIdentifier::visit(Container &c) {
         c.templateParams.erase(c.templateParams.begin()+i, c.templateParams.end());
       }
       else {
-        auto *dummy = make_type<Dummy>(param.type->size(), param.type->align());
+        size_t size = param.type->size();
+        if (size == 1) { // TODO this is a hack
+          size = 0;
+        }
+        auto *dummy = make_type<Dummy>(size, param.type->align());
         c.templateParams[i] = dummy;
       }
     }

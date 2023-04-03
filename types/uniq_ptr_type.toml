@@ -3,6 +3,7 @@ typeName = "std::unique_ptr"
 ctype = "UNIQ_PTR_TYPE"
 header = "memory"
 ns = ["namespace std"]
+stub_template_params = [1]
 
 # Old:
 ## TODO what about Deleter (idx 1)?
