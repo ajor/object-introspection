@@ -25,6 +25,22 @@ using namespace type_graph;
 template <typename T>
 using ref = std::reference_wrapper<T>;
 
+namespace {
+void genStaticAssertsClass(const Class& c, std::string& code) {
+  code += "static_assert(sizeof(" + c.name() + ") == " + std::to_string(c.size()) + ", \"Unexpected size of struct " + c.name() + "\");\n";
+  for (const auto &member : c.members) {
+    code += "static_assert(offsetof(" + c.name() + ", " + member.name + ") == " + std::to_string(member.offset) + ", \"Unexpected offset of " + c.name() + "::" + member.name + "\");\n";
+  }
+}
+
+void genStaticAsserts(const TypeGraph& typeGraph, std::string& code) {
+  for (const auto t : typeGraph.finalTypes) {
+    if (const auto *c = dynamic_cast<Class*>(&t.get()))
+      genStaticAssertsClass(*c, code);
+  }
+}
+} // namespace
+
 std::string CodeGen::generate(drgn_type *drgnType) {
   // TODO wrap in try-catch
   // This scope is unrealted to the above comment - it is to avoid parsedRoot being available elsewhere
@@ -99,6 +115,7 @@ std::string CodeGen::generate(drgn_type *drgnType) {
   FuncGen::DeclareGetContainer(code);
   GenDecls::run(typeGraph_, code);
   GenDefs::run(typeGraph_, code);
+  genStaticAsserts(typeGraph_, code);
 
 
   code += R"(
@@ -182,6 +199,8 @@ std::string getClassSizeFuncDecl(const Class &c) {
 std::string getClassSizeFuncDef(const Class &c) {
   std::string str = "void getSizeType(const " + c.name() + " &t, size_t &returnArg) {\n";
   for (const auto &member : c.members) {
+    str += "  JLOG(\"" + member.name + " @\");\n";
+    str += "  JLOGPTR(&t." + member.name + ");\n";
     str += "  getSizeType(t." + member.name + ", returnArg);\n";
   }
   str += "}\n";
