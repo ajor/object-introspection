@@ -42,6 +42,15 @@ void NameGen::removeTemplateParams(std::string &name) {
 }
 
 void NameGen::visit(Class &c) {
+  // Append an incrementing number to ensure we don't get duplicates
+  c.setName(c.name() + "_" + std::to_string(n++));
+
+  // Deduplicate member names. Duplicates may be present after flattening.
+  for (size_t i=0; i<c.members.size(); i++) {
+    c.members[i].name += "_" + std::to_string(i);
+  }
+
+
   for (const auto &param : c.templateParams) {
     visit(*param.type);
   }
@@ -51,35 +60,6 @@ void NameGen::visit(Class &c) {
   for (const auto &member : c.members) {
     visit(*member.type);
   }
-
-  // Deduplicate member names. Duplicates may be present after flattening.
-  for (size_t i=0; i<c.members.size(); i++) {
-    c.members[i].name += "_" + std::to_string(i);
-  }
-
-  // Build a name for this class based on the types of its template paramters
-  std::string name = c.name();
-  removeTemplateParams(name);
-
-  name.push_back('_');
-  for (const auto &param : c.templateParams) {
-    name += param.type->name();
-    name.push_back('_');
-  }
-
-  // Append an incrementing number to ensure we don't get duplicates
-  name += std::to_string(n++);
-
-  // Replace illegal characters in the computed name
-  for (size_t i=0; i<name.size(); i++) {
-    if (name[i] == ':' ||
-        name[i] == '<' ||
-        name[i] == '>') {
-      name[i] = '_';
-    }
-  }
-
-  c.setName(name);
 }
 
 void NameGen::visit(Container &c) {

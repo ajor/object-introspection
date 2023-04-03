@@ -22,9 +22,9 @@ TEST(NameGenTest, ClassParams) {
   NameGen nameGen;
   nameGen.generateNames({*myclass});
 
-  EXPECT_EQ(myparam1->name(), "MyParam_0");
-  EXPECT_EQ(myparam2->name(), "MyParam_1");
-  EXPECT_EQ(myclass->name(), "MyClass_MyParam_0_MyParam_1_2");
+  EXPECT_EQ(myclass->name(), "MyClass_0");
+  EXPECT_EQ(myparam1->name(), "MyParam_1");
+  EXPECT_EQ(myparam2->name(), "MyParam_2");
 }
 
 TEST(NameGenTest, ClassContainerParam) {
@@ -38,8 +38,8 @@ TEST(NameGenTest, ClassContainerParam) {
   NameGen nameGen;
   nameGen.generateNames({*myclass});
 
+  EXPECT_EQ(myclass->name(), "MyClass_0");
   EXPECT_EQ(myparam->name(), "std::vector<int32_t>");
-  EXPECT_EQ(myclass->name(), "MyClass_std__vector_int32_t__0");
 }
 
 TEST(NameGenTest, ClassParents) {
@@ -52,27 +52,12 @@ TEST(NameGenTest, ClassParents) {
   NameGen nameGen;
   nameGen.generateNames({*myclass});
 
-  EXPECT_EQ(myparent1->name(), "MyParent_0");
-  EXPECT_EQ(myparent2->name(), "MyParent_1");
-  EXPECT_EQ(myclass->name(), "MyClass_2");
+  EXPECT_EQ(myclass->name(), "MyClass_0");
+  EXPECT_EQ(myparent1->name(), "MyParent_1");
+  EXPECT_EQ(myparent2->name(), "MyParent_2");
 }
 
 TEST(NameGenTest, ClassMembers) {
-  auto mymember1 = std::make_unique<Class>(Class::Kind::Struct, "MyMember", 13);
-  auto mymember2 = std::make_unique<Class>(Class::Kind::Struct, "MyMember", 13);
-  auto myclass = std::make_unique<Class>(Class::Kind::Struct, "MyClass", 13);
-  myclass->members.push_back(Member{mymember1.get(), "mem1", 0});
-  myclass->members.push_back(Member{mymember2.get(), "mem2", 0});
-
-  NameGen nameGen;
-  nameGen.generateNames({*myclass});
-
-  EXPECT_EQ(mymember1->name(), "MyMember_0");
-  EXPECT_EQ(mymember2->name(), "MyMember_1");
-  EXPECT_EQ(myclass->name(), "MyClass_2");
-}
-
-TEST(NameGenTest, ClassMembersDuplicateName) {
   auto mymember1 = std::make_unique<Class>(Class::Kind::Struct, "MyMember", 13);
   auto mymember2 = std::make_unique<Class>(Class::Kind::Struct, "MyMember", 13);
   auto myclass = std::make_unique<Class>(Class::Kind::Struct, "MyClass", 13);
@@ -84,11 +69,11 @@ TEST(NameGenTest, ClassMembersDuplicateName) {
   NameGen nameGen;
   nameGen.generateNames({*myclass});
 
-  EXPECT_EQ(mymember1->name(), "MyMember_0");
-  EXPECT_EQ(mymember2->name(), "MyMember_1");
+  EXPECT_EQ(myclass->name(), "MyClass_0");
   EXPECT_EQ(myclass->members[0].name, "mem_0");
   EXPECT_EQ(myclass->members[1].name, "mem_1");
-  EXPECT_EQ(myclass->name(), "MyClass_2");
+  EXPECT_EQ(mymember1->name(), "MyMember_1");
+  EXPECT_EQ(mymember2->name(), "MyMember_2");
 }
 
 TEST(NameGenTest, ContainerParams) {
@@ -234,4 +219,31 @@ TEST(NameGenTest, DummyAllocator) {
   EXPECT_EQ(myparam2->name(), "MyParam_1");
   EXPECT_EQ(mycontainer->name(), "std::vector<MyParam_0, MyParam_1>");
   EXPECT_EQ(myalloc->name(), "std::allocator<std::vector<MyParam_0, MyParam_1>>");
+}
+
+TEST(NameGenTest, Cycle) {
+  auto classA = std::make_unique<Class>(Class::Kind::Class, "ClassA", 69);
+  auto classB = std::make_unique<Class>(Class::Kind::Class, "ClassB", 69);
+  auto ptrA = std::make_unique<Pointer>(classA.get());
+  classA->members.push_back(Member(classB.get(), "b", 0));
+  classB->members.push_back(Member(ptrA.get(), "a", 0));
+
+  NameGen nameGen;
+  nameGen.generateNames({*classA});
+
+  EXPECT_EQ(classA->name(), "ClassA_0");
+  EXPECT_EQ(classB->name(), "ClassB_1");
+}
+
+TEST(NameGenTest, ContainerCycle) {
+  auto container = std::make_unique<Container>(vectorInfo());
+  auto myclass = std::make_unique<Class>(Class::Kind::Class, "MyClass", 69);
+  myclass->members.push_back(Member(container.get(), "c", 0));
+  container->templateParams.push_back(TemplateParam(myclass.get()));
+
+  NameGen nameGen;
+  nameGen.generateNames({*myclass});
+
+  EXPECT_EQ(myclass->name(), "MyClass_0");
+  EXPECT_EQ(container->name(), "std::vector<MyClass_0>");
 }
