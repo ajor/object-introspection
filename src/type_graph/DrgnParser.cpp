@@ -60,10 +60,24 @@ Type *DrgnParser::parse(struct drgn_type *root) {
   return enumerateType(root);
 }
 
+namespace {
+bool isDrgnSizeComplete(struct drgn_type *type) {
+  uint64_t sz;
+  struct drgn_error *err = drgn_type_sizeof(type, &sz);
+  return err == nullptr;
+
+  // TODO this ignores sizeMap
+}
+} // namespace
+
 Type *DrgnParser::enumerateType(struct drgn_type *type) {
   // Avoid re-enumerating an already-processsed type
   if (auto it = drgn_types_.find(type); it != drgn_types_.end())
     return it->second;
+
+  if (!isDrgnSizeComplete(type)) {
+    return make_type<Primitive>(nullptr, Primitive::Kind::Void);
+  }
 
   enum drgn_type_kind kind = drgn_type_kind(type);
   Type *t = nullptr;
@@ -325,13 +339,9 @@ void DrgnParser::enumerateClassFunctions(struct drgn_type *type, std::vector<Fun
 
 Enum *DrgnParser::enumerateEnum(struct drgn_type *type) {
   // TODO anonymous enums
+  // TODO incomplete enum?
   std::string name = drgn_type_tag(type);
-
-  uint64_t size;
-  struct drgn_error *err = drgn_type_sizeof(type, &size);
-  if (err)
-    abort(); // TODO
-
+  uint64_t size = get_drgn_type_size(type);;
   return make_type<Enum>(type, name, size);
 }
 
@@ -342,14 +352,6 @@ Typedef *DrgnParser::enumerateTypedef(struct drgn_type *type) {
   struct drgn_type *underlyingType = drgn_type_type(type).type;
   auto t = enumerateType(underlyingType);
   return make_type<Typedef>(type, name, t);
-}
-
-bool isDrgnSizeComplete(struct drgn_type *type) {
-  uint64_t sz;
-  struct drgn_error *err = drgn_type_sizeof(type, &sz);
-  return err == nullptr;
-
-  // TODO this ignores sizeMap
 }
 
 // TODO will have to do something about pointers in the visitor classes
@@ -364,10 +366,6 @@ Type *DrgnParser::enumeratePointer(struct drgn_type *type) {
   struct drgn_type *pointeeType = drgn_type_type(type).type;
 
   // TODO why was old CodeGen following funciton pointers?
-
-  if (!isDrgnSizeComplete(pointeeType)) {
-    return make_type<Primitive>(nullptr, Primitive::Kind::UIntPtr);
-  }
 
   Type *t = enumerateType(pointeeType);
   return make_type<Pointer>(type, t);

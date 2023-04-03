@@ -108,7 +108,7 @@ std::string CodeGen::generate(drgn_type *drgnType) {
     template<typename T>
     void getSizeType(/*const*/ T* s_ptr, size_t& returnArg);
 
-    void getSizeType(const void *s_ptr, size_t& returnArg);
+    void getSizeType(/*const*/ void *s_ptr, size_t& returnArg);
 
     template <typename T, int N>
     void getSizeType(const OIArray<T,N>& container, size_t& returnArg);
@@ -139,7 +139,7 @@ std::string CodeGen::generate(drgn_type *drgnType) {
       }
     }
 
-    void getSizeType(const void *s_ptr, size_t& returnArg)
+    void getSizeType(/*const*/ void *s_ptr, size_t& returnArg)
     {
       JLOG("void ptr @");
       JLOGPTR(s_ptr);
