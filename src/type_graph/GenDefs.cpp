@@ -15,9 +15,9 @@ void GenDefs::run(TypeGraph &typeGraph, std::string &out) {
 }
 
 void GenDefs::visit(const Class &c) {
-  out_ += "struct " + c.name() + " {\n";
+  out_ += "struct alignas(" + std::to_string(c.align()) + ") " + c.name() + " {\n";
   for (const auto &mem : c.members) {
-    out_ += "  " + mem.type->name() + " " + mem.name + ";\n";
+    out_ += "  alignas(" + std::to_string(mem.align) + ") " + mem.type->name() + " " + mem.name + ";\n";
   }
   out_ += "};\n";
 }
