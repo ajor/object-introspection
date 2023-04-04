@@ -27,13 +27,25 @@ void print(const TypeGraph &typeGraph) {
 }
 } // namespace
 
+const std::string separator = "----------------";
+
 void PassManager::run(TypeGraph &typeGraph, bool debug) {
-  print(typeGraph);
-  for (auto &pass : passes_) {
+  if (debug) {
+    std::cout << separator << std::endl;
+    std::cout << "Parsed Type Graph:" << std::endl;
+    std::cout << separator << std::endl;
+    print(typeGraph);
+    std::cout << separator << std::endl;
+  }
+
+  for (size_t i=0; i<passes_.size(); i++) {
+    auto& pass = passes_[i];
     pass.run(typeGraph);
     if (debug) {
-      std::cout << "Running pass: " << pass.name() << std::endl;
+      std::cout << "Running pass (" << i+1 << "/" << passes_.size() << "): " << pass.name() << std::endl;
+      std::cout << separator << std::endl;
       print(typeGraph);
+      std::cout << separator << std::endl;
     }
   }
 }
