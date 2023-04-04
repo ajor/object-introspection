@@ -42,8 +42,11 @@ void NameGen::removeTemplateParams(std::string &name) {
 }
 
 void NameGen::visit(Class &c) {
+  std::string name = c.name();
+  removeTemplateParams(name);
+
   // Append an incrementing number to ensure we don't get duplicates
-  c.setName(c.name() + "_" + std::to_string(n++));
+  c.setName(name + "_" + std::to_string(n++));
 
   // Deduplicate member names. Duplicates may be present after flattening.
   for (size_t i=0; i<c.members.size(); i++) {

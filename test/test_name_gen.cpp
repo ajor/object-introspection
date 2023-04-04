@@ -16,7 +16,7 @@ Container getVector() {
 TEST(NameGenTest, ClassParams) {
   auto myparam1 = std::make_unique<Class>(Class::Kind::Struct, "MyParam", 13);
   auto myparam2 = std::make_unique<Class>(Class::Kind::Struct, "MyParam", 13);
-  auto myclass = std::make_unique<Class>(Class::Kind::Struct, "MyClass", 13);
+  auto myclass = std::make_unique<Class>(Class::Kind::Struct, "MyClass<MyParam, MyParam>", 13);
   myclass->templateParams.push_back(myparam1.get());
   myclass->templateParams.push_back(myparam2.get());
 
