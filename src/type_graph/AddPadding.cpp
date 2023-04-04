@@ -38,6 +38,11 @@ void AddPadding::visit(Class &c) {
     visit(*member.type);
   }
 
+  if (c.kind() == Class::Kind::Union) {
+    // Don't padd unions
+    return;
+  }
+
   std::vector<Member> paddedMembers;
   paddedMembers.reserve(c.members.size());
   for (size_t i=0; i<c.members.size(); i++) {

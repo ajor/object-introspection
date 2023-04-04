@@ -15,7 +15,11 @@ void GenDecls::run(TypeGraph &typeGraph, std::string &out) {
 }
 
 void GenDecls::visit(const Class &c) {
-  out_ += "struct " + c.name() + ";\n";
+  if (c.kind() == Class::Kind::Union)
+    out_ += "union ";
+  else
+    out_ += "struct ";
+  out_ += c.name() + ";\n";
 }
 
 void GenDecls::visit(const Enum &e) {
