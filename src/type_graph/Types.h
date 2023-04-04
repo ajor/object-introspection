@@ -133,7 +133,7 @@ private:
 
 class Container : public Type {
 public:
-  Container(const ContainerInfo &containerInfo) : containerInfo_(containerInfo), name_(containerInfo.typeName) { }
+  Container(const ContainerInfo &containerInfo, size_t size) : containerInfo_(containerInfo), name_(containerInfo.typeName), size_(size) { }
 
   DECLARE_ACCEPT
 
@@ -150,7 +150,7 @@ public:
   }
 
   virtual size_t size() const override {
-    return 0; // TODO
+    return size_;
   }
 
   virtual uint64_t align() const override {
@@ -162,6 +162,7 @@ public:
 
 private:
   std::string name_;
+  size_t size_;
 };
 
 class Enum : public Type {

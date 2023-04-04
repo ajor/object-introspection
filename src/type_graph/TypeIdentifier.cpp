@@ -72,7 +72,7 @@ void TypeIdentifier::visit(Container &c) {
         if (size == 1) { // TODO this is a hack
           size = 0;
         }
-        auto *dummy = make_type<Dummy>(size, param.type->align());
+        auto *dummy = typeGraph_.make_type<Dummy>(size, param.type->align());
         c.templateParams[i] = dummy;
       }
     }

@@ -41,7 +41,7 @@ TEST(AlignmentCalcTest, StructInContainer) {
   myclass->members.push_back(Member(myint8.get(), "n", 0));
   myclass->members.push_back(Member(myint64.get(), "n", 0));
 
-  auto mycontainer = std::make_unique<Container>(ContainerInfo{});
+  auto mycontainer = std::make_unique<Container>(ContainerInfo{}, 8);
   mycontainer->templateParams.push_back(myclass.get());
 
   AlignmentCalc calc;

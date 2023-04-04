@@ -32,6 +32,7 @@ void AlignmentCalc::visit(Type &type) {
   type.accept(*this);
 }
 
+// TODO we will need to calculate alignment for c.templateParams too??
 void AlignmentCalc::visit(Class &c) {
   uint64_t alignment = 1;
   for (auto &member : c.members) {

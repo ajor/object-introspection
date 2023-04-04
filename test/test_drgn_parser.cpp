@@ -143,7 +143,7 @@ TEST_F(DrgnParserTest, InheritanceMultiple) {
 TEST_F(DrgnParserTest, Container) {
   test("oid_test_case_std_vector_int_empty", R"(
 [0] Pointer
-[1]   Container: std::vector
+[1]   Container: std::vector (size: 24)
         Param
           Primitive: int32_t
         Param
@@ -183,7 +183,7 @@ TEST_F(DrgnParserTest, Using) {
   test("oid_test_case_typedefs_using", R"(
 [0] Pointer
 [1]   Typedef: IntVector
-[2]     Container: std::vector
+[2]     Container: std::vector (size: 24)
           Param
             Primitive: int32_t
           Param
@@ -222,7 +222,7 @@ TEST_F(DrgnParserTest, Pointer) {
 [1]   Struct: VectorPtr (size: 8)
         Member: vec (offset: 0)
 [2]       Pointer
-[3]         Container: std::vector
+[3]         Container: std::vector (size: 24)
               Param
                 Primitive: int32_t
               Param
@@ -273,7 +273,7 @@ TEST_F(DrgnParserTest, ClassTemplateVector) {
 [0] Pointer
 [1]   Class: TemplatedClass1<std::vector<int, std::allocator<int> > > (size: 24)
         Param
-[2]       Container: std::vector
+[2]       Container: std::vector (size: 24)
             Param
               Primitive: int32_t
             Param

@@ -7,6 +7,7 @@
 #include "FuncGen.h"
 #include "SymbolService.h"
 // TODO put passes into their own directory/namespace
+#include "type_graph/AddPadding.h"
 #include "type_graph/AlignmentCalc.h"
 #include "type_graph/DrgnParser.h"
 #include "type_graph/Flattener.h"
@@ -54,6 +55,7 @@ std::string CodeGen::generate(drgn_type *drgnType) {
   PassManager pm;
   pm.addPass(Flattener::createPass());
   pm.addPass(TypeIdentifier::createPass(containerInfos_));
+  pm.addPass(AddPadding::createPass());
   pm.addPass(NameGen::createPass());
   pm.addPass(AlignmentCalc::createPass());
   pm.addPass(RemoveTopLevelPointer::createPass());

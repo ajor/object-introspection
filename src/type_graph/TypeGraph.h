@@ -24,6 +24,14 @@ public:
     rootTypes_.push_back(type);
   }
 
+  template <typename T, typename ...Args>
+  T *make_type(Args &&...args) {
+    auto type_unique_ptr = std::make_unique<T>(std::forward<Args>(args)...);
+    auto type_raw_ptr = type_unique_ptr.get();
+    types_.push_back(std::move(type_unique_ptr));
+    return type_raw_ptr;
+  }
+
   void add(std::unique_ptr<Type> type) {
     types_.push_back(std::move(type));
     // TODO this could put types into the appropriate vectors if needed

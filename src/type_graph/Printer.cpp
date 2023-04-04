@@ -43,7 +43,7 @@ void Printer::visit(Container &c) {
   if (prefix(&c))
     return;
 
-  out_ << "Container: " << c.name() << std::endl;
+  out_ << "Container: " << c.name() << " (size: " << c.size() << ")" << std::endl;
   for (const auto &param : c.templateParams) {
     print_param(param);
   }

@@ -1,10 +1,11 @@
 #include <gtest/gtest.h>
 
-#include "ContainerInfo.h"
 #include "type_graph/TopoSorter.h"
 #include "type_graph/Types.h"
 
 using namespace type_graph;
+
+Container getVector(); // TODO put in a header
 
 template <typename T>
 using ref = std::reference_wrapper<T>;
@@ -81,13 +82,11 @@ TEST(TopoSorterTest, TemplateParams) {
 }
 
 TEST(TopoSorterTest, Containers) {
-  ContainerInfo vectorInfo;
-  vectorInfo.typeName = "std::vector";
   auto myparam = std::make_unique<Class>(Class::Kind::Struct, "MyParam", 13);
-  auto mycontainer = std::make_unique<Container>(vectorInfo);
-  mycontainer->templateParams.push_back((myparam.get()));
+  auto mycontainer = getVector();
+  mycontainer.templateParams.push_back((myparam.get()));
 
-  test({*mycontainer}, {*myparam, *mycontainer});
+  test({mycontainer}, {*myparam, mycontainer});
 }
 
 TEST(TopoSorterTest, Arrays) {

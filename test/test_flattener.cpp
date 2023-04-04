@@ -1,11 +1,12 @@
 #include <gtest/gtest.h>
 
-#include "ContainerInfo.h"
 #include "type_graph/Flattener.h"
 #include "type_graph/Printer.h"
 #include "type_graph/Types.h"
 
 using namespace type_graph;
+
+Container getVector(); // TODO put in a header
 
 namespace {
 void test(std::vector<std::reference_wrapper<Type>> types, std::string_view expected) {
@@ -437,23 +438,21 @@ TEST(FlattenerTest, ContainerParam) {
   // Flattened:
   //   class A { int b; int a; };
   //   std::vector<A, int>
-  ContainerInfo vectorInfo;
-  vectorInfo.typeName = "std::vector";
   auto myint = std::make_unique<Primitive>(Primitive::Kind::Int32);
   auto classA = std::make_unique<Class>(Class::Kind::Class, "ClassA", 8);
   auto classB = std::make_unique<Class>(Class::Kind::Class, "ClassB", 4);
-  auto container = std::make_unique<Container>(vectorInfo);
+  auto container = getVector();
 
   classB->members.push_back(Member(myint.get(), "b", 0));
 
   classA->parents.push_back(Parent(classB.get(), 0));
   classA->members.push_back(Member(myint.get(), "a", 4));
 
-  container->templateParams.push_back(TemplateParam(classA.get()));
-  container->templateParams.push_back(TemplateParam(myint.get()));
+  container.templateParams.push_back(TemplateParam(classA.get()));
+  container.templateParams.push_back(TemplateParam(myint.get()));
 
-  test({*container}, R"(
-[0] Container: std::vector
+  test({container}, R"(
+[0] Container: std::vector (size: 24)
       Param
 [1]     Class: ClassA (size: 8)
           Member: b (offset: 0)
