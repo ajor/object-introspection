@@ -13,7 +13,8 @@ namespace type_graph {
 /*
  * AlignmentCalc
  *
- * TODO comment about class (and all other passes too)
+ * Calculates alignment information for types TODO finish comment
+ * TODO is this pass even needed??
  */
 class AlignmentCalc final : public RecursiveVisitor {
 public:

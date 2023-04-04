@@ -24,7 +24,11 @@ void Printer::visit(Class &c) {
       kind = "Union";
       break;
   }
-  out_ << kind << ": " << c.name() << " (size: " << c.size() << align_str(c.align()) << ")" << std::endl;
+  out_ << kind << ": " << c.name() << " (size: " << c.size() << align_str(c.align());
+  if (c.packed()) {
+    out_ << ", packed";
+  }
+  out_ << ")" << std::endl;
   for (const auto &param : c.templateParams) {
     print_param(param);
   }

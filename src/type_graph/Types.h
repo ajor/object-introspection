@@ -119,6 +119,14 @@ public:
     align_ = alignment;
   }
 
+  bool packed() const {
+    return packed_;
+  }
+
+  void setPacked() {
+    packed_ = true;
+  }
+
   std::vector<TemplateParam> templateParams;
   std::vector<Parent> parents; // Sorted by offset
   std::vector<Member> members; // Sorted by offset
@@ -129,6 +137,7 @@ private:
   std::string name_;
   size_t size_;
   uint64_t align_ = 0;
+  bool packed_ = false;
 };
 
 class Container : public Type {

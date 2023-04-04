@@ -16,12 +16,17 @@ void GenDefs::run(TypeGraph &typeGraph, std::string &out) {
 
 void GenDefs::visit(const Class &c) {
   if (c.kind() == Class::Kind::Union)
-    out_ += "union";
+    out_ += "union ";
   else
-    out_ += "struct";
-  out_ += " alignas(" + std::to_string(c.align()) + ") " + c.name() + " {\n";
+    out_ += "struct ";
+
+  if (c.packed()) {
+    out_ += "__attribute__((__packed__)) ";
+  }
+
+  out_ += c.name() + " {\n";
   for (const auto &mem : c.members) {
-    out_ += "  alignas(" + std::to_string(mem.align) + ") " + mem.type->name() + " " + mem.name + ";\n";
+    out_ += "  " + mem.type->name() + " " + mem.name + ";\n";
   }
   out_ += "};\n";
 }

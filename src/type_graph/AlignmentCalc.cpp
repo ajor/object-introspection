@@ -34,6 +34,9 @@ void AlignmentCalc::visit(Type &type) {
 
 // TODO we will need to calculate alignment for c.templateParams too??
 void AlignmentCalc::visit(Class &c) {
+  // AlignmentCalc should be run after Flattener
+  assert(c.parents.empty());
+
   uint64_t alignment = 1;
   for (auto &member : c.members) {
     if (member.align == 0) {
@@ -45,10 +48,11 @@ void AlignmentCalc::visit(Class &c) {
     alignment = std::max(alignment, member.align);
   }
 
-  // AlignmentCalc should be run after Flattener
-  assert(c.parents.empty());
-
   c.setAlign(alignment);
+
+  if (c.size() % c.align() != 0) {
+    c.setPacked();
+  }
 }
 
 } // namespace type_graph

@@ -28,9 +28,11 @@ void AddPadding::visit(Type &type) {
   type.accept(*this);
 }
 
+// TODO normalise pass names, e.g. Flattener -> Flatten, AlignmentCalc -> CalcAlignment
 void AddPadding::visit(Class &c) {
-  // AlignmentCalc should be run after Flattener
+  // AddPadding should be run after Flattener
   assert(c.parents.empty());
+
   for (auto& param : c.templateParams) {
     visit(*param.type);
   }
@@ -71,6 +73,5 @@ void AddPadding::visit(Class &c) {
 
   c.members = std::move(paddedMembers);
 }
-// TODO tests, padding in middle, padding at end
 
 } // namespace type_graph
