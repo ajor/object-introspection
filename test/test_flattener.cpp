@@ -640,8 +640,8 @@ TEST(FlattenerTest, Functions) {
 
   test({*classA}, R"(
 [0] Class: ClassA (size: 0)
-      Function: funcA (virtuality: 0)
-      Function: funcB (virtuality: 0)
-      Function: funcC (virtuality: 0)
+      Function: funcA
+      Function: funcB
+      Function: funcC
 )");
 }

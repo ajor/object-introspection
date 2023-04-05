@@ -9,6 +9,7 @@
 struct drgn_type;
 struct drgn_type_template_parameter;
 struct ContainerInfo;
+class SymbolService;
 
 namespace type_graph {
 
@@ -18,6 +19,7 @@ public:
   DrgnParser(TypeGraph &typeGraph, const std::vector<ContainerInfo> &containers, bool chaseRawPointers)
     : typeGraph_(typeGraph), containers_(containers), chaseRawPointers_(chaseRawPointers) { }
   Type *parse(struct drgn_type *root);
+  void enumerateChildClasses(SymbolService& symbols);
 
 private:
   Type      *enumerateType(struct drgn_type *type);
@@ -38,9 +40,16 @@ private:
   void enumerateClassMembers(struct drgn_type *type, std::vector<Member> &members);
   void enumerateClassFunctions(struct drgn_type *type, std::vector<Function> &functions);
 
+  void recordChildren(drgn_type* type);
+
   // Store a mapping of drgn types to type graph nodes for deduplication during
   // parsing. This stops us getting caught in cycles.
   std::unordered_map<struct drgn_type*, Type*> drgn_types_;
+
+  // Mapping of parent classes to child classes, using fully-qualified names for
+  // keys, as drgn pointers returned from a type iterator will not match those
+  // returned from enumerating types in the normal way.
+  std::unordered_map<std::string, std::vector<drgn_type*>> childClasses_;
 
   // TODO define in .cpp
   template <typename T, typename ...Args>

@@ -1,5 +1,6 @@
 #include "DrgnParser.h"
 #include "ContainerInfo.h"
+#include "SymbolService.h"
 
 extern "C" {
 #include <drgn.h>
@@ -149,6 +150,10 @@ Type *DrgnParser::enumerateClass(struct drgn_type *type) {
   // else this is an anonymous type
 
   auto size = get_drgn_type_size(type);
+  int virtuality = 0;
+  if (drgn_type_has_virtuality(type)) {
+      virtuality = drgn_type_virtuality(type);
+  }
 
   Class::Kind kind;
   switch (drgn_type_kind(type)) {
@@ -165,8 +170,9 @@ Type *DrgnParser::enumerateClass(struct drgn_type *type) {
       abort(); // TODO
   }
 
-  auto c = make_type<Class>(type, kind, name, size);
+  auto c = make_type<Class>(type, kind, name, size, virtuality);
 
+  //TODO remove or keep?
   //classes_.push_back(c);
 
   enumerateClassTemplateParams(type, c->templateParams);
@@ -407,6 +413,111 @@ bool DrgnParser::chasePointer() const {
   if (depth_ == 1)
     return true;
   return chaseRawPointers_;
+}
+
+namespace {
+drgn_type* drgnUnderlyingType(drgn_type* type) {
+  auto* underlyingType = type;
+
+  while (drgn_type_kind(underlyingType) == DRGN_TYPE_TYPEDEF) {
+    underlyingType = drgn_type_type(underlyingType).type;
+  }
+
+  return underlyingType;
+}
+} // namespace
+
+void DrgnParser::recordChildren(drgn_type* type) {
+  drgn_type_template_parameter* parents = drgn_type_parents(type);
+
+  for (size_t i = 0; i < drgn_type_num_parents(type); i++) {
+    drgn_qualified_type t{};
+
+    if (auto* err = drgn_template_parameter_type(&parents[i], &t);
+        err != nullptr) {
+      //      TODO useful error:
+//      LOG(ERROR) << "Error when looking up parent class for type " << type
+//                 << " err " << err->code << " " << err->message;
+      drgn_error_destroy(err);
+      continue;
+    }
+
+    drgn_type* parent = drgnUnderlyingType(t.type);
+    if (!isDrgnSizeComplete(parent)) {
+//      VLOG(1) << "Incomplete size for parent class (" << drgn_type_tag(parent)
+//              << ") of " << drgn_type_tag(type);
+      continue;
+    }
+
+    const char* parentName = drgn_type_tag(parent);
+    if (parentName == nullptr) {
+//      VLOG(1) << "No name for parent class (" << parent << ") of "
+//              << drgn_type_tag(type);
+      continue;
+    }
+
+    /*
+     * drgn pointers are not stable, so use string representation for reverse
+     * mapping for now. We need to find a better way of creating this
+     * childClasses map - ideally drgn would do this for us.
+     */
+    childClasses_[parentName].push_back(type);
+//    VLOG(1) << drgn_type_tag(type) << "(" << type << ") is a child of "
+//            << drgn_type_tag(parent) << "(" << parent << ")";
+  }
+}
+
+/*
+ * Build a mapping of Class -> Children
+ *
+ * drgn only gives us the mapping Class -> Parents, so we must iterate over all
+ * types in the program to build the reverse mapping.
+ */
+void DrgnParser::enumerateChildClasses(SymbolService& symbols) {
+  if ((setenv("DRGN_ENABLE_TYPE_ITERATOR", "1", 1)) < 0) {
+//    LOG(ERROR)
+//        << "Could not set DRGN_ENABLE_TYPE_ITERATOR environment variable";
+    abort();
+  }
+
+  drgn_type_iterator* typesIterator;
+  auto* prog = symbols.getDrgnProgram();
+  drgn_error* err = drgn_type_iterator_create(prog, &typesIterator);
+  if (err) {
+//    LOG(ERROR) << "Error initialising drgn_type_iterator: " << err->code << ", "
+//               << err->message;
+    drgn_error_destroy(err);
+    abort();
+  }
+
+  int i = 0;
+  int j = 0;
+  while (true) {
+    i++;
+    drgn_qualified_type* t;
+    err = drgn_type_iterator_next(typesIterator, &t);
+    if (err) {
+      //      TODO usful error:
+//      LOG(ERROR) << "Error from drgn_type_iterator_next: " << err->code << ", "
+//                 << err->message;
+      drgn_error_destroy(err);
+      continue;
+    }
+
+    if (!t) {
+      break;
+    }
+    j++;
+
+    auto kind = drgn_type_kind(t->type);
+    if (kind != DRGN_TYPE_CLASS && kind != DRGN_TYPE_STRUCT) {
+      continue;
+    }
+
+    recordChildren(t->type);
+  }
+
+  drgn_type_iterator_destroy(typesIterator);
 }
 
 } // namespace type_graph

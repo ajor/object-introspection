@@ -5,7 +5,6 @@
 #include <boost/format.hpp>
 
 #include "FuncGen.h"
-#include "SymbolService.h"
 // TODO put passes into their own directory/namespace
 #include "type_graph/AddPadding.h"
 #include "type_graph/AlignmentCalc.h"
@@ -34,10 +33,16 @@ void genStaticAssertsClass(const Class& c, std::string& code) {
   }
 }
 
+void genStaticAssertsContainer(const Container& c, std::string& code) {
+  code += "static_assert(sizeof(" + c.name() + ") == " + std::to_string(c.size()) + ", \"Unexpected size of container " + c.name() + "\");\n";
+}
+
 void genStaticAsserts(const TypeGraph& typeGraph, std::string& code) {
   for (const auto t : typeGraph.finalTypes) {
     if (const auto *c = dynamic_cast<Class*>(&t.get()))
       genStaticAssertsClass(*c, code);
+    if (const auto *c = dynamic_cast<Container*>(&t.get()))
+      genStaticAssertsContainer(*c, code);
   }
 }
 } // namespace
@@ -48,6 +53,9 @@ std::string CodeGen::generate(drgn_type *drgnType) {
   // because typeGraph.rootTypes() should be used instead, in case the root types have been modified
   {
     DrgnParser drgnParser(typeGraph_, containerInfos_, config_.chaseRawPointers);
+    if (config_.polymorphicInheritance) {
+      drgnParser.enumerateChildClasses(symbols_);
+    }
     Type *parsedRoot = drgnParser.parse(drgnType);
     typeGraph_.addRoot(*parsedRoot);
   }
@@ -193,19 +201,109 @@ std::string CodeGen::generate(drgn_type *drgnType) {
 }
 
 std::string getClassSizeFuncDecl(const Class &c) {
-  // TODO don't duplicate code from getClassSizeFuncDef
   std::string str = "void getSizeType(const " + c.name() + " &t, size_t &returnArg);\n";
   return str;
 }
 
-std::string getClassSizeFuncDef(const Class &c) {
-  std::string str = "void getSizeType(const " + c.name() + " &t, size_t &returnArg) {\n";
+namespace {
+/*
+ * Returns true if the provided class is "dynamic".
+ *
+ * From the Itanium C++ ABI, a dynamic class is defined as:
+ *   A class requiring a virtual table pointer (because it or its bases have
+ *   one or more virtual member functions or virtual base classes).
+ */
+bool isDynamic(const Class &c) {
+  // TODO check config.polymorphicInheritance setting
+  if (c.virtuality() != 0 /*DW_VIRTUALITY_none*/) {
+    // Virtual class - not fully supported by OI yet
+    return true;
+  }
+
+  for (const auto &func : c.functions) {
+    if (func.virtuality != 0 /*DW_VIRTUALITY_none*/) {
+      // Virtual function
+      return true;
+    }
+  }
+
+  return false;
+}
+} // namespace
+
+std::string CodeGen::getClassSizeFuncDef(const Class &c) {
+  std::string funcName = "getSizeType";
+  if (isDynamic(c)) {
+    funcName = "getSizeTypeConcrete";
+  }
+
+  std::string str = "void " + funcName + "(const " + c.name() + " &t, size_t &returnArg) {\n";
   for (const auto &member : c.members) {
     str += "  JLOG(\"" + member.name + " @\");\n";
     str += "  JLOGPTR(&t." + member.name + ");\n";
     str += "  getSizeType(t." + member.name + ", returnArg);\n";
   }
   str += "}\n";
+
+  if (isDynamic(c)) {
+    std::vector<SymbolInfo> childVtableAddrs;
+    childVtableAddrs.reserve(c.children.size());
+
+    for (const Class& child : c.children) {
+      //      TODO:
+//      auto fqChildName = *fullyQualifiedName(child);
+      auto fqChildName = "TODO - implement me";
+
+      // We must split this assignment and append because the C++ standard lacks
+      // an operator for concatenating std::string and std::string_view...
+      std::string childVtableName = "vtable for ";
+      childVtableName += fqChildName;
+
+      auto optVtableSym = symbols_.locateSymbol(childVtableName, true);
+      if (!optVtableSym) {
+//        LOG(ERROR) << "Failed to find vtable address for '" << childVtableName;
+//        LOG(ERROR) << "Falling back to non dynamic mode";
+        childVtableAddrs.clear(); // TODO why??
+        break;
+      }
+      childVtableAddrs.push_back(*optVtableSym);
+    }
+
+    str += "void getSizeType(const " + c.name() + " &t, size_t &returnArg) {\n";
+    str += "  auto *vptr = *reinterpret_cast<uintptr_t * const *>(&t);\n";
+    str += "  uintptr_t topOffset = *(vptr - 2);\n";
+    str += "  uintptr_t vptrVal = reinterpret_cast<uintptr_t>(vptr);\n";
+
+    for (size_t i = 0; i < c.children.size(); i++) {
+      // The vptr will point to *somewhere* in the vtable of this object's
+      // concrete class. The exact offset into the vtable can vary based on a
+      // number of factors, so we compare the vptr against the vtable range for
+      // each possible class to determine the concrete type.
+      //
+      // This works for C++ compilers which follow the GNU v3 ABI, i.e. GCC and
+      // Clang. Other compilers may differ.
+      const Class& child = c.children[i];
+      auto& vtableSym = childVtableAddrs[i];
+      uintptr_t vtableMinAddr = vtableSym.addr;
+      uintptr_t vtableMaxAddr = vtableSym.addr + vtableSym.size;
+      str += "  if (vptrVal >= 0x" +
+              (boost::format("%x") % vtableMinAddr).str() + " && vptrVal < 0x" +
+              (boost::format("%x") % vtableMaxAddr).str() + ") {\n";
+      str += "    SAVE_DATA(" + std::to_string(i) + ");\n";
+      str +=
+          "    uintptr_t baseAddress = reinterpret_cast<uintptr_t>(&t) + "
+          "topOffset;\n";
+      str += "    getSizeTypeConcrete(*reinterpret_cast<const " + child.name() +
+              "*>(baseAddress), returnArg);\n";
+      str += "    return;\n";
+      str += "  }\n";
+    }
+
+    str += "  SAVE_DATA(-1);\n";
+    str += "  getSizeTypeConcrete(t, returnArg);\n";
+    str += "}\n";
+  }
+
   return str;
 }
 

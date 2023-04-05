@@ -13,17 +13,17 @@ definitions = '''
   };
 
   struct MemberAlignment {
-    int c;
+    char c;
     alignas(32) char c32;
   };
 
   struct MemberAlignmentOverriden {
-    int c;
+    char c;
     alignas(32) Align16 alignmentIncreased;
   };
 
   struct alignas(128) AlignedStructMemberAlignLower {
-    int c;
+    char c;
     alignas(32) char c32;
   };
 '''

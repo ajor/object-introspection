@@ -280,8 +280,8 @@ TEST_F(DrgnParserTest, ClassTemplateVector) {
               Dummy (size: 1)
         Member: val (offset: 0)
           [2]
-        Function: ~TemplatedClass1 (virtuality: 0)
-        Function: TemplatedClass1 (virtuality: 0)
+        Function: ~TemplatedClass1
+        Function: TemplatedClass1
 )");
 }
 
@@ -332,7 +332,7 @@ TEST_F(DrgnParserTest, ClassTemplateValue) {
 //)");
 //}
 
-TEST_F(DrgnParserTest, Alignment) {
+TEST_F(DrgnParserTest, StructAlignment) {
   GTEST_SKIP() << "Alignment not reported by drgn yet";
   test("oid_test_case_alignment_struct", R"(
 [0] Pointer
@@ -341,4 +341,34 @@ TEST_F(DrgnParserTest, Alignment) {
           Primitive: int8_t
 )");
 }
-// TODO member alignment
+
+TEST_F(DrgnParserTest, MemberAlignment) {
+  GTEST_SKIP() << "Alignment not reported by drgn yet";
+  test("oid_test_case_alignment_member_alignment", R"(
+[0] Pointer
+[1]   Struct: MemberAlignment (size: 64)
+        Member: c (offset: 0)
+          Primitive: int8_t
+        Member: c32 (offset: 32, align: 32)
+          Primitive: int8_t
+)");
+}
+
+TEST_F(DrgnParserTest, VirtualFunctions) {
+  test("oid_test_case_inheritance_polymorphic_a_as_a", R"(
+[0] Pointer
+[1]   Class: A (size: 16)
+        Member: _vptr$A (offset: 0)
+[2]       Pointer
+[3]         Pointer
+              Primitive: void
+        Member: int_a (offset: 8)
+          Primitive: int32_t
+        Function: ~A (virtual)
+        Function: myfunc (virtual)
+        Function: A
+        Function: A
+)");
+}
+
+// TODO test virtual classes

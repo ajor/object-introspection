@@ -41,6 +41,9 @@ void Printer::visit(Class &c) {
   for (const auto &function : c.functions) {
     print_function(function);
   }
+  for (auto &child : c.children) {
+    print_child(child);
+  }
 }
 
 void Printer::visit(Container &c) {
@@ -151,7 +154,18 @@ void Printer::print_member(const Member &member) {
 void Printer::print_function(const Function &function) {
   depth_++;
   prefix();
-  out_ << "Function: " << function.name << " (virtuality: " << function.virtuality << ")" << std::endl;
+  out_ << "Function: " << function.name;
+  if (function.virtuality != 0)
+    out_ << " (virtual)";
+  out_ << std::endl;
+  depth_--;
+}
+
+void Printer::print_child(Class &child) {
+  depth_++;
+  prefix();
+  out_ << "Child:";
+  print(child);
   depth_--;
 }
 

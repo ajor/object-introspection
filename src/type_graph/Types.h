@@ -89,8 +89,8 @@ public:
     Union,
   };
 
-  Class(Kind kind, const std::string &name, size_t size)
-    : kind_(kind), name_(name), size_(size) {
+  Class(Kind kind, const std::string &name, size_t size, int virtuality=0)
+    : kind_(kind), name_(name), size_(size), virtuality_(virtuality) {
   }
 
   DECLARE_ACCEPT
@@ -119,6 +119,10 @@ public:
     align_ = alignment;
   }
 
+  int virtuality() const {
+    return virtuality_;
+  }
+
   bool packed() const {
     return packed_;
   }
@@ -131,11 +135,13 @@ public:
   std::vector<Parent> parents; // Sorted by offset
   std::vector<Member> members; // Sorted by offset
   std::vector<Function> functions;
+  std::vector<std::reference_wrapper<Class>> children; // Only for dynamic classes
 
 private:
   Kind kind_;
   std::string name_;
   size_t size_;
+  int virtuality_;
   uint64_t align_ = 0;
   bool packed_ = false;
 };
