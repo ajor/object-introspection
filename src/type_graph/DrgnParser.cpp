@@ -333,7 +333,7 @@ void DrgnParser::enumerateClassFunctions(struct drgn_type *type, std::vector<Fun
     }
 
     auto virtuality = drgn_type_virtuality(t.type);
-    std::string name = drgn_type_name(t.type);
+    std::string name = drgn_type_tag(t.type);
     Function f(name, virtuality);
     functions.push_back(f);
   }
