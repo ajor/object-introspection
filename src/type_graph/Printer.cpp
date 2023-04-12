@@ -161,10 +161,10 @@ void Printer::print_function(const Function &function) {
   depth_--;
 }
 
-void Printer::print_child(Class &child) {
+void Printer::print_child(Type &child) {
   depth_++;
   prefix();
-  out_ << "Child:";
+  out_ << "Child:" << std::endl;
   print(child);
   depth_--;
 }

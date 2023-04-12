@@ -81,4 +81,27 @@ std::size_t Primitive::size() const {
   }
 }
 
+/*
+ * Returns true if the provided class is "dynamic".
+ *
+ * From the Itanium C++ ABI, a dynamic class is defined as:
+ *   A class requiring a virtual table pointer (because it or its bases have
+ *   one or more virtual member functions or virtual base classes).
+ */
+bool Class::isDynamic() const {
+  if (virtuality() != 0 /*DW_VIRTUALITY_none*/) {
+    // Virtual class - not fully supported by OI yet
+    return true;
+  }
+
+  for (const auto &func : functions) {
+    if (func.virtuality != 0 /*DW_VIRTUALITY_none*/) {
+      // Virtual function
+      return true;
+    }
+  }
+
+  return false;
+}
+
 } // namespace type_graph

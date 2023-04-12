@@ -6,6 +6,7 @@
 
 #include "FuncGen.h"
 // TODO put passes into their own directory/namespace
+#include "type_graph/AddChildren.h"
 #include "type_graph/AddPadding.h"
 #include "type_graph/AlignmentCalc.h"
 #include "type_graph/DrgnParser.h"
@@ -31,10 +32,12 @@ void genStaticAssertsClass(const Class& c, std::string& code) {
   for (const auto &member : c.members) {
     code += "static_assert(offsetof(" + c.name() + ", " + member.name + ") == " + std::to_string(member.offset) + ", \"Unexpected offset of " + c.name() + "::" + member.name + "\");\n";
   }
+  code.push_back('\n');
 }
 
 void genStaticAssertsContainer(const Container& c, std::string& code) {
   code += "static_assert(sizeof(" + c.name() + ") == " + std::to_string(c.size()) + ", \"Unexpected size of container " + c.name() + "\");\n";
+  code.push_back('\n');
 }
 
 void genStaticAsserts(const TypeGraph& typeGraph, std::string& code) {
@@ -51,11 +54,8 @@ std::string CodeGen::generate(drgn_type *drgnType) {
   // TODO wrap in try-catch
   // This scope is unrealted to the above comment - it is to avoid parsedRoot being available elsewhere
   // because typeGraph.rootTypes() should be used instead, in case the root types have been modified
+  DrgnParser drgnParser(typeGraph_, containerInfos_, config_.chaseRawPointers);
   {
-    DrgnParser drgnParser(typeGraph_, containerInfos_, config_.chaseRawPointers);
-    if (config_.polymorphicInheritance) {
-      drgnParser.enumerateChildClasses(symbols_);
-    }
     Type *parsedRoot = drgnParser.parse(drgnType);
     typeGraph_.addRoot(*parsedRoot);
   }
@@ -63,6 +63,12 @@ std::string CodeGen::generate(drgn_type *drgnType) {
   PassManager pm;
   pm.addPass(Flattener::createPass());
   pm.addPass(TypeIdentifier::createPass(containerInfos_));
+  if (config_.polymorphicInheritance) {
+    pm.addPass(AddChildren::createPass(drgnParser, symbols_));
+    // Re-run passes over newly added children
+    pm.addPass(Flattener::createPass());
+    pm.addPass(TypeIdentifier::createPass(containerInfos_));
+  }
   pm.addPass(AddPadding::createPass());
   pm.addPass(NameGen::createPass());
   pm.addPass(AlignmentCalc::createPass());
@@ -205,35 +211,10 @@ std::string getClassSizeFuncDecl(const Class &c) {
   return str;
 }
 
-namespace {
-/*
- * Returns true if the provided class is "dynamic".
- *
- * From the Itanium C++ ABI, a dynamic class is defined as:
- *   A class requiring a virtual table pointer (because it or its bases have
- *   one or more virtual member functions or virtual base classes).
- */
-bool isDynamic(const Class &c) {
-  // TODO check config.polymorphicInheritance setting
-  if (c.virtuality() != 0 /*DW_VIRTUALITY_none*/) {
-    // Virtual class - not fully supported by OI yet
-    return true;
-  }
-
-  for (const auto &func : c.functions) {
-    if (func.virtuality != 0 /*DW_VIRTUALITY_none*/) {
-      // Virtual function
-      return true;
-    }
-  }
-
-  return false;
-}
-} // namespace
-
 std::string CodeGen::getClassSizeFuncDef(const Class &c) {
+  // TODO check config.polymorphicInheritance setting
   std::string funcName = "getSizeType";
-  if (isDynamic(c)) {
+  if (c.isDynamic()) {
     funcName = "getSizeTypeConcrete";
   }
 
@@ -245,11 +226,15 @@ std::string CodeGen::getClassSizeFuncDef(const Class &c) {
   }
   str += "}\n";
 
-  if (isDynamic(c)) {
+  if (c.isDynamic()) {
     std::vector<SymbolInfo> childVtableAddrs;
     childVtableAddrs.reserve(c.children.size());
 
-    for (const Class& child : c.children) {
+    for (const Type& childType : c.children) {
+      auto *childClass = dynamic_cast<const Class*>(&childType);
+      if (childClass == nullptr) {
+        abort(); // TODO
+      }
       //      TODO:
 //      auto fqChildName = *fullyQualifiedName(child);
       auto fqChildName = "TODO - implement me";
@@ -282,7 +267,7 @@ std::string CodeGen::getClassSizeFuncDef(const Class &c) {
       //
       // This works for C++ compilers which follow the GNU v3 ABI, i.e. GCC and
       // Clang. Other compilers may differ.
-      const Class& child = c.children[i];
+      const Type& child = c.children[i];
       auto& vtableSym = childVtableAddrs[i];
       uintptr_t vtableMinAddr = vtableSym.addr;
       uintptr_t vtableMaxAddr = vtableSym.addr + vtableSym.size;

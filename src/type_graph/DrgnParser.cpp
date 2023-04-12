@@ -1,6 +1,10 @@
 #include "DrgnParser.h"
+
 #include "ContainerInfo.h"
+#include "DrgnUtils.h"
 #include "SymbolService.h"
+
+#include <iostream>
 
 extern "C" {
 #include <drgn.h>
@@ -61,22 +65,12 @@ Type *DrgnParser::parse(struct drgn_type *root) {
   return enumerateType(root);
 }
 
-namespace {
-bool isDrgnSizeComplete(struct drgn_type *type) {
-  uint64_t sz;
-  struct drgn_error *err = drgn_type_sizeof(type, &sz);
-  return err == nullptr;
-
-  // TODO this ignores sizeMap
-}
-} // namespace
-
 Type *DrgnParser::enumerateType(struct drgn_type *type) {
   // Avoid re-enumerating an already-processsed type
   if (auto it = drgn_types_.find(type); it != drgn_types_.end())
     return it->second;
 
-  if (!isDrgnSizeComplete(type)) {
+  if (!drgn_utils::isSizeComplete(type)) {
     return make_type<Primitive>(nullptr, Primitive::Kind::Void);
   }
 
@@ -131,6 +125,7 @@ Container *DrgnParser::enumerateContainer(struct drgn_type *type) {
       continue;
     }
 
+    std::cout << "matching container from: " << nameStr << std::endl;
     auto *c = make_type<Container>(type, containerInfo, size);
     enumerateClassTemplateParams(type, c->templateParams);
     return c;
@@ -413,111 +408,6 @@ bool DrgnParser::chasePointer() const {
   if (depth_ == 1)
     return true;
   return chaseRawPointers_;
-}
-
-namespace {
-drgn_type* drgnUnderlyingType(drgn_type* type) {
-  auto* underlyingType = type;
-
-  while (drgn_type_kind(underlyingType) == DRGN_TYPE_TYPEDEF) {
-    underlyingType = drgn_type_type(underlyingType).type;
-  }
-
-  return underlyingType;
-}
-} // namespace
-
-void DrgnParser::recordChildren(drgn_type* type) {
-  drgn_type_template_parameter* parents = drgn_type_parents(type);
-
-  for (size_t i = 0; i < drgn_type_num_parents(type); i++) {
-    drgn_qualified_type t{};
-
-    if (auto* err = drgn_template_parameter_type(&parents[i], &t);
-        err != nullptr) {
-      //      TODO useful error:
-//      LOG(ERROR) << "Error when looking up parent class for type " << type
-//                 << " err " << err->code << " " << err->message;
-      drgn_error_destroy(err);
-      continue;
-    }
-
-    drgn_type* parent = drgnUnderlyingType(t.type);
-    if (!isDrgnSizeComplete(parent)) {
-//      VLOG(1) << "Incomplete size for parent class (" << drgn_type_tag(parent)
-//              << ") of " << drgn_type_tag(type);
-      continue;
-    }
-
-    const char* parentName = drgn_type_tag(parent);
-    if (parentName == nullptr) {
-//      VLOG(1) << "No name for parent class (" << parent << ") of "
-//              << drgn_type_tag(type);
-      continue;
-    }
-
-    /*
-     * drgn pointers are not stable, so use string representation for reverse
-     * mapping for now. We need to find a better way of creating this
-     * childClasses map - ideally drgn would do this for us.
-     */
-    childClasses_[parentName].push_back(type);
-//    VLOG(1) << drgn_type_tag(type) << "(" << type << ") is a child of "
-//            << drgn_type_tag(parent) << "(" << parent << ")";
-  }
-}
-
-/*
- * Build a mapping of Class -> Children
- *
- * drgn only gives us the mapping Class -> Parents, so we must iterate over all
- * types in the program to build the reverse mapping.
- */
-void DrgnParser::enumerateChildClasses(SymbolService& symbols) {
-  if ((setenv("DRGN_ENABLE_TYPE_ITERATOR", "1", 1)) < 0) {
-//    LOG(ERROR)
-//        << "Could not set DRGN_ENABLE_TYPE_ITERATOR environment variable";
-    abort();
-  }
-
-  drgn_type_iterator* typesIterator;
-  auto* prog = symbols.getDrgnProgram();
-  drgn_error* err = drgn_type_iterator_create(prog, &typesIterator);
-  if (err) {
-//    LOG(ERROR) << "Error initialising drgn_type_iterator: " << err->code << ", "
-//               << err->message;
-    drgn_error_destroy(err);
-    abort();
-  }
-
-  int i = 0;
-  int j = 0;
-  while (true) {
-    i++;
-    drgn_qualified_type* t;
-    err = drgn_type_iterator_next(typesIterator, &t);
-    if (err) {
-      //      TODO usful error:
-//      LOG(ERROR) << "Error from drgn_type_iterator_next: " << err->code << ", "
-//                 << err->message;
-      drgn_error_destroy(err);
-      continue;
-    }
-
-    if (!t) {
-      break;
-    }
-    j++;
-
-    auto kind = drgn_type_kind(t->type);
-    if (kind != DRGN_TYPE_CLASS && kind != DRGN_TYPE_STRUCT) {
-      continue;
-    }
-
-    recordChildren(t->type);
-  }
-
-  drgn_type_iterator_destroy(typesIterator);
 }
 
 } // namespace type_graph

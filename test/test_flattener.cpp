@@ -645,3 +645,85 @@ TEST(FlattenerTest, Functions) {
       Function: funcC
 )");
 }
+
+TEST(FlattenerTest, Children) {
+  // Original:
+  //   class C { int c; };
+  //   class B { int b; };
+  //   class A : B, C { };
+  auto myint = std::make_unique<Primitive>(Primitive::Kind::Int32);
+  auto classA = std::make_unique<Class>(Class::Kind::Class, "ClassA", 8);
+  auto classB = std::make_unique<Class>(Class::Kind::Class, "ClassB", 4);
+  auto classC = std::make_unique<Class>(Class::Kind::Class, "ClassC", 4);
+
+  classC->members.push_back(Member(myint.get(), "c", 0));
+  classB->members.push_back(Member(myint.get(), "b", 0));
+
+  classA->parents.push_back(Parent(classB.get(), 0));
+  classA->parents.push_back(Parent(classC.get(), 4));
+
+  classB->children.push_back(*classA);
+  classC->children.push_back(*classA);
+
+  test({*classB}, R"(
+[0] Class: ClassB (size: 4)
+      Member: b (offset: 0)
+        Primitive: int32_t
+      Child:
+[1]     Class: ClassA (size: 8)
+          Member: b (offset: 0)
+            Primitive: int32_t
+          Member: c (offset: 4)
+            Primitive: int32_t
+)");
+}
+
+TEST(FlattenerTest, ChildrenTwoDeep) {
+  // Original:
+  //   class D { int d; };
+  //   class C { int c; };
+  //   class B : D { int b; };
+  //   class A : B, C { int a; };
+  auto myint = std::make_unique<Primitive>(Primitive::Kind::Int32);
+  auto classA = std::make_unique<Class>(Class::Kind::Class, "ClassA", 16);
+  auto classB = std::make_unique<Class>(Class::Kind::Class, "ClassB", 8);
+  auto classC = std::make_unique<Class>(Class::Kind::Class, "ClassC", 4);
+  auto classD = std::make_unique<Class>(Class::Kind::Class, "ClassD", 4);
+
+  classD->members.push_back(Member(myint.get(), "d", 0));
+
+  classC->members.push_back(Member(myint.get(), "c", 0));
+
+  classB->parents.push_back(Parent(classD.get(), 0));
+  classB->members.push_back(Member(myint.get(), "b", 4));
+
+  classA->parents.push_back(Parent(classB.get(), 0));
+  classA->parents.push_back(Parent(classC.get(), 8));
+  classA->members.push_back(Member(myint.get(), "a", 12));
+
+  classD->children.push_back(*classB);
+  classB->children.push_back(*classA);
+  classC->children.push_back(*classA);
+
+  test({*classD}, R"(
+[0] Class: ClassD (size: 4)
+      Member: d (offset: 0)
+        Primitive: int32_t
+      Child:
+[1]     Class: ClassB (size: 8)
+          Member: d (offset: 0)
+            Primitive: int32_t
+          Member: b (offset: 4)
+            Primitive: int32_t
+          Child:
+[2]         Class: ClassA (size: 16)
+              Member: d (offset: 0)
+                Primitive: int32_t
+              Member: b (offset: 4)
+                Primitive: int32_t
+              Member: c (offset: 8)
+                Primitive: int32_t
+              Member: a (offset: 12)
+                Primitive: int32_t
+)");
+}

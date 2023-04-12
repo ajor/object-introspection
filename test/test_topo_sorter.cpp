@@ -1,3 +1,4 @@
+#include <boost/algorithm/string.hpp>
 #include <gtest/gtest.h>
 
 #include "type_graph/TopoSorter.h"
@@ -10,67 +11,74 @@ Container getVector(); // TODO put in a header
 template <typename T>
 using ref = std::reference_wrapper<T>;
 
-void EXPECT_EQ_TYPES(const std::vector<ref<Type>> &expected,
-                     const std::vector<ref<Type>> &actual) {
-  EXPECT_EQ(expected.size(), actual.size());
-  for (size_t i=0; i<std::min(actual.size(), expected.size()); i++) {
-    EXPECT_EQ(expected[i].get().name(), actual[i].get().name());
-  }
-}
-
-void test(const std::vector<ref<Type>> input,
-          const std::vector<ref<Type>> expected) {
+void test(const std::vector<ref<Type>> input, std::string expected) {
   TopoSorter topo;
   topo.sort(input);
-  EXPECT_EQ_TYPES(expected, topo.sortedTypes());
+
+  std::string output;
+  for (const Type &type : topo.sortedTypes()) {
+    output += type.name();
+    output.push_back('\n');
+  }
+
+  boost::trim(expected);
+  boost::trim(output);
+
+  EXPECT_EQ(expected, output);
 }
 
 TEST(TopoSorterTest, SingleType) {
-  auto myint = std::make_unique<Primitive>(Primitive::Kind::Int32);
-  test({*myint}, {*myint});
+  auto myenum = std::make_unique<Enum>("MyEnum", 4);
+  test({*myenum}, "MyEnum");
 }
 
 TEST(TopoSorterTest, UnrelatedTypes) {
-  auto myint = std::make_unique<Primitive>(Primitive::Kind::Int32);
+  auto mystruct = std::make_unique<Class>(Class::Kind::Struct, "MyStruct", 13);
   auto myenum = std::make_unique<Enum>("MyEnum", 4);
   auto myclass = std::make_unique<Class>(Class::Kind::Class, "MyClass", 69);
 
-  // Try the same input in a few different orders
-  std::vector<std::vector<ref<Type>>> inputs = {
-    {*myint, *myenum, *myclass},
-    {*myenum, *myint, *myclass},
-    {*myclass, *myenum, *myint},
-  };
-
-  for (const auto &input : inputs) {
-    test(input, input);
-  }
-}
-
-TEST(TopoSorterTest, PrimitiveMembers) {
-  auto myint = std::make_unique<Primitive>(Primitive::Kind::Int32);
-  auto myenum = std::make_unique<Enum>("MyEnum", 4);
-  auto myclass = std::make_unique<Class>(Class::Kind::Class, "MyClass", 69);
-  myclass->members.push_back(Member(myint.get(), "n", 0));
-  myclass->members.push_back(Member(myenum.get(), "e", 4));
-
-  test({*myclass}, {*myint, *myenum, *myclass});
+  // Try the same input in a few different orders and ensure they output order
+  // matches the input order
+  test({*mystruct, *myenum, *myclass}, R"(
+MyStruct
+MyEnum
+MyClass
+)");
+  test({*myenum, *mystruct, *myclass}, R"(
+MyEnum
+MyStruct
+MyClass
+)");
+  test({*myclass, *myenum, *mystruct}, R"(
+MyClass
+MyEnum
+MyStruct
+)");
 }
 
 TEST(TopoSorterTest, ClassMembers) {
   auto mystruct = std::make_unique<Class>(Class::Kind::Struct, "MyStruct", 13);
+  auto myenum = std::make_unique<Enum>("MyEnum", 4);
   auto myclass = std::make_unique<Class>(Class::Kind::Class, "MyClass", 69);
-  myclass->members.push_back(Member(mystruct.get(), "mystruct", 0));
+  myclass->members.push_back(Member(mystruct.get(), "n", 0));
+  myclass->members.push_back(Member(myenum.get(), "e", 4));
 
-  test({*myclass}, {*mystruct, *myclass});
+  test({*myclass}, R"(
+MyStruct
+MyEnum
+MyClass
+)");
 }
 
-TEST(TopoSorterTest, Parents) { // TODO there should be no parents at this point
+TEST(TopoSorterTest, Parents) {
   auto myparent = std::make_unique<Class>(Class::Kind::Struct, "MyParent", 13);
   auto myclass = std::make_unique<Class>(Class::Kind::Class, "MyClass", 69);
   myclass->parents.push_back(Parent(myparent.get(), 0));
 
-  test({*myclass}, {*myparent, *myclass});
+  test({*myclass}, R"(
+MyParent
+MyClass
+)");
 }
 
 TEST(TopoSorterTest, TemplateParams) {
@@ -78,7 +86,35 @@ TEST(TopoSorterTest, TemplateParams) {
   auto myclass = std::make_unique<Class>(Class::Kind::Class, "MyClass", 69);
   myclass->templateParams.push_back(TemplateParam(myparam.get()));
 
-  test({*myclass}, {*myparam, *myclass});
+  test({*myclass}, R"(
+MyParam
+MyClass
+)");
+}
+
+TEST(TopoSorterTest, Children) {
+  auto mymember = std::make_unique<Class>(Class::Kind::Struct, "MyMember", 13);
+  auto mychild = std::make_unique<Class>(Class::Kind::Struct, "MyChild", 13);
+  mychild->members.push_back(Member(mymember.get(), "mymember", 0));
+
+  auto myclass = std::make_unique<Class>(Class::Kind::Class, "MyClass", 69);
+  mychild->parents.push_back(Parent(myclass.get(), 0));
+  myclass->children.push_back(*mychild);
+
+  std::vector<std::vector<ref<Type>>> inputs = {
+    {*myclass},
+    {*mychild},
+  };
+
+  // Same as for pointer cycles, outputs must be in the same order no matter
+  // which type we start the sort on.
+  for (const auto &input : inputs) {
+    test(input, R"(
+MyClass
+MyMember
+MyChild
+)");
+  }
 }
 
 TEST(TopoSorterTest, Containers) {
@@ -86,22 +122,24 @@ TEST(TopoSorterTest, Containers) {
   auto mycontainer = getVector();
   mycontainer.templateParams.push_back((myparam.get()));
 
-  test({mycontainer}, {*myparam, mycontainer});
+  test({mycontainer}, "MyParam\nstd::vector");
 }
 
 TEST(TopoSorterTest, Arrays) {
   auto myclass = std::make_unique<Class>(Class::Kind::Class, "MyClass", 69);
   auto myarray = std::make_unique<Array>(myclass.get(), 10);
 
-  test({*myarray, *myclass}, {*myclass, *myarray});
+  test({*myarray}, "MyClass\n");
 }
 
 TEST(TopoSorterTest, Typedef) {
   auto classA = std::make_unique<Class>(Class::Kind::Class, "ClassA", 8);
-
   auto aliasA = std::make_unique<Typedef>("aliasA", classA.get());
 
-  test({*aliasA}, {*classA, *aliasA});
+  test({*aliasA}, R"(
+ClassA
+aliasA
+)");
 }
 
 TEST(TopoSorterTest, Pointers) {
@@ -109,7 +147,7 @@ TEST(TopoSorterTest, Pointers) {
   auto myclass = std::make_unique<Class>(Class::Kind::Class, "MyClass", 69);
   auto mypointer = std::make_unique<Pointer>(myclass.get());
 
-  test({*mypointer}, {*mypointer, *myclass});
+  test({*mypointer}, "MyClass");
 }
 
 TEST(TopoSorterTest, PointerCycle) {
@@ -125,8 +163,13 @@ TEST(TopoSorterTest, PointerCycle) {
     {*ptrA},
   };
 
+  // No matter which node we start the topological sort with, we must always get
+  // the same sorted order for ClassA and ClassB.
   for (const auto &input : inputs) {
-    test(input, {*ptrA, *classB, *classA});
+    test(input, R"(
+ClassB
+ClassA
+)");
   }
 }
 
@@ -137,7 +180,11 @@ TEST(TopoSorterTest, TwoDeep) {
   myclass->members.push_back(Member(mystruct.get(), "mystruct", 0));
   mystruct->members.push_back(Member(myunion.get(), "myunion", 0));
 
-  test({*myclass}, {*myunion, *mystruct, *myclass});
+  test({*myclass}, R"(
+MyUnion
+MyStruct
+MyClass
+)");
 }
 
 TEST(TopoSorterTest, MultiplePaths) {
@@ -148,41 +195,9 @@ TEST(TopoSorterTest, MultiplePaths) {
   myclass->members.push_back(Member(myunion.get(), "myunion1", 0));
   mystruct->members.push_back(Member(myunion.get(), "myunion2", 0));
 
-  test({*myclass}, {*myunion, *mystruct, *myclass});
+  test({*myclass}, R"(
+MyUnion
+MyStruct
+MyClass
+)");
 }
-
-//TEST(TopoSorterTest, BigTest) {
-//  /*
-//   *   A      B
-//   *  / \   /  \
-//   * v   v v    v
-//   * C    i     e
-//   *  \        ^
-//   *   \      /
-//   *    > arr
-//   */
-//  auto i = std::make_unique<Primitive>(Primitive::Kind::Int32);
-//  auto e = std::make_unique<Enum>("MyEnum", 4);
-//  auto A = std::make_unique<Class>(Class::Kind::Class, "ClassA", 69);
-//  auto B = std::make_unique<Class>(Class::Kind::Class, "ClassB", 69);
-//  auto C = std::make_unique<Class>(Class::Kind::Class, "ClassC", 69);
-//  auto pA = std::make_unique<Pointer>(myclass.get());
-//  auto pB = std::make_unique<Pointer>(myclass.get());
-//  auto pC = std::make_unique<Pointer>(myclass.get());
-//
-//  myclass->members.push_back(Member(mystruct.get(), "mystruct", 0));
-//  myclass->members.push_back(Member(myunion.get(), "myunion1", 0));
-//  mystruct->members.push_back(Member(myunion.get(), "myunion2", 0));
-//
-//  std::vector<std::vector<ref<Type>>> inputs = {
-//    {*myclass, *mystruct, *myunion},
-//    {*myclass, *myunion, *mystruct},
-//    {*mystruct, *myunion, *myclass},
-//  };
-//  std::vector<ref<Type>> expected = {*myunion, *mystruct, *myclass};
-//
-//  for (const auto &input : inputs) {
-//    TopoSorter topo;
-//    EXPECT_EQ_TYPES(expected, topo.sort(input));
-//  }
-//}

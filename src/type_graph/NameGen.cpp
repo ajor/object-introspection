@@ -63,6 +63,9 @@ void NameGen::visit(Class &c) {
   for (const auto &member : c.members) {
     visit(*member.type);
   }
+  for (const auto &child : c.children) {
+    visit(child);
+  }
 }
 
 void NameGen::visit(Container &c) {

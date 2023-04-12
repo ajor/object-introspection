@@ -80,3 +80,5 @@ TEST(AddPaddingTest, UnionNotPadded) {
         Primitive: int8_t
 )");
 }
+
+// TODO test we follow class members, templates, children

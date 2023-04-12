@@ -51,7 +51,7 @@ public:
     return classes_;
   }
 
-  // TODO dodgy:
+  // TODO dodgy (use a getter instead to allow returning a const vector):
   std::vector<std::reference_wrapper<Type>> finalTypes;
 
 private:

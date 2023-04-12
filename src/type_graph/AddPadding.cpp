@@ -72,6 +72,10 @@ void AddPadding::visit(Class &c) {
   }
 
   c.members = std::move(paddedMembers);
+
+  for (const auto &child : c.children) {
+    visit(child);
+  }
 }
 
 } // namespace type_graph

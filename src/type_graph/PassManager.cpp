@@ -40,9 +40,11 @@ void PassManager::run(TypeGraph &typeGraph, bool debug) {
 
   for (size_t i=0; i<passes_.size(); i++) {
     auto& pass = passes_[i];
-    pass.run(typeGraph);
     if (debug) {
       std::cout << "Running pass (" << i+1 << "/" << passes_.size() << "): " << pass.name() << std::endl;
+    }
+    pass.run(typeGraph);
+    if (debug) {
       std::cout << separator << std::endl;
       print(typeGraph);
       std::cout << separator << std::endl;

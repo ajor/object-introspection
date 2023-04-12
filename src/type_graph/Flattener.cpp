@@ -41,6 +41,8 @@ void Flattener::visit(Class &c) {
   // Members of a base class will be contiguous, but it's possible for derived
   // class members to be intersperced between embedded parent classes.
   //
+  // This will happen when vptrs are present.
+  //
   // e.g. Givin the original C++ classes:
   //   class Parent {
   //     int x;
@@ -64,12 +66,10 @@ void Flattener::visit(Class &c) {
   //
   // TODO flatten template parameters??? ### TEST THIS ###
 
-  // Flatten types referenced by member variables
+  // Flatten types referenced by members and parents
   for (const auto &member : c.members) {
     visit(*member.type);
   }
-
-  // Flatten parent types
   for (const auto &parent : c.parents) {
     visit(*parent.type);
   }
@@ -128,6 +128,13 @@ void Flattener::visit(Class &c) {
 
   c.parents.clear();
   c.members = std::move(flattenedMembers);
+
+  // Flatten types referenced by children.
+  // This must be run after flattening the current class in order to respect
+  // the changes we have made here.
+  for (const auto &child : c.children) {
+    visit(child);
+  }
 }
 
 void Flattener::visit(Container &c) {

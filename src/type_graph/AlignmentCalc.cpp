@@ -33,6 +33,7 @@ void AlignmentCalc::visit(Type &type) {
 }
 
 // TODO we will need to calculate alignment for c.templateParams too??
+// TODO same for children. test this
 void AlignmentCalc::visit(Class &c) {
   // AlignmentCalc should be run after Flattener
   assert(c.parents.empty());

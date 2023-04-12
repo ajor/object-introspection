@@ -28,7 +28,7 @@ void GenDefs::visit(const Class &c) {
   for (const auto &mem : c.members) {
     out_ += "  " + mem.type->name() + " " + mem.name + ";\n";
   }
-  out_ += "};\n";
+  out_ += "};\n\n";
 }
 
 void GenDefs::visit(const Typedef &td) {

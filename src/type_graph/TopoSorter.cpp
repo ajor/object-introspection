@@ -11,7 +11,7 @@ Pass TopoSorter::createPass() {
   auto fn = [](TypeGraph &typeGraph) {
     TopoSorter sorter;
     sorter.sort(typeGraph.rootTypes());
-    typeGraph.finalTypes = sorter.sortedTypes();
+    typeGraph.finalTypes = std::move(sorter.sortedTypes());
   };
 
   return Pass("TopoSorter", fn);
@@ -37,7 +37,38 @@ void TopoSorter::visit(Type &type) {
 
   visited_.insert(&type);
   type.accept(*this);
-  sortedTypes_.push_back(type);
+}
+
+void TopoSorter::visit(Class &c) {
+  for (const auto &param : c.templateParams) {
+    visit(*param.type);
+  }
+  for (const auto &parent : c.parents) {
+    visit(*parent.type);
+  }
+  for (const auto &mem : c.members) {
+    visit(*mem.type);
+  }
+  sortedTypes_.push_back(c);
+  for (const auto &child : c.children) {
+    visit(child); // TODO handle like pointers instead??
+  }
+}
+
+void TopoSorter::visit(Container &c) {
+  for (const auto &param : c.templateParams) {
+    visit(*param.type);
+  }
+  sortedTypes_.push_back(c);
+}
+
+void TopoSorter::visit(Enum &e) {
+  sortedTypes_.push_back(e);
+}
+
+void TopoSorter::visit(Typedef &td) {
+  visit(*td.underlyingType());
+  sortedTypes_.push_back(td);
 }
 
 void TopoSorter::visit(Pointer &p) {

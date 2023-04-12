@@ -1,6 +1,7 @@
 #include "TypeIdentifier.h"
 
 #include "ContainerInfo.h"
+#include "TypeGraph.h"
 
 namespace type_graph {
 

@@ -131,11 +131,13 @@ public:
     packed_ = true;
   }
 
+  bool isDynamic() const;
+
   std::vector<TemplateParam> templateParams;
   std::vector<Parent> parents; // Sorted by offset
   std::vector<Member> members; // Sorted by offset
   std::vector<Function> functions;
-  std::vector<std::reference_wrapper<Class>> children; // Only for dynamic classes
+  std::vector<std::reference_wrapper<Type>> children; // Only for dynamic classes
 
 private:
   Kind kind_;

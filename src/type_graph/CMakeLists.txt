@@ -1,4 +1,5 @@
 add_library(type_graph
+  AddChildren.cpp
   AddPadding.cpp
   AlignmentCalc.cpp
   DrgnParser.cpp

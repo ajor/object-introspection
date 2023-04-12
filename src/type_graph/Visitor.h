@@ -42,18 +42,21 @@ public:
   virtual ~RecursiveVisitor() = default;
   virtual void visit(Type &) = 0;
   virtual void visit(Class &c) {
-    for (auto &param : c.templateParams) {
+    for (const auto &param : c.templateParams) {
       visit(*param.type);
     }
     for (const auto &parent : c.parents) {
       visit(*parent.type);
     }
-    for (auto &mem : c.members) {
+    for (const auto &mem : c.members) {
       visit(*mem.type);
+    }
+    for (const auto &child : c.children) {
+      visit(child);
     }
   }
   virtual void visit(Container &c) {
-    for (auto &param : c.templateParams) {
+    for (const auto &param : c.templateParams) {
       visit(*param.type);
     }
   }

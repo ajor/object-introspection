@@ -77,6 +77,21 @@ TEST(NameGenTest, ClassMembers) {
   EXPECT_EQ(mymember2->name(), "MyMember_2");
 }
 
+TEST(NameGenTest, ClassChildren) {
+  auto mychild1 = std::make_unique<Class>(Class::Kind::Struct, "MyChild", 13);
+  auto mychild2 = std::make_unique<Class>(Class::Kind::Struct, "MyChild", 13);
+  auto myclass = std::make_unique<Class>(Class::Kind::Struct, "MyClass", 13);
+  myclass->children.push_back(*mychild1);
+  myclass->children.push_back(*mychild2);
+
+  NameGen nameGen;
+  nameGen.generateNames({*myclass});
+
+  EXPECT_EQ(myclass->name(), "MyClass_0");
+  EXPECT_EQ(mychild1->name(), "MyChild_1");
+  EXPECT_EQ(mychild2->name(), "MyChild_2");
+}
+
 TEST(NameGenTest, ContainerParams) {
   auto myparam1 = std::make_unique<Class>(Class::Kind::Struct, "MyParam", 13);
   auto myparam2 = std::make_unique<Class>(Class::Kind::Struct, "MyParam", 13);

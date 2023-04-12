@@ -4,11 +4,12 @@
 #include <vector>
 
 #include "PassManager.h"
-#include "TypeGraph.h"
 #include "Types.h"
 #include "Visitor.h"
 
 namespace type_graph {
+
+class TypeGraph;
 
 /*
  * TODO Pass Name

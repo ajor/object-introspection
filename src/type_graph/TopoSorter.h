@@ -24,6 +24,10 @@ public:
   const std::vector<std::reference_wrapper<Type>> &sortedTypes() const;
 
   void visit(Type &type) override;
+  void visit(Class &c) override;
+  void visit(Container &c) override;
+  void visit(Enum &e) override;
+  void visit(Typedef &td) override;
   void visit(Pointer &p) override;
 
 private:
