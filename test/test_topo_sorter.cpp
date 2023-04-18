@@ -117,6 +117,41 @@ MyChild
   }
 }
 
+TEST(TopoSorterTest, ChildrenCycle) {
+  // class MyParent {};
+  // class ClassA {
+  //   MyParent p;
+  // };
+  // class MyChild : MyParent {
+  //   A a;
+  // };
+  auto myparent = std::make_unique<Class>(Class::Kind::Class, "MyParent", 69);
+  auto classA = std::make_unique<Class>(Class::Kind::Struct, "ClassA", 5);
+  auto mychild = std::make_unique<Class>(Class::Kind::Struct, "MyChild", 13);
+
+  mychild->parents.push_back(Parent(myparent.get(), 0));
+  myparent->children.push_back(*mychild);
+
+  mychild->members.push_back(Member(classA.get(), "a", 0));
+  classA->members.push_back(Member(myparent.get(), "p", 0));
+
+  std::vector<std::vector<ref<Type>>> inputs = {
+    {*myparent},
+    {*classA},
+    {*mychild},
+  };
+
+  // Same as for pointer cycles, outputs must be in the same order no matter
+  // which type we start the sort on.
+  for (const auto &input : inputs) {
+    test(input, R"(
+MyParent
+ClassA
+MyChild
+)");
+  }
+}
+
 TEST(TopoSorterTest, Containers) {
   auto myparam = std::make_unique<Class>(Class::Kind::Struct, "MyParam", 13);
   auto mycontainer = getVector();

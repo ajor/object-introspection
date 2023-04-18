@@ -50,8 +50,10 @@ void TopoSorter::visit(Class &c) {
     visit(*mem.type);
   }
   sortedTypes_.push_back(c);
+
+  // Same as pointers, child do not create a dependency so are delayed until the end
   for (const auto &child : c.children) {
-    visit(child); // TODO handle like pointers instead??
+    typesToSort_.push(child);
   }
 }
 
