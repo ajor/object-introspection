@@ -54,7 +54,7 @@ std::string CodeGen::generate(drgn_type *drgnType) {
   // TODO wrap in try-catch
   // This scope is unrealted to the above comment - it is to avoid parsedRoot being available elsewhere
   // because typeGraph.rootTypes() should be used instead, in case the root types have been modified
-  DrgnParser drgnParser(typeGraph_, containerInfos_, config_.chaseRawPointers);
+  DrgnParser drgnParser{typeGraph_, containerInfos_, config_.features.contains(Feature::ChaseRawPointers)};
   {
     Type *parsedRoot = drgnParser.parse(drgnType);
     typeGraph_.addRoot(*parsedRoot);
@@ -63,7 +63,7 @@ std::string CodeGen::generate(drgn_type *drgnType) {
   PassManager pm;
   pm.addPass(Flattener::createPass());
   pm.addPass(TypeIdentifier::createPass(containerInfos_));
-  if (config_.polymorphicInheritance) {
+  if (config_.features.contains(Feature::PolymorphicInheritance)) {
     pm.addPass(AddChildren::createPass(drgnParser, symbols_));
     // Re-run passes over newly added children
     pm.addPass(Flattener::createPass());
@@ -168,7 +168,10 @@ std::string CodeGen::generate(drgn_type *drgnType) {
       JLOGPTR(s_ptr);
       StoreData((uintptr_t)(s_ptr), returnArg);
       if (s_ptr && pointers.add((uintptr_t)s_ptr)) {
-          getSizeType(*(s_ptr), returnArg);
+        StoreData(1, returnArg);
+        getSizeType(*(s_ptr), returnArg);
+      } else {
+        StoreData(0, returnArg);
       }
     }
 
