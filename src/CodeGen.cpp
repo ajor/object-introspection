@@ -1,8 +1,9 @@
 #include "CodeGen.h"
 
-#include <iostream> // TODO remove
+#include <iostream>
 
 #include <boost/format.hpp>
+#include <glog/logging.h>
 
 #include "FuncGen.h"
 // TODO put passes into their own directory/namespace
@@ -74,11 +75,11 @@ std::string CodeGen::generate(drgn_type *drgnType) {
   pm.addPass(AlignmentCalc::createPass());
   pm.addPass(RemoveTopLevelPointer::createPass());
   pm.addPass(TopoSorter::createPass());
-  pm.run(typeGraph_, true); // TODO don't alway run with debug
+  pm.run(typeGraph_);
 
-  std::cout << "sorted types:\n";
+  LOG(INFO) << "Sorted types:\n";
   for (auto &t : typeGraph_.finalTypes) {
-    std::cout << t.get().name() << std::endl;
+    LOG(INFO) << "  " << t.get().name() << std::endl;
   };
 
   std::string code =
@@ -205,7 +206,11 @@ std::string CodeGen::generate(drgn_type *drgnType) {
 
   FuncGen::DefineTopLevelGetSizeRef(code, SymbolService::getTypeName(drgnType));
 
-  std::cout << code;
+  if (VLOG_IS_ON(3)) {
+    VLOG(3) << "Generated trace code:\n";
+    // VLOG truncates output, so use std::cout
+    std::cout << code;
+  }
   return code;
 }
 

@@ -1,10 +1,10 @@
 #include "DrgnParser.h"
 
+#include <glog/logging.h>
+
 #include "ContainerInfo.h"
 #include "DrgnUtils.h"
 #include "SymbolService.h"
-
-#include <iostream>
 
 extern "C" {
 #include <drgn.h>
@@ -125,7 +125,7 @@ Container *DrgnParser::enumerateContainer(struct drgn_type *type) {
       continue;
     }
 
-    std::cout << "matching container from: " << nameStr << std::endl;
+    VLOG(2) << "Matching container \"" << containerInfo.typeName << "\" from \"" << nameStr << "\"" << std::endl;
     auto *c = make_type<Container>(type, containerInfo, size);
     enumerateClassTemplateParams(type, c->templateParams);
     return c;

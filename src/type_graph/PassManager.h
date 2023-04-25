@@ -35,7 +35,7 @@ private:
 class PassManager {
 public:
   void addPass(Pass p);
-  void run(TypeGraph &typeGraph, bool debug=false);
+  void run(TypeGraph &typeGraph);
 
 private:
   std::vector<Pass> passes_;

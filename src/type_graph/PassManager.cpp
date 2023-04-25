@@ -1,6 +1,8 @@
 #include "PassManager.h"
 
-#include <iostream>
+#include <sstream>
+
+#include <glog/logging.h>
 
 #include "Printer.h"
 #include "TypeGraph.h"
@@ -20,35 +22,36 @@ void PassManager::addPass(Pass p) {
 
 namespace {
 void print(const TypeGraph &typeGraph) {
-  Printer printer{std::cout};
+  if (!VLOG_IS_ON(1))
+    return;
+
+  // TODO: Long strings will be truncated by glog. Find another way to do this
+  std::stringstream out;
+  Printer printer{out};
   for (const auto &type : typeGraph.rootTypes()) {
     printer.print(type);
   }
+
+  LOG(INFO) << "\n" << out.str();
 }
 } // namespace
 
 const std::string separator = "----------------";
 
-void PassManager::run(TypeGraph &typeGraph, bool debug) {
-  if (debug) {
-    std::cout << separator << std::endl;
-    std::cout << "Parsed Type Graph:" << std::endl;
-    std::cout << separator << std::endl;
-    print(typeGraph);
-    std::cout << separator << std::endl;
-  }
+void PassManager::run(TypeGraph &typeGraph) {
+  VLOG(1) << separator;
+  VLOG(1) << "Parsed Type Graph:";
+  VLOG(1) << separator;
+  print(typeGraph);
+  VLOG(1) << separator;
 
   for (size_t i=0; i<passes_.size(); i++) {
     auto& pass = passes_[i];
-    if (debug) {
-      std::cout << "Running pass (" << i+1 << "/" << passes_.size() << "): " << pass.name() << std::endl;
-    }
+    LOG(INFO) << "Running pass (" << i+1 << "/" << passes_.size() << "): " << pass.name();
     pass.run(typeGraph);
-    if (debug) {
-      std::cout << separator << std::endl;
-      print(typeGraph);
-      std::cout << separator << std::endl;
-    }
+    VLOG(1) << separator;
+    print(typeGraph);
+    VLOG(1) << separator;
   }
 }
 
