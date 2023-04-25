@@ -26,6 +26,50 @@ template <typename T>
 using ref = std::reference_wrapper<T>;
 
 namespace {
+void defineMacros(std::string& code) {
+  if (true /* TODO: config.useDataSegment*/) {
+    code += R"(
+#define SAVE_SIZE(val)
+#define SAVE_DATA(val)    StoreData(val, returnArg)
+
+#define JLOG(str)                           \
+  do {                                      \
+    if (__builtin_expect(logFile, 0)) {     \
+      write(logFile, str, sizeof(str) - 1); \
+    }                                       \
+  } while (false)
+
+#define JLOGPTR(ptr)                    \
+  do {                                  \
+    if (__builtin_expect(logFile, 0)) { \
+      __jlogptr((uintptr_t)ptr);        \
+    }                                   \
+  } while (false)
+
+template<typename T, int N>
+struct OIArray {
+  T vals[N];
+};
+)";
+  } else {
+    code += R"(
+#define SAVE_SIZE(val)    AddData(val, returnArg)
+#define SAVE_DATA(val)
+#define JLOG(str)
+#define JLOGPTR(ptr)
+)";
+  }
+}
+
+void addIncludes(const TypeGraph& typeGraph, std::string& code) {
+  // TODO deduplicate containers
+  for (const auto t : typeGraph.finalTypes) {
+    if (const auto *c = dynamic_cast<Container*>(&t.get())) {
+      code += "#include <" + c->containerInfo_.header + ">\n";
+    }
+  }
+}
+
 void genDeclsClass(const Class &c, std::string& code) {
   if (c.kind() == Class::Kind::Union)
     code += "union ";
@@ -121,92 +165,8 @@ void genStaticAsserts(const TypeGraph& typeGraph, std::string& code) {
       genStaticAssertsContainer(*c, code);
   }
 }
-} // namespace
 
-std::string CodeGen::generate(drgn_type *drgnType) {
-  // TODO wrap in try-catch
-  // This scope is unrealted to the above comment - it is to avoid parsedRoot being available elsewhere
-  // because typeGraph.rootTypes() should be used instead, in case the root types have been modified
-  DrgnParser drgnParser{typeGraph_, containerInfos_, config_.features.contains(Feature::ChaseRawPointers)};
-  {
-    Type *parsedRoot = drgnParser.parse(drgnType);
-    typeGraph_.addRoot(*parsedRoot);
-  }
-
-  PassManager pm;
-  pm.addPass(Flattener::createPass());
-  pm.addPass(TypeIdentifier::createPass(containerInfos_));
-  if (config_.features.contains(Feature::PolymorphicInheritance)) {
-    pm.addPass(AddChildren::createPass(drgnParser, symbols_));
-    // Re-run passes over newly added children
-    pm.addPass(Flattener::createPass());
-    pm.addPass(TypeIdentifier::createPass(containerInfos_));
-  }
-  pm.addPass(AddPadding::createPass());
-  pm.addPass(NameGen::createPass());
-  pm.addPass(AlignmentCalc::createPass());
-  pm.addPass(RemoveTopLevelPointer::createPass());
-  pm.addPass(TopoSorter::createPass());
-  pm.run(typeGraph_);
-
-  LOG(INFO) << "Sorted types:\n";
-  for (auto &t : typeGraph_.finalTypes) {
-    LOG(INFO) << "  " << t.get().name() << std::endl;
-  };
-
-  std::string code =
-#include "OITraceCode.cpp"
-      ;
-
-  // TODO don't have this string here:
-  code += "// storage macro definitions -----\n";
-  if (true /* TODO: config.useDataSegment*/) {
-    code += R"(
-      #define SAVE_SIZE(val)
-      #define SAVE_DATA(val)    StoreData(val, returnArg)
-
-      #define JLOG(str)                           \
-        do {                                      \
-          if (__builtin_expect(logFile, 0)) {     \
-            write(logFile, str, sizeof(str) - 1); \
-          }                                       \
-        } while (false)
-
-      #define JLOGPTR(ptr)                    \
-        do {                                  \
-          if (__builtin_expect(logFile, 0)) { \
-            __jlogptr((uintptr_t)ptr);        \
-          }                                   \
-        } while (false)
-
-      template<typename T, int N>
-      struct OIArray {
-        T vals[N];
-      };
-    )";
-  } else {
-    code += R"(
-      #define SAVE_SIZE(val)    AddData(val, returnArg)
-      #define SAVE_DATA(val)
-      #define JLOG(str)
-      #define JLOGPTR(ptr)
-    )";
-  }
-
-  code += includes();
-
-  // TODO comment about namespaces (copy from OICodeGen)
-  code += "namespace OIInternal {\nnamespace {\n";
-  FuncGen::DefineEncodeData(code);
-  FuncGen::DefineEncodeDataSize(code);
-  FuncGen::DefineStoreData(code);
-  FuncGen::DefineAddData(code);
-  FuncGen::DeclareGetContainer(code);
-  genDecls(typeGraph_, code);
-  genDefs(typeGraph_, code);
-  genStaticAsserts(typeGraph_, code);
-
-
+void addStandardGetSizeFuncDecls(std::string& code) {
   code += R"(
     template <typename T>
     void getSizeType(const T &t, size_t& returnArg);
@@ -219,9 +179,9 @@ std::string CodeGen::generate(drgn_type *drgnType) {
     template <typename T, int N>
     void getSizeType(const OIArray<T,N>& container, size_t& returnArg);
   )";
+}
 
-  code += getSizeFuncDecls();
-  // TODO don't have this string here:
+void addStandardGetSizeFuncDefs(std::string& code) {
   // TODO use macros, not StoreData directly
   code += R"(
     template <typename T>
@@ -268,45 +228,28 @@ std::string CodeGen::generate(drgn_type *drgnType) {
       }
     }
   )";
-
-  code += getSizeFuncDefs();
-
-  assert(typeGraph_.rootTypes().size() == 1);
-  Type &rootType = typeGraph_.rootTypes()[0];
-  code += "\nusing __ROOT_TYPE__ = " + rootType.name() + ";\n";
-  code += "} // namespace\n} // namespace OIInternal\n";
-
-  FuncGen::DefineTopLevelGetSizeRef(code, SymbolService::getTypeName(drgnType));
-
-  if (VLOG_IS_ON(3)) {
-    VLOG(3) << "Generated trace code:\n";
-    // VLOG truncates output, so use std::cout
-    std::cout << code;
-  }
-  return code;
 }
 
-std::string getClassSizeFuncDecl(const Class &c) {
-  std::string str = "void getSizeType(const " + c.name() + " &t, size_t &returnArg);\n";
-  return str;
+void getClassSizeFuncDecl(const Class &c, std::string& code) {
+  code += "void getSizeType(const " + c.name() + " &t, size_t &returnArg);\n";
 }
 
-std::string CodeGen::getClassSizeFuncDef(const Class &c) {
+void getClassSizeFuncDef(const Class &c, SymbolService& symbols, std::string& code) {
   // TODO check config.polymorphicInheritance setting
   std::string funcName = "getSizeType";
   if (c.isDynamic()) {
     funcName = "getSizeTypeConcrete";
   }
 
-  std::string str = "void " + funcName + "(const " + c.name() + " &t, size_t &returnArg) {\n";
+  code += "void " + funcName + "(const " + c.name() + " &t, size_t &returnArg) {\n";
   for (const auto &member : c.members) {
     if (member.name.starts_with(AddPadding::MemberPrefix))
       continue;
-    str += "  JLOG(\"" + member.name + " @\");\n";
-    str += "  JLOGPTR(&t." + member.name + ");\n";
-    str += "  getSizeType(t." + member.name + ", returnArg);\n";
+    code += "  JLOG(\"" + member.name + " @\");\n";
+    code += "  JLOGPTR(&t." + member.name + ");\n";
+    code += "  getSizeType(t." + member.name + ", returnArg);\n";
   }
-  str += "}\n";
+  code += "}\n";
 
   if (c.isDynamic()) {
     std::vector<SymbolInfo> childVtableAddrs;
@@ -326,7 +269,7 @@ std::string CodeGen::getClassSizeFuncDef(const Class &c) {
       std::string childVtableName = "vtable for ";
       childVtableName += fqChildName;
 
-      auto optVtableSym = symbols_.locateSymbol(childVtableName, true);
+      auto optVtableSym = symbols.locateSymbol(childVtableName, true);
       if (!optVtableSym) {
 //        LOG(ERROR) << "Failed to find vtable address for '" << childVtableName;
 //        LOG(ERROR) << "Falling back to non dynamic mode";
@@ -336,10 +279,10 @@ std::string CodeGen::getClassSizeFuncDef(const Class &c) {
       childVtableAddrs.push_back(*optVtableSym);
     }
 
-    str += "void getSizeType(const " + c.name() + " &t, size_t &returnArg) {\n";
-    str += "  auto *vptr = *reinterpret_cast<uintptr_t * const *>(&t);\n";
-    str += "  uintptr_t topOffset = *(vptr - 2);\n";
-    str += "  uintptr_t vptrVal = reinterpret_cast<uintptr_t>(vptr);\n";
+    code += "void getSizeType(const " + c.name() + " &t, size_t &returnArg) {\n";
+    code += "  auto *vptr = *reinterpret_cast<uintptr_t * const *>(&t);\n";
+    code += "  uintptr_t topOffset = *(vptr - 2);\n";
+    code += "  uintptr_t vptrVal = reinterpret_cast<uintptr_t>(vptr);\n";
 
     for (size_t i = 0; i < c.children.size(); i++) {
       // The vptr will point to *somewhere* in the vtable of this object's
@@ -353,44 +296,28 @@ std::string CodeGen::getClassSizeFuncDef(const Class &c) {
       auto& vtableSym = childVtableAddrs[i];
       uintptr_t vtableMinAddr = vtableSym.addr;
       uintptr_t vtableMaxAddr = vtableSym.addr + vtableSym.size;
-      str += "  if (vptrVal >= 0x" +
+      code += "  if (vptrVal >= 0x" +
               (boost::format("%x") % vtableMinAddr).str() + " && vptrVal < 0x" +
               (boost::format("%x") % vtableMaxAddr).str() + ") {\n";
-      str += "    SAVE_DATA(" + std::to_string(i) + ");\n";
-      str +=
+      code += "    SAVE_DATA(" + std::to_string(i) + ");\n";
+      code +=
           "    uintptr_t baseAddress = reinterpret_cast<uintptr_t>(&t) + "
           "topOffset;\n";
-      str += "    getSizeTypeConcrete(*reinterpret_cast<const " + child.name() +
+      code += "    getSizeTypeConcrete(*reinterpret_cast<const " + child.name() +
               "*>(baseAddress), returnArg);\n";
-      str += "    return;\n";
-      str += "  }\n";
+      code += "    return;\n";
+      code += "  }\n";
     }
 
-    str += "  SAVE_DATA(-1);\n";
-    str += "  getSizeTypeConcrete(t, returnArg);\n";
-    str += "}\n";
+    code += "  SAVE_DATA(-1);\n";
+    code += "  getSizeTypeConcrete(t, returnArg);\n";
+    code += "}\n";
   }
-
-  return str;
 }
 
-std::string getContainerParams(const Container &c, bool typenamePrefix) {
-  if (c.templateParams.empty())
-    return "";
-
-  std::string params = "<";
-  for (size_t i=0; i<c.templateParams.size(); i++) {
-    if (typenamePrefix)
-      params += "typename ";
-    params += "T" + std::to_string(i) + ",";
-  }
-  params.back() = '>';
-  return params;
-}
-
-std::string CodeGen::getContainerSizeFuncDecl(const Container &c) {
+void getContainerSizeFuncDecl(const Container &c, std::string& code) {
   auto fmt = boost::format(c.containerInfo_.funcDecl) % c.containerInfo_.typeName;
-  return fmt.str();
+  code += fmt.str();
 
   // TODO don't duplicate logic with getContainerSizeFuncDef
 //  std::string str;
@@ -401,16 +328,16 @@ std::string CodeGen::getContainerSizeFuncDecl(const Container &c) {
 //  return str;
 }
 
-std::string CodeGen::getContainerSizeFuncDef(const Container &c) {
-  // TODO this set is a nasty hack:
+void getContainerSizeFuncDef(const Container &c, std::string& code) {
+  // TODO this set is a nasty hack: NEED TO UPDATE BASED ON JAKE'S NEW STUFF
   static std::unordered_set<ContainerTypeEnum> usedContainers{};
   if (usedContainers.find(c.containerInfo_.ctype) != usedContainers.end()) {
-    return "";
+    return;
   }
   usedContainers.insert(c.containerInfo_.ctype);
 
   auto fmt = boost::format(c.containerInfo_.funcBody) % c.containerInfo_.typeName;
-  return fmt.str();
+  code += fmt.str();
 
 //  std::string str;
 //  if (!c.templateParams.empty())
@@ -423,42 +350,116 @@ std::string CodeGen::getContainerSizeFuncDef(const Container &c) {
 //  return str;
 }
 
-std::string CodeGen::includes() {
-  std::string str;
-
-  for (const auto t : typeGraph_.finalTypes) {
-    if (const auto *c = dynamic_cast<Container*>(&t.get())) {
-      str += "#include <" + c->containerInfo_.header + ">\n";
-    }
+void addGetSizeFuncDecls(const TypeGraph& typeGraph, std::string& code) {
+  for (const auto t : typeGraph.finalTypes) {
+    if (const auto *c = dynamic_cast<Class*>(&t.get()))
+      getClassSizeFuncDecl(*c, code);
+    if (const auto *c = dynamic_cast<Container*>(&t.get()))
+      getContainerSizeFuncDecl(*c, code);
   }
-
-  return str;
 }
 
-std::string CodeGen::getSizeFuncDecls() {
-  std::string funcs;
-
-  for (const auto t : typeGraph_.finalTypes) {
+void addGetSizeFuncDefs(const TypeGraph& typeGraph, SymbolService& symbols, std::string& code) {
+  for (const auto t : typeGraph.finalTypes) {
     if (const auto *c = dynamic_cast<Class*>(&t.get()))
-      funcs += getClassSizeFuncDecl(*c);
+      getClassSizeFuncDef(*c, symbols, code);
     if (const auto *c = dynamic_cast<Container*>(&t.get()))
-      funcs += getContainerSizeFuncDecl(*c);
+      getContainerSizeFuncDef(*c, code);
+  }
+}
+} // namespace
+
+std::string CodeGen::generate(drgn_type *drgnType) {
+  // TODO wrap in try-catch
+  // This scope is unrealted to the above comment - it is to avoid parsedRoot being available elsewhere
+  // because typeGraph.rootTypes() should be used instead, in case the root types have been modified
+  DrgnParser drgnParser{typeGraph_, containerInfos_, config_.features.contains(Feature::ChaseRawPointers)};
+  {
+    Type *parsedRoot = drgnParser.parse(drgnType);
+    typeGraph_.addRoot(*parsedRoot);
   }
 
-  return funcs;
+  PassManager pm;
+  pm.addPass(Flattener::createPass());
+  pm.addPass(TypeIdentifier::createPass(containerInfos_));
+  if (config_.features.contains(Feature::PolymorphicInheritance)) {
+    pm.addPass(AddChildren::createPass(drgnParser, symbols_));
+    // Re-run passes over newly added children
+    pm.addPass(Flattener::createPass());
+    pm.addPass(TypeIdentifier::createPass(containerInfos_));
+  }
+  pm.addPass(AddPadding::createPass());
+  pm.addPass(NameGen::createPass());
+  pm.addPass(AlignmentCalc::createPass());
+  pm.addPass(RemoveTopLevelPointer::createPass());
+  pm.addPass(TopoSorter::createPass());
+  pm.run(typeGraph_);
+
+  LOG(INFO) << "Sorted types:\n";
+  for (auto &t : typeGraph_.finalTypes) {
+    LOG(INFO) << "  " << t.get().name() << std::endl;
+  };
+
+  std::string code =
+#include "OITraceCode.cpp"
+      ;
+  defineMacros(code);
+  addIncludes(typeGraph_, code);
+
+  /*
+   * The purpose of the anonymous namespace within `OIInternal` is that
+   * anything defined within an anonymous namespace has internal-linkage,
+   * and therefore won't appear in the symbol table of the resulting object
+   * file. Both OIL and OID do a linear search through the symbol table for
+   * the top-level `getSize` function to locate the probe entry point, so
+   * by keeping the contents of the symbol table to a minimum, we make that
+   * process faster.
+   */
+  code += "namespace OIInternal {\nnamespace {\n";
+  FuncGen::DefineEncodeData(code);
+  FuncGen::DefineEncodeDataSize(code);
+  FuncGen::DefineStoreData(code);
+  FuncGen::DefineAddData(code);
+  FuncGen::DeclareGetContainer(code);
+
+  genDecls(typeGraph_, code);
+  genDefs(typeGraph_, code);
+  genStaticAsserts(typeGraph_, code);
+
+  addStandardGetSizeFuncDecls(code);
+  addGetSizeFuncDecls(typeGraph_, code);
+
+  addStandardGetSizeFuncDefs(code);
+  addGetSizeFuncDefs(typeGraph_, symbols_, code);
+
+  assert(typeGraph_.rootTypes().size() == 1);
+  Type &rootType = typeGraph_.rootTypes()[0];
+  code += "\nusing __ROOT_TYPE__ = " + rootType.name() + ";\n";
+  code += "} // namespace\n} // namespace OIInternal\n";
+
+  FuncGen::DefineTopLevelGetSizeRef(code, SymbolService::getTypeName(drgnType));
+
+  if (VLOG_IS_ON(3)) {
+    VLOG(3) << "Generated trace code:\n";
+    // VLOG truncates output, so use std::cout
+    std::cout << code;
+  }
+  return code;
 }
 
-std::string CodeGen::getSizeFuncDefs() {
-  std::string funcs;
+// TODO maybe not needed with Jake's changes?
+std::string getContainerParams(const Container &c, bool typenamePrefix) {
+  if (c.templateParams.empty())
+    return "";
 
-  for (const auto t : typeGraph_.finalTypes) {
-    if (const auto *c = dynamic_cast<Class*>(&t.get()))
-      funcs += getClassSizeFuncDef(*c);
-    if (const auto *c = dynamic_cast<Container*>(&t.get()))
-      funcs += getContainerSizeFuncDef(*c);
+  std::string params = "<";
+  for (size_t i=0; i<c.templateParams.size(); i++) {
+    if (typenamePrefix)
+      params += "typename ";
+    params += "T" + std::to_string(i) + ",";
   }
-
-  return funcs;
+  params.back() = '>';
+  return params;
 }
 
 void CodeGen::registerContainer(const fs::path &path) {

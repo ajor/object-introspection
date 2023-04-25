@@ -34,13 +34,7 @@ void loadConfig(const T &containerConfigPaths) {
 }
 
 private:
-  std::string includes();
-  std::string getSizeFuncDecls();
-  std::string getSizeFuncDefs();
-  std::string getClassSizeFuncDef(const type_graph::Class &c);
   void registerContainer(const fs::path &path);
-  std::string getContainerSizeFuncDecl(const type_graph::Container &c);
-  std::string getContainerSizeFuncDef(const type_graph::Container &c);
 
   type_graph::TypeGraph &typeGraph_;
   OICodeGen::Config config_;
