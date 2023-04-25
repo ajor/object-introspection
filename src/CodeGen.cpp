@@ -320,7 +320,7 @@ void getClassSizeFuncDef(const Class &c, SymbolService& symbols, std::string& co
 }
 
 void getContainerSizeFuncDecl(const Container &c, std::string& code) {
-  auto fmt = boost::format(c.containerInfo_.funcDecl) % c.containerInfo_.typeName;
+  auto fmt = boost::format(c.containerInfo_.codegen.decl) % c.containerInfo_.typeName;
   code += fmt.str();
 }
 
@@ -332,7 +332,7 @@ void getContainerSizeFuncDef(const Container &c, std::string& code) {
   }
   usedContainers.insert(c.containerInfo_.ctype);
 
-  auto fmt = boost::format(c.containerInfo_.funcBody) % c.containerInfo_.typeName;
+  auto fmt = boost::format(c.containerInfo_.codegen.func) % c.containerInfo_.typeName;
   code += fmt.str();
 }
 
@@ -434,23 +434,11 @@ std::string CodeGen::generate(drgn_type *drgnType) {
 }
 
 void CodeGen::registerContainer(const fs::path &path) {
-// TODO don't catch exceptions at this level?
-//  try {
-  const auto &info = containerInfos_.emplace_back(path);
-//  }
-//  catch (const toml::parse_error &err) {
-//    // TODO
-//  }
-//  // TODO more exception types
-
-  // TODO replace this function:
-  // TODO rewrite FuncGen:
-  //   - use free functions
-  //   - TOML should not need to define declarations or function names - only function contents
-//  if (!funcGen.RegisterContainer(info.ctype, path)) {
-//    // TODO throw
-//    throw std::runtime_error("bad funcgen container");
-//  }
-
-//  VLOG(1) << "registered container: " << info.typeName;
+  try {
+    const auto &info = containerInfos_.emplace_back(path);
+    VLOG(1) << "Registered container: " << info.typeName;
+  }
+  catch (const std::runtime_error &err) {
+    LOG(ERROR) << "Error reading container TOML file " << path << ": " << err.what();
+  }
 }

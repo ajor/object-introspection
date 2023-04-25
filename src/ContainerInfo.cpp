@@ -173,26 +173,32 @@ std::unique_ptr<ContainerInfo> ContainerInfo::loadFromFile(
   });
 }
 
-// TODO don't put this in ctor?
-// TODO try inverting the if-conditions to avoid else branches
 ContainerInfo::ContainerInfo(const fs::path& path) {
-  // TODO this throws (catch above)
-  toml::table container = toml::parse_file(std::string(path));
+  toml::table container;
+  try {
+    container = toml::parse_file(std::string(path));
+  } catch (const toml::parse_error& err) {
+    // Convert into a std::runtime_error, just to avoid having to include
+    // the huge TOML++ header in the caller's file. Use toml::parse_error's
+    // operator<< to generate a pretty message with error location.
+    std::stringstream ss;
+    ss << err;
+    throw std::runtime_error(ss.str());
+  }
 
   if (!container["info"].is_table()){
-    // TODO throw
-    LOG(ERROR) << "a container info file requires an `info` table";
+    throw std::runtime_error("a container info file requires an `info` table");
   }
 
   const auto &info = container["info"];
 
+  // TODO change TOML name to "type_name"
   if (std::optional<std::string> str = info["typeName"].value<std::string>()) {
     typeName = std::move(*str);
   } else {
-    // TODO throw
-    LOG(ERROR) << "`info.typeName` is a required field";
+    throw std::runtime_error("`info.typeName` is a required field");
   }
-  // TODO change TOML name to "type_name"
+
   // TODO just change definitions to remove this:
   if (typeName.back() == '<')
     typeName.pop_back();
@@ -207,19 +213,16 @@ ContainerInfo::ContainerInfo(const fs::path& path) {
   if (std::optional<std::string> str = info["ctype"].value<std::string>()) {
     ctype = containerTypeEnumFromStr(*str);
     if (ctype == UNKNOWN_TYPE) {
-      // TODO throw
-      LOG(ERROR) << "`" << (*str) << "` is not a valid container type";
+      throw std::runtime_error("`" + *str + "` is not a valid container type");
     }
   } else {
-    // TODO throw
-    LOG(ERROR) << "`info.ctype` is a required field";
+    throw std::runtime_error("`info.ctype` is a required field");
   }
 
   if (std::optional<std::string> str = info["header"].value<std::string>()) {
     header = std::move(*str);
   } else {
-    // TODO throw
-    LOG(ERROR) << "`info.header` is a required field";
+    throw std::runtime_error("`info.header` is a required field");
   }
 
   if (toml::array* arr = info["ns"].as_array()) {
@@ -238,7 +241,6 @@ ContainerInfo::ContainerInfo(const fs::path& path) {
         stubTemplateParams.push_back(*el);
       }
       else {
-        // TODO custom error types
         throw std::runtime_error("stub_template_params should only contain integers");
       }
     });
@@ -247,41 +249,21 @@ ContainerInfo::ContainerInfo(const fs::path& path) {
   underlyingContainerIndex = info["underlying_container_index"].value<size_t>();
 
   if (!container["codegen"].is_table()) {
-    // TODO throw
-    LOG(ERROR) << "a container info file requires a `codegen` table";
+    throw std::runtime_error("a container info file requires a `codegen` table");
   }
 
-  const auto &codegen = container["codegen"];
+  const auto &codegenToml = container["codegen"];
 
-  // TODO "funcBody" is an inaccurate name
   if (std::optional<std::string> str =
-          codegen["func"].value<std::string>()) {
-    funcBody = std::move(*str);
+          codegenToml["func"].value<std::string>()) {
+    codegen.func = std::move(*str);
   } else {
-    // TODO throw
-    LOG(ERROR) << "`codegen.func` is a required field";
+    throw std::runtime_error("`codegen.func` is a required field");
   }
   if (std::optional<std::string> str =
-          codegen["decl"].value<std::string>()) {
-    funcDecl = std::move(*str);
+          codegenToml["decl"].value<std::string>()) {
+    codegen.decl = std::move(*str);
   } else {
-    // TODO throw
-    LOG(ERROR) << "`codegen.decl` is a required field";
+    throw std::runtime_error("`codegen.decl` is a required field");
   }
-
-  // Extract the function body from the TOML.
-  //
-  // Input:
-  //   template<typename T>
-  //   void getSizeType(const %1%<T> &container, size_t& returnArg)
-  //   {
-  //     [FUNCTION BODY]
-  //   }
-  //
-  // Output:
-  //   [FUNCTION BODY]
-//  auto openBrace = funcBody.find('{');
-//  auto closeBrace = funcBody.rfind('}');
-//  funcBody.erase(funcBody.begin()+closeBrace, funcBody.end());
-//  funcBody.erase(funcBody.begin(), funcBody.begin()+openBrace+1);
 }

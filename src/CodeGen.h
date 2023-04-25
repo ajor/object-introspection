@@ -26,6 +26,7 @@ public:
 // TODO shouldn't need to be a template (but shouldn't be a set!)
 template <typename T>
 void loadConfig(const T &containerConfigPaths) {
+  containerInfos_.reserve(containerConfigPaths.size());
   for (const auto &path : containerConfigPaths) {
     registerContainer(path);
   }

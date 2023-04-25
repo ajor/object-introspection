@@ -125,7 +125,7 @@ Container *DrgnParser::enumerateContainer(struct drgn_type *type) {
       continue;
     }
 
-    VLOG(2) << "Matching container \"" << containerInfo.typeName << "\" from \"" << nameStr << "\"" << std::endl;
+    VLOG(2) << "Matching container `" << containerInfo.typeName << "` from `" << nameStr << "`" << std::endl;
     auto *c = make_type<Container>(type, containerInfo, size);
     enumerateClassTemplateParams(type, c->templateParams);
     return c;

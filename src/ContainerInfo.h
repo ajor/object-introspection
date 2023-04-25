@@ -32,9 +32,7 @@ struct ContainerInfo {
     std::string func;
   };
 
-  ContainerInfo(const ContainerInfo&) = delete;
-  ContainerInfo& operator=(const ContainerInfo& other) = delete;
-
+  explicit ContainerInfo(const std::filesystem::path& path); // Throws
   ContainerInfo() = default;
   ContainerInfo(std::string typeName_,
                 std::regex matcher_,
@@ -60,6 +58,9 @@ struct ContainerInfo {
         codegen(std::move(codegen_)) {
   }
 
+  ContainerInfo(const ContainerInfo&) = delete;
+  ContainerInfo& operator=(const ContainerInfo& other) = delete;
+
   ContainerInfo(ContainerInfo&&) = default;
   ContainerInfo& operator=(ContainerInfo&&) = default;
 
@@ -74,8 +75,6 @@ struct ContainerInfo {
   // Index of underlying container in template parameters for a container
   // adapter
   std::optional<size_t> underlyingContainerIndex{};
-  std::string funcDecl;
-  std::string funcBody;
   std::vector<size_t> stubTemplateParams{};
 
   Codegen codegen;
@@ -86,8 +85,6 @@ struct ContainerInfo {
   bool operator<(const ContainerInfo& rhs) const {
     return (typeName < rhs.typeName);
   }
-
-  ContainerInfo(const std::filesystem::path& path);
 };
 
 using ContainerInfoRefSet =
