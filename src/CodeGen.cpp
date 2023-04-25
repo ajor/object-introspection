@@ -12,8 +12,6 @@
 #include "type_graph/AlignmentCalc.h"
 #include "type_graph/DrgnParser.h"
 #include "type_graph/Flattener.h"
-#include "type_graph/GenDecls.h"
-#include "type_graph/GenDefs.h"
 #include "type_graph/NameGen.h"
 #include "type_graph/RemoveTopLevelPointer.h"
 #include "type_graph/TopoSorter.h"
@@ -28,6 +26,80 @@ template <typename T>
 using ref = std::reference_wrapper<T>;
 
 namespace {
+void genDeclsClass(const Class &c, std::string& code) {
+  if (c.kind() == Class::Kind::Union)
+    code += "union ";
+  else
+    code += "struct ";
+  code += c.name() + ";\n";
+}
+
+void genDeclsEnum(const Enum &e, std::string& code) {
+  code += "using " + e.name() + " = ";
+  switch (e.size()) {
+    case 8:
+      code += "uint64_t";
+      break;
+    case 4:
+      code += "uint32_t";
+      break;
+    case 2:
+      code += "uint16_t";
+      break;
+    case 1:
+      code += "uint8_t";
+      break;
+    default:
+      abort(); // TODO
+  }
+  code += ";\n";
+}
+
+void genDeclsTypedef(const Typedef &td, std::string& code) {
+  code += "using " + td.name() + " = " + td.underlyingType()->name() + ";\n";
+}
+
+void genDecls(const TypeGraph& typeGraph, std::string& code) {
+  for (const auto t : typeGraph.finalTypes) {
+    if (const auto *c = dynamic_cast<Class*>(&t.get()))
+      genDeclsClass(*c, code);
+    if (const auto *c = dynamic_cast<Enum*>(&t.get()))
+      genDeclsEnum(*c, code);
+    if (const auto *c = dynamic_cast<Typedef*>(&t.get()))
+      genDeclsTypedef(*c, code);
+  }
+}
+
+void genDefsClass(const Class &c, std::string& code) {
+  if (c.kind() == Class::Kind::Union)
+    code += "union ";
+  else
+    code += "struct ";
+
+  if (c.packed()) {
+    code += "__attribute__((__packed__)) ";
+  }
+
+  code += c.name() + " {\n";
+  for (const auto &mem : c.members) {
+    code += "  " + mem.type->name() + " " + mem.name + ";\n";
+  }
+  code += "};\n\n";
+}
+
+void genDefsTypedef(const Typedef &td, std::string& code) {
+  code += "using " + td.name() + " = " + td.underlyingType()->name() + ";\n";
+}
+
+void genDefs(const TypeGraph& typeGraph, std::string& code) {
+  for (const auto t : typeGraph.finalTypes) {
+    if (const auto *c = dynamic_cast<Class*>(&t.get()))
+      genDefsClass(*c, code);
+    if (const auto *c = dynamic_cast<Typedef*>(&t.get()))
+      genDefsTypedef(*c, code);
+  }
+}
+
 void genStaticAssertsClass(const Class& c, std::string& code) {
   code += "static_assert(sizeof(" + c.name() + ") == " + std::to_string(c.size()) + ", \"Unexpected size of struct " + c.name() + "\");\n";
   for (const auto &member : c.members) {
@@ -130,8 +202,8 @@ std::string CodeGen::generate(drgn_type *drgnType) {
   FuncGen::DefineStoreData(code);
   FuncGen::DefineAddData(code);
   FuncGen::DeclareGetContainer(code);
-  GenDecls::run(typeGraph_, code);
-  GenDefs::run(typeGraph_, code);
+  genDecls(typeGraph_, code);
+  genDefs(typeGraph_, code);
   genStaticAsserts(typeGraph_, code);
 
 

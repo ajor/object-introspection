@@ -4,8 +4,6 @@ add_library(type_graph
   AlignmentCalc.cpp
   DrgnParser.cpp
   Flattener.cpp
-  GenDecls.cpp
-  GenDefs.cpp
   NameGen.cpp
   PassManager.cpp
   Printer.cpp
