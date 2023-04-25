@@ -14,7 +14,7 @@ class TypeGraph;
  *
  * Generate C++ definitions for each visited type.
  */
-class GenDefs : public CodeGenVisitor {
+class GenDefs : public LazyConstVisitor {
 public:
   static void run(TypeGraph &typeGraph, std::string &out);
 

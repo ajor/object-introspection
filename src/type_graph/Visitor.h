@@ -78,13 +78,27 @@ public:
 };
 
 /*
- * CodeGenVisitor
+ * ConstVisitor
  *
- * Visitor base class for walking a type graph without modifying it.
+ * Abstract visitor base class for walking a type graph without modifying it.
  */
-class CodeGenVisitor {
+class ConstVisitor {
 public:
-  virtual ~CodeGenVisitor() = default;
+  virtual ~ConstVisitor() = default;
+
+#define X(OI_TYPE_NAME) virtual void visit(const OI_TYPE_NAME &) = 0;
+OI_TYPE_LIST
+#undef X
+};
+
+/*
+ * LazyConstVisitor
+ *
+ * Const visitor base class which takes no action by default.
+ */
+class LazyConstVisitor : public ConstVisitor {
+public:
+  virtual ~LazyConstVisitor() = default;
 
   // TODO work out how to get rid of this "2"
   void visit2(const Type &type) {

@@ -11,24 +11,23 @@ namespace type_graph {
 /*
  * Printer
  */
-class Printer : public Visitor {
+class Printer : public ConstVisitor {
 public:
   Printer(std::ostream &out) : out_(out) { }
-  // TODO change to a ConstVisitor?
   void print(Type &type);
 
-  void visit(Class &c) override;
-  void visit(Container &c) override;
-  void visit(Primitive &p) override;
-  void visit(Enum &e) override;
-  void visit(Array &a) override;
-  void visit(Typedef &td) override;
-  void visit(Pointer &p) override;
-  void visit(Dummy &d) override;
-  void visit(DummyAllocator &d) override;
+  void visit(const Class &c) override;
+  void visit(const Container &c) override;
+  void visit(const Primitive &p) override;
+  void visit(const Enum &e) override;
+  void visit(const Array &a) override;
+  void visit(const Typedef &td) override;
+  void visit(const Pointer &p) override;
+  void visit(const Dummy &d) override;
+  void visit(const DummyAllocator &d) override;
 
 private:
-  bool prefix(Type *type=nullptr);
+  bool prefix(const Type *type=nullptr);
   void print_param(const TemplateParam &param);
   void print_parent(const Parent &parent);
   void print_member(const Member &member);
@@ -39,8 +38,8 @@ private:
 
   std::ostream &out_;
   int depth_ = -1;
-  int next_node_num = 0;
-  std::unordered_map<Type*, int> node_nums;
+  int nextNodeNum_ = 0;
+  std::unordered_map<const Type*, int> nodeNums_;
 };
 
 } // namespace type_graph

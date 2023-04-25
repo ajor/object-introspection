@@ -8,7 +8,7 @@ void Printer::print(Type &type) {
   depth_--;
 }
 
-void Printer::visit(Class &c) {
+void Printer::visit(const Class &c) {
   if (prefix(&c))
     return;
 
@@ -46,7 +46,7 @@ void Printer::visit(Class &c) {
   }
 }
 
-void Printer::visit(Container &c) {
+void Printer::visit(const Container &c) {
   if (prefix(&c))
     return;
 
@@ -56,17 +56,17 @@ void Printer::visit(Container &c) {
   }
 }
 
-void Printer::visit(Primitive &p) {
+void Printer::visit(const Primitive &p) {
   prefix();
   out_ << "Primitive: " << p.name() << std::endl;
 }
 
-void Printer::visit(Enum &e) {
+void Printer::visit(const Enum &e) {
   prefix();
   out_ << "Enum: " << e.name() << " (size: " << e.size() << ")" << std::endl;
 }
 
-void Printer::visit(Array &a) {
+void Printer::visit(const Array &a) {
   if (prefix(&a))
     return;
 
@@ -74,7 +74,7 @@ void Printer::visit(Array &a) {
   print(*a.elementType());
 }
 
-void Printer::visit(Typedef &td) {
+void Printer::visit(const Typedef &td) {
   if (prefix(&td))
     return;
 
@@ -82,7 +82,7 @@ void Printer::visit(Typedef &td) {
   print(*td.underlyingType());
 }
 
-void Printer::visit(Pointer &p) {
+void Printer::visit(const Pointer &p) {
   if (prefix(&p))
     return;
 
@@ -90,19 +90,19 @@ void Printer::visit(Pointer &p) {
   print(*p.pointeeType());
 }
 
-void Printer::visit(Dummy &d) {
+void Printer::visit(const Dummy &d) {
   prefix();
   out_ << "Dummy (size: " << d.size() << align_str(d.align()) << ")" << std::endl;
 }
 
-void Printer::visit(DummyAllocator &d) {
+void Printer::visit(const DummyAllocator &d) {
   prefix();
   out_ << "DummyAllocatorTODO (size: " << d.size() << align_str(d.align()) << ")" << std::endl;
 }
 
-bool Printer::prefix(Type *type) {
+bool Printer::prefix(const Type *type) {
   if (type) {
-    if (auto it=node_nums.find(type); it!=node_nums.end()) {
+    if (auto it=nodeNums_.find(type); it!=nodeNums_.end()) {
       // Node has already been printed - print a reference to it this time
       out_ << std::string(depth_*2, ' ');
       int node_num = it->second;
@@ -110,9 +110,9 @@ bool Printer::prefix(Type *type) {
       return true;
     }
 
-    int node_num = next_node_num++;
+    int node_num = nextNodeNum_++;
     out_ << "[" << node_num << "] "; // TODO pad numbers
-    node_nums.insert({type, node_num});
+    nodeNums_.insert({type, node_num});
   }
   else {
     // Extra padding
