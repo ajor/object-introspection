@@ -318,14 +318,6 @@ void getClassSizeFuncDef(const Class &c, SymbolService& symbols, std::string& co
 void getContainerSizeFuncDecl(const Container &c, std::string& code) {
   auto fmt = boost::format(c.containerInfo_.funcDecl) % c.containerInfo_.typeName;
   code += fmt.str();
-
-  // TODO don't duplicate logic with getContainerSizeFuncDef
-//  std::string str;
-//  if (!c.templateParams.empty())
-//    str += "template " + getContainerParams(c, true) + "\n";
-//  str += "void getSizeType(const " + c.containerName() + getContainerParams(c, false) + " &container,";
-//  str += "size_t &returnArg);\n";
-//  return str;
 }
 
 void getContainerSizeFuncDef(const Container &c, std::string& code) {
@@ -338,16 +330,6 @@ void getContainerSizeFuncDef(const Container &c, std::string& code) {
 
   auto fmt = boost::format(c.containerInfo_.funcBody) % c.containerInfo_.typeName;
   code += fmt.str();
-
-//  std::string str;
-//  if (!c.templateParams.empty())
-//    str += "template " + getContainerParams(c, true) + "\n";
-//  str += "void getSizeType(const " + c.containerName() + getContainerParams(c, false) + " &container,";
-//  str += "size_t &returnArg) {\n";
-//  // TODO sort out templating + boilerplate
-//  str += c.containerInfo_.funcBody;
-//  str += "}\n";
-//  return str;
 }
 
 void addGetSizeFuncDecls(const TypeGraph& typeGraph, std::string& code) {
@@ -445,21 +427,6 @@ std::string CodeGen::generate(drgn_type *drgnType) {
     std::cout << code;
   }
   return code;
-}
-
-// TODO maybe not needed with Jake's changes?
-std::string getContainerParams(const Container &c, bool typenamePrefix) {
-  if (c.templateParams.empty())
-    return "";
-
-  std::string params = "<";
-  for (size_t i=0; i<c.templateParams.size(); i++) {
-    if (typenamePrefix)
-      params += "typename ";
-    params += "T" + std::to_string(i) + ",";
-  }
-  params.back() = '>';
-  return params;
 }
 
 void CodeGen::registerContainer(const fs::path &path) {
