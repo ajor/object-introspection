@@ -19,8 +19,12 @@
 #include "type_graph/TypeIdentifier.h"
 #include "type_graph/Types.h"
 
-// TODO don't do this:
-using namespace type_graph;
+using type_graph::Class;
+using type_graph::Container;
+using type_graph::Enum;
+using type_graph::Typedef;
+using type_graph::Type;
+using type_graph::TypeGraph;
 
 template <typename T>
 using ref = std::reference_wrapper<T>;
@@ -243,7 +247,7 @@ void getClassSizeFuncDef(const Class &c, SymbolService& symbols, std::string& co
 
   code += "void " + funcName + "(const " + c.name() + " &t, size_t &returnArg) {\n";
   for (const auto &member : c.members) {
-    if (member.name.starts_with(AddPadding::MemberPrefix))
+    if (member.name.starts_with(type_graph::AddPadding::MemberPrefix))
       continue;
     code += "  JLOG(\"" + member.name + " @\");\n";
     code += "  JLOGPTR(&t." + member.name + ");\n";
@@ -355,26 +359,26 @@ std::string CodeGen::generate(drgn_type *drgnType) {
   // TODO wrap in try-catch
   // This scope is unrealted to the above comment - it is to avoid parsedRoot being available elsewhere
   // because typeGraph.rootTypes() should be used instead, in case the root types have been modified
-  DrgnParser drgnParser{typeGraph_, containerInfos_, config_.features.contains(Feature::ChaseRawPointers)};
+  type_graph::DrgnParser drgnParser{typeGraph_, containerInfos_, config_.features.contains(Feature::ChaseRawPointers)};
   {
     Type *parsedRoot = drgnParser.parse(drgnType);
     typeGraph_.addRoot(*parsedRoot);
   }
 
-  PassManager pm;
-  pm.addPass(Flattener::createPass());
-  pm.addPass(TypeIdentifier::createPass(containerInfos_));
+  type_graph::PassManager pm;
+  pm.addPass(type_graph::Flattener::createPass());
+  pm.addPass(type_graph::TypeIdentifier::createPass(containerInfos_));
   if (config_.features.contains(Feature::PolymorphicInheritance)) {
-    pm.addPass(AddChildren::createPass(drgnParser, symbols_));
+    pm.addPass(type_graph::AddChildren::createPass(drgnParser, symbols_));
     // Re-run passes over newly added children
-    pm.addPass(Flattener::createPass());
-    pm.addPass(TypeIdentifier::createPass(containerInfos_));
+    pm.addPass(type_graph::Flattener::createPass());
+    pm.addPass(type_graph::TypeIdentifier::createPass(containerInfos_));
   }
-  pm.addPass(AddPadding::createPass());
-  pm.addPass(NameGen::createPass());
-  pm.addPass(AlignmentCalc::createPass());
-  pm.addPass(RemoveTopLevelPointer::createPass());
-  pm.addPass(TopoSorter::createPass());
+  pm.addPass(type_graph::AddPadding::createPass());
+  pm.addPass(type_graph::NameGen::createPass());
+  pm.addPass(type_graph::AlignmentCalc::createPass());
+  pm.addPass(type_graph::RemoveTopLevelPointer::createPass());
+  pm.addPass(type_graph::TopoSorter::createPass());
   pm.run(typeGraph_);
 
   LOG(INFO) << "Sorted types:\n";

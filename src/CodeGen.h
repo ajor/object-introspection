@@ -9,8 +9,6 @@
 #include "OICodeGen.h"
 #include "SymbolService.h"
 
-namespace fs = std::filesystem;
-
 struct drgn_type;
 
 namespace type_graph {
@@ -34,7 +32,7 @@ void loadConfig(const T &containerConfigPaths) {
 }
 
 private:
-  void registerContainer(const fs::path &path);
+  void registerContainer(const std::filesystem::path &path);
 
   type_graph::TypeGraph &typeGraph_;
   OICodeGen::Config config_;

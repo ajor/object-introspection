@@ -260,7 +260,6 @@ target_compile_definitions(oicore PRIVATE ${LLVM_DEFINITIONS})
 llvm_map_components_to_libnames(llvm_libs core native mcjit x86disassembler)
 target_link_libraries(oicore
   codegen
-  type_graph
 
   ${Boost_LIBRARIES}
   Boost::headers

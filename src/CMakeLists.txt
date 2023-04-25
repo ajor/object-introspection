@@ -30,6 +30,7 @@ add_library(codegen
 )
 target_link_libraries(codegen
   symbol_service
+  type_graph
 
   Boost::headers
   ${Boost_LIBRARIES}
@@ -38,4 +39,4 @@ target_link_libraries(codegen
   tomlplusplus::tomlplusplus
 )
 
-add_subdirectory("type_graph")
+add_subdirectory(type_graph)
