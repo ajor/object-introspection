@@ -54,12 +54,13 @@ void AddPadding::visit(Class &c) {
       if (paddingSize > 0) {
         auto* primitive = typeGraph_.make_type<Primitive>(Primitive::Kind::Int8);
         auto* paddingArray = typeGraph_.make_type<Array>(primitive, paddingSize);
-        paddedMembers.emplace_back(paddingArray, "padding", prevMemberEnd);
+        paddedMembers.emplace_back(paddingArray, MemberPrefix, prevMemberEnd);
       }
     }
     paddedMembers.push_back(c.members[i]);
   }
 
+  // TODO reduce duplication with above? (put into function?)
   uint64_t prevMemberEnd = 0;
   if (!c.members.empty()) {
     prevMemberEnd = c.members.back().offset + c.members.back().type->size();
@@ -68,7 +69,7 @@ void AddPadding::visit(Class &c) {
   if (paddingSize > 0) {
     auto* primitive = typeGraph_.make_type<Primitive>(Primitive::Kind::Int8);
     auto* paddingArray = typeGraph_.make_type<Array>(primitive, paddingSize);
-    paddedMembers.emplace_back(paddingArray, "padding", prevMemberEnd);
+    paddedMembers.emplace_back(paddingArray, MemberPrefix, prevMemberEnd);
   }
 
   c.members = std::move(paddedMembers);

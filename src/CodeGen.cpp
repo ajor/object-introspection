@@ -223,6 +223,8 @@ std::string CodeGen::getClassSizeFuncDef(const Class &c) {
 
   std::string str = "void " + funcName + "(const " + c.name() + " &t, size_t &returnArg) {\n";
   for (const auto &member : c.members) {
+    if (member.name.starts_with(AddPadding::MemberPrefix))
+      continue;
     str += "  JLOG(\"" + member.name + " @\");\n";
     str += "  JLOGPTR(&t." + member.name + ");\n";
     str += "  getSizeType(t." + member.name + ", returnArg);\n";

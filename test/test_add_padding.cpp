@@ -38,7 +38,7 @@ TEST(AddPaddingTest, BetweenMembers) {
 [0] Class: MyClass (size: 16)
       Member: n1 (offset: 0)
         Primitive: int8_t
-      Member: padding (offset: 1)
+      Member: __oid_padding (offset: 1)
 [1]     Array: (length: 7)
           Primitive: int8_t
       Member: n2 (offset: 8)
@@ -59,7 +59,7 @@ TEST(AddPaddingTest, AtEnd) {
         Primitive: int64_t
       Member: n2 (offset: 8)
         Primitive: int8_t
-      Member: padding (offset: 9)
+      Member: __oid_padding (offset: 9)
 [1]     Array: (length: 7)
           Primitive: int8_t
 )");

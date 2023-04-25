@@ -27,6 +27,8 @@ public:
   void visit(Type &type) override;
   void visit(Class &c) override;
 
+  static const inline std::string MemberPrefix = "__oid_padding";
+
 private:
   std::unordered_set<Type*> visited_;
   TypeGraph &typeGraph_;
