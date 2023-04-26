@@ -2932,7 +2932,9 @@ std::optional<std::string> OIDebugger::generateCode(const irequest &req, bool us
     type_graph::TypeGraph typeGraph;
     CodeGen codegen2(typeGraph, generatorConfig, *symbols);
     codegen2.loadConfig(generatorConfig.containerConfigPaths);
-    code = codegen2.generate(root->type.type);
+    if (!codegen2.generate(root->type.type, code)) {
+      return nullopt;
+    }
   }
 
   if (auto sourcePath = cache.getPath(req, OICache::Entity::Source)) {

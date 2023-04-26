@@ -59,4 +59,17 @@ private:
   bool chaseRawPointers_;
 };
 
+class DrgnParserError : public std::runtime_error {
+public:
+  DrgnParserError(const std::string& msg)
+    : std::runtime_error{msg} { }
+  DrgnParserError(const std::string& msg, struct drgn_error *err)
+    : std::runtime_error{msg + ": " + std::to_string(err->code) + " " + err->message}, err_(err) { }
+
+  ~DrgnParserError();
+
+private:
+  struct drgn_error *err_ = nullptr;
+};
+
 } // namespace type_graph

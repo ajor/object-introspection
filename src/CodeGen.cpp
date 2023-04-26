@@ -355,14 +355,15 @@ void addGetSizeFuncDefs(const TypeGraph& typeGraph, SymbolService& symbols, std:
 }
 } // namespace
 
-std::string CodeGen::generate(drgn_type *drgnType) {
-  // TODO wrap in try-catch
-  // This scope is unrealted to the above comment - it is to avoid parsedRoot being available elsewhere
-  // because typeGraph.rootTypes() should be used instead, in case the root types have been modified
+bool CodeGen::generate(drgn_type *drgnType, std::string& code) {
   type_graph::DrgnParser drgnParser{typeGraph_, containerInfos_, config_.features.contains(Feature::ChaseRawPointers)};
-  {
+  try {
     Type *parsedRoot = drgnParser.parse(drgnType);
     typeGraph_.addRoot(*parsedRoot);
+  }
+  catch (const type_graph::DrgnParserError& err) {
+    LOG(ERROR) << "Error parsing DWARF: " << err.what();
+    return false;
   }
 
   type_graph::PassManager pm;
@@ -386,7 +387,7 @@ std::string CodeGen::generate(drgn_type *drgnType) {
     LOG(INFO) << "  " << t.get().name() << std::endl;
   };
 
-  std::string code =
+  code =
 #include "OITraceCode.cpp"
       ;
   defineMacros(code);
@@ -430,7 +431,7 @@ std::string CodeGen::generate(drgn_type *drgnType) {
     // VLOG truncates output, so use std::cout
     std::cout << code;
   }
-  return code;
+  return true;
 }
 
 void CodeGen::registerContainer(const fs::path &path) {

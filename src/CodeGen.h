@@ -21,7 +21,7 @@ class TypeGraph;
 class CodeGen {
 public:
   CodeGen(type_graph::TypeGraph &typeGraph, OICodeGen::Config &config, SymbolService& symbols) : typeGraph_(typeGraph), config_(config), symbols_(symbols) { }
-  std::string generate(drgn_type *drgnType);
+  bool generate(drgn_type *drgnType, std::string& code);
 
 // TODO shouldn't need to be a template (but shouldn't be a set!)
 template <typename T>

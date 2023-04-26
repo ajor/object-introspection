@@ -19,7 +19,7 @@ uint64_t get_drgn_type_size(struct drgn_type *type) {
   uint64_t size;
   struct drgn_error *err = drgn_type_sizeof(type, &size);
   if (err)
-    abort(); // TODO
+    throw DrgnParserError{"Failed to get type size", err};
   return size;
 }
 
@@ -37,7 +37,7 @@ Primitive::Kind primitiveIntKind(struct drgn_type *type) {
     case 8:
       return is_signed ? Primitive::Kind::Int64 : Primitive::Kind::UInt64;
     default:
-      abort(); // TODO
+      throw DrgnParserError{"Invalid integer size: " + std::to_string(size)};
   }
 }
 
@@ -52,7 +52,7 @@ Primitive::Kind primitiveFloatKind(struct drgn_type *type) {
     case 16:
       return Primitive::Kind::Float128;
     default:
-      abort(); // TODO
+      throw DrgnParserError{"Invalid float size: " + std::to_string(size)};
   }
 }
 
@@ -102,7 +102,7 @@ Type *DrgnParser::enumerateType(struct drgn_type *type) {
       t = enumeratePrimitive(type);
       break;
     default:
-      abort(); // TODO
+      throw DrgnParserError{"Unknown drgn type kind: " + std::to_string(kind)};
   }
   depth_--;
 
@@ -162,7 +162,7 @@ Type *DrgnParser::enumerateClass(struct drgn_type *type) {
       kind = Class::Kind::Union;
       break;
     default:
-      abort(); // TODO
+      throw DrgnParserError{"Invalid drgn type kind for class: " + std::to_string(drgn_type_kind(type))};
   }
 
   auto c = make_type<Class>(type, kind, name, size, virtuality);
@@ -189,7 +189,7 @@ void DrgnParser::enumerateClassParents(struct drgn_type *type, std::vector<Paren
     struct drgn_qualified_type parent_qual_type;
     struct drgn_error *err = drgn_template_parameter_type(&drgn_parents[i], &parent_qual_type);
     if (err) {
-      abort(); // TODO throw an exception instead
+      throw DrgnParserError{"Error looking up parent type (" + std::to_string(i) + ")", err};
     }
 
     auto ptype = enumerateType(parent_qual_type.type);
@@ -215,8 +215,9 @@ void DrgnParser::enumerateClassMembers(struct drgn_type *type, std::vector<Membe
     uint64_t bit_field_size;
     struct drgn_error *err =
         drgn_member_type(&drgn_members[i], &member_qual_type, &bit_field_size);
-    if (err)
-      abort(); // TODO
+    if (err) {
+      throw DrgnParserError{"Error looking up member type (" + std::to_string(i) + ")", err};
+    }
 
     struct drgn_type *member_type = member_qual_type.type;
 
@@ -254,20 +255,17 @@ void DrgnParser::enumerateTemplateParam(drgn_type_template_parameter *tparams,
                                         size_t i,
                                         std::vector<TemplateParam> &params) {
   const drgn_object* obj = nullptr;
-  if (auto* err = drgn_template_parameter_object(&tparams[i], &obj);
-      err != nullptr) {
-//    LOG(ERROR) << "Error when looking up template parameter " << err->code
-//               << " " << err->message;
-    drgn_error_destroy(err);
-    abort(); // TODO throw
+  if (auto* err = drgn_template_parameter_object(&tparams[i], &obj)) {
+    throw DrgnParserError{"Error looking up template parameter object (" + std::to_string(i) + ")", err};
   }
 
   struct drgn_qualified_type tparamQualType;
   if (obj == nullptr) {
     // This template parameter is a typename
     struct drgn_error *err = drgn_template_parameter_type(&tparams[i], &tparamQualType);
-    if (err) // TODO destroy drgn errors everywhere
-      abort(); // TODO
+    if (err) {
+      throw DrgnParserError{"Error looking up template parameter type (" + std::to_string(i) + ")", err};
+    }
 
     struct drgn_type *tparamType = tparamQualType.type;
 
@@ -298,8 +296,7 @@ void DrgnParser::enumerateTemplateParam(drgn_type_template_parameter *tparams,
     } else if (obj->encoding == DRGN_OBJECT_ENCODING_FLOAT) {
       value = std::to_string(obj->value.fvalue);
     } else {
-//      LOG(ERROR) << "Unsupported OBJ encoding for getting template parameter";
-      abort(); // TODO
+      throw DrgnParserError{"Unknown template parameter object encoding format: " + std::to_string(obj->encoding)};
     }
 
     params.emplace_back(make_type<Primitive>(nullptr, Primitive::Kind::UInt8), value);
@@ -327,8 +324,7 @@ void DrgnParser::enumerateClassFunctions(struct drgn_type *type, std::vector<Fun
   for (size_t i = 0; i < num_functions; i++) {
     drgn_qualified_type t{};
     if (auto *err = drgn_member_function_type(&drgn_functions[i], &t)) {
-//      LOG(ERROR) << "Error when looking up member function for type " << type
-//                 << " err " << err->code << " " << err->message;
+      LOG(WARNING) << "Error looking up member function (" + std::to_string(i) + "): " + std::to_string(err->code) + " " + err->message;
       drgn_error_destroy(err);
       continue;
     }
@@ -398,7 +394,7 @@ Primitive *DrgnParser::enumeratePrimitive(struct drgn_type *type) {
       kind = Primitive::Kind::Void;
       break;
     default:
-      abort(); // TODO
+      throw DrgnParserError{"Invalid drgn type kind for primitive: " + std::to_string(drgn_type_kind(type))};
   }
   return make_type<Primitive>(type, kind);
 }
@@ -408,6 +404,10 @@ bool DrgnParser::chasePointer() const {
   if (depth_ == 1)
     return true;
   return chaseRawPointers_;
+}
+
+DrgnParserError::~DrgnParserError() {
+  drgn_error_destroy(err_);
 }
 
 } // namespace type_graph
