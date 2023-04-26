@@ -44,15 +44,13 @@ extern "C" {
 
 #include <glog/logging.h>
 
+#include "CodeGen.h"
 #include "ContainerInfo.h"
 #include "Metrics.h"
 #include "OILexer.h"
 #include "OIUtils.h"
 #include "PaddingHunter.h"
 #include "Syscall.h"
-
-// TODO put these in order
-#include "CodeGen.h"
 #include "type_graph/TypeGraph.h"
 
 #ifndef OSS_ENABLE

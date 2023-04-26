@@ -26,7 +26,7 @@ uint64_t get_drgn_type_size(struct drgn_type *type) {
 Primitive::Kind primitiveIntKind(struct drgn_type *type) {
   auto size = get_drgn_type_size(type);
 
-  bool is_signed = type->_private.is_signed; // TODO shouldn't access private member
+  bool is_signed = type->_private.is_signed;
   switch (size) {
     case 1:
       return is_signed ? Primitive::Kind::Int8 : Primitive::Kind::UInt8;
@@ -166,9 +166,6 @@ Type *DrgnParser::enumerateClass(struct drgn_type *type) {
   }
 
   auto c = make_type<Class>(type, kind, name, size, virtuality);
-
-  //TODO remove or keep?
-  //classes_.push_back(c);
 
   enumerateClassTemplateParams(type, c->templateParams);
   enumerateClassParents(type, c->parents);
@@ -352,9 +349,6 @@ Typedef *DrgnParser::enumerateTypedef(struct drgn_type *type) {
   auto t = enumerateType(underlyingType);
   return make_type<Typedef>(type, name, t);
 }
-
-// TODO will have to do something about pointers in the visitor classes
-// - sometimes they must be followed, sometimes not?
 
 Type *DrgnParser::enumeratePointer(struct drgn_type *type) {
   if (!chasePointer()) {

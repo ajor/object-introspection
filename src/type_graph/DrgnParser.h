@@ -12,7 +12,6 @@ struct ContainerInfo;
 
 namespace type_graph {
 
-// TODO coding style change: "struct drgn_type" -> "drgn_type"
 class DrgnParser {
 public:
   DrgnParser(TypeGraph &typeGraph, const std::vector<ContainerInfo> &containers, bool chaseRawPointers)
