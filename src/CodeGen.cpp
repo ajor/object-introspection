@@ -434,6 +434,13 @@ bool CodeGen::generate(drgn_type *drgnType, std::string& code) {
   return true;
 }
 
+void CodeGen::loadConfig(const std::set<fs::path> &containerConfigPaths) {
+  containerInfos_.reserve(containerConfigPaths.size());
+  for (const auto &path : containerConfigPaths) {
+    registerContainer(path);
+  }
+}
+
 void CodeGen::registerContainer(const fs::path &path) {
   try {
     const auto &info = containerInfos_.emplace_back(path);

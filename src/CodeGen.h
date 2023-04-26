@@ -21,16 +21,9 @@ class TypeGraph;
 class CodeGen {
 public:
   CodeGen(type_graph::TypeGraph &typeGraph, OICodeGen::Config &config, SymbolService& symbols) : typeGraph_(typeGraph), config_(config), symbols_(symbols) { }
-  bool generate(drgn_type *drgnType, std::string& code);
 
-// TODO shouldn't need to be a template (but shouldn't be a set!)
-template <typename T>
-void loadConfig(const T &containerConfigPaths) {
-  containerInfos_.reserve(containerConfigPaths.size());
-  for (const auto &path : containerConfigPaths) {
-    registerContainer(path);
-  }
-}
+  bool generate(drgn_type *drgnType, std::string& code);
+  void loadConfig(const std::set<std::filesystem::path> &containerConfigPaths);
 
 private:
   void registerContainer(const std::filesystem::path &path);
