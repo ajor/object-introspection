@@ -163,8 +163,9 @@ std::string typeToName(drgn_type* type) {
 bool isSizeComplete(struct drgn_type *type) {
   uint64_t sz;
   struct drgn_error *err = drgn_type_sizeof(type, &sz);
-  // TODO do we need to clean up error?
-  return err == nullptr;
+  bool isComplete = (err == nullptr);
+  drgn_error_destroy(err);
+  return isComplete;
 }
 
 drgn_type* underlyingType(drgn_type* type) {
