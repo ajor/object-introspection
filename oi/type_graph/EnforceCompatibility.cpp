@@ -28,7 +28,7 @@ namespace oi::detail::type_graph {
 
 Pass EnforceCompatibility::createPass() {
   auto fn = [](TypeGraph& typeGraph) {
-    EnforceCompatibility pass{typeGraph.resetTracker()};
+    EnforceCompatibility pass{typeGraph.newTracker()};
     for (auto& type : typeGraph.rootTypes()) {
       pass.accept(type);
     }

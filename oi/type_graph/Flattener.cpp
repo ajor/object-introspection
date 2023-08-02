@@ -22,7 +22,7 @@ namespace oi::detail::type_graph {
 
 Pass Flattener::createPass() {
   auto fn = [](TypeGraph& typeGraph) {
-    Flattener flattener{typeGraph.resetTracker()};
+    Flattener flattener{typeGraph.newTracker()};
     for (auto& type : typeGraph.rootTypes()) {
       flattener.accept(type);
     }

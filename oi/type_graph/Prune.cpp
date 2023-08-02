@@ -22,7 +22,7 @@ namespace oi::detail::type_graph {
 
 Pass Prune::createPass() {
   auto fn = [](TypeGraph& typeGraph) {
-    Prune pass{typeGraph.resetTracker()};
+    Prune pass{typeGraph.newTracker()};
     for (auto& type : typeGraph.rootTypes()) {
       pass.accept(type);
     }
