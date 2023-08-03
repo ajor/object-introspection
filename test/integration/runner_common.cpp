@@ -94,6 +94,8 @@ int main(int argc, char* argv[]) {
     }
   }
 
+  global_oid_args.push_back("-ftype-graph");
+
   return RUN_ALL_TESTS();
 }
 
